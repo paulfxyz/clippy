@@ -1,0 +1,197 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+@layer base {
+  :root {
+    /* Clippy palette — warm paper/office yellow with deep ink navy */
+    --background: 48 30% 96%;
+    --foreground: 220 35% 12%;
+
+    --card: 48 25% 98%;
+    --card-foreground: 220 35% 12%;
+
+    --popover: 48 25% 98%;
+    --popover-foreground: 220 35% 12%;
+
+    /* Clippy Yellow accent */
+    --primary: 44 85% 52%;
+    --primary-foreground: 220 35% 10%;
+
+    --secondary: 220 15% 90%;
+    --secondary-foreground: 220 35% 20%;
+
+    --muted: 48 15% 92%;
+    --muted-foreground: 220 12% 48%;
+
+    --accent: 44 80% 55%;
+    --accent-foreground: 220 35% 10%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 44 20% 84%;
+    --input: 44 20% 84%;
+    --ring: 44 85% 52%;
+
+    --radius: 0.5rem;
+
+    /* Severity colors */
+    --critical: 0 72% 51%;
+    --critical-bg: 0 72% 96%;
+    --suspect: 32 90% 50%;
+    --suspect-bg: 32 90% 95%;
+    --minor: 44 60% 48%;
+    --minor-bg: 44 60% 94%;
+    --success: 142 60% 38%;
+    --success-bg: 142 60% 95%;
+  }
+
+  .dark {
+    --background: 220 25% 8%;
+    --foreground: 48 30% 88%;
+
+    --card: 220 20% 11%;
+    --card-foreground: 48 30% 88%;
+
+    --popover: 220 20% 11%;
+    --popover-foreground: 48 30% 88%;
+
+    --primary: 44 80% 55%;
+    --primary-foreground: 220 35% 8%;
+
+    --secondary: 220 15% 18%;
+    --secondary-foreground: 48 20% 80%;
+
+    --muted: 220 15% 15%;
+    --muted-foreground: 220 10% 55%;
+
+    --accent: 44 75% 52%;
+    --accent-foreground: 220 35% 8%;
+
+    --destructive: 0 62% 55%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 220 15% 20%;
+    --input: 220 15% 20%;
+    --ring: 44 80% 55%;
+
+    --critical: 0 68% 62%;
+    --critical-bg: 0 50% 15%;
+    --suspect: 32 85% 58%;
+    --suspect-bg: 32 60% 14%;
+    --minor: 44 65% 58%;
+    --minor-bg: 44 50% 15%;
+    --success: 142 55% 50%;
+    --success-bg: 142 40% 12%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Clippy wobble animation */
+@keyframes clippy-wobble {
+  0%, 100% { transform: rotate(-3deg) scale(1); }
+  25% { transform: rotate(3deg) scale(1.05); }
+  50% { transform: rotate(-2deg) scale(1.02); }
+  75% { transform: rotate(2deg) scale(1.04); }
+}
+
+@keyframes clippy-blink {
+  0%, 90%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.1); }
+}
+
+@keyframes clippy-talk {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.clippy-wobble {
+  animation: clippy-wobble 0.6s ease-in-out;
+}
+
+.clippy-talk {
+  animation: clippy-talk 0.5s ease-in-out infinite;
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.4s ease-out both;
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 25%,
+    hsl(var(--muted-foreground) / 0.15) 37%,
+    hsl(var(--muted)) 63%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+}
+
+/* Dotted paper texture on drop zone */
+.paper-texture {
+  background-image: radial-gradient(circle, hsl(var(--border)) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Trust score ring */
+.trust-ring {
+  stroke-dasharray: 251.2;
+  stroke-dashoffset: 251.2;
+  transition: stroke-dashoffset 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: center;
+  transform: rotate(-90deg);
+}
+
+/* Severity badge colors */
+.badge-critical {
+  background: hsl(var(--critical-bg));
+  color: hsl(var(--critical));
+  border: 1px solid hsl(var(--critical) / 0.3);
+}
+.badge-suspect {
+  background: hsl(var(--suspect-bg));
+  color: hsl(var(--suspect));
+  border: 1px solid hsl(var(--suspect) / 0.3);
+}
+.badge-minor {
+  background: hsl(var(--minor-bg));
+  color: hsl(var(--minor));
+  border: 1px solid hsl(var(--minor) / 0.3);
+}
+
+/* Model card tabs */
+.model-tab-active {
+  @apply bg-card border border-border shadow-sm;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: hsl(var(--muted)); }
+::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground)); }
