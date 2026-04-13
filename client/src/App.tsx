@@ -1,6 +1,6 @@
 /**
  * @file App.tsx
- * @description Root application component and router for Clippy v2.0.0.
+ * @description Root application component and router for Clippy v3.0.0.
  *
  * ROUTING
  * -------
@@ -32,6 +32,7 @@ import { useHashLocation } from "wouter/use-hash-location";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
+import { I18nProvider } from "@/lib/i18n";
 import Home from "@/pages/Home";
 import ShareView from "@/pages/ShareView";
 import NotFound from "@/pages/not-found";
@@ -66,12 +67,18 @@ function AppRoutes() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Router with hash-location hook — required for static hosting compatibility */}
-      <Router hook={useHashLocation}>
-        <AppRoutes />
-      </Router>
-      {/* Global toast overlay — rendered outside the router so it survives route changes */}
-      <Toaster />
+      {/*
+       * I18nProvider wraps the entire app so any component can call useI18n().
+       * It also applies dir="rtl" / lang attributes to <html> on locale change.
+       */}
+      <I18nProvider>
+        {/* Router with hash-location hook — required for static hosting compatibility */}
+        <Router hook={useHashLocation}>
+          <AppRoutes />
+        </Router>
+        {/* Global toast overlay — rendered outside the router so it survives route changes */}
+        <Toaster />
+      </I18nProvider>
     </QueryClientProvider>
   );
 }

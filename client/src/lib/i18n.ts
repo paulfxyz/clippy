@@ -1,0 +1,1633 @@
+/**
+ * @file i18n.ts
+ * @description Lightweight internationalisation (i18n) system for Clippy v3.0.0.
+ *
+ * OVERVIEW
+ * --------
+ * Clippy v3.0.0 ships with full UI translations in 17 languages:
+ *   English, French, Spanish, Portuguese, German, Dutch, Italian,
+ *   Chinese (Simplified), Russian, Hindi, Bulgarian, Polish, Danish,
+ *   Japanese, Korean, Hebrew, Arabic
+ *
+ * DESIGN DECISIONS
+ * ----------------
+ * 1. No external library (no i18next, no react-intl).
+ *    The app is a client-side SPA with no build pipeline complexity budget.
+ *    A flat key/value dictionary + a single `t()` helper is all we need.
+ *
+ * 2. Locale is stored in localStorage under "clippy_locale" and applied via
+ *    a React context so any component can call `useI18n()` to get `t()`.
+ *
+ * 3. English is the fallback for any missing key in any locale.
+ *    This prevents crashes if a translation is accidentally omitted.
+ *
+ * 4. RTL support: Arabic and Hebrew set `dir="rtl"` on the document element.
+ *    The CSS already uses logical properties (start/end) via Tailwind, so RTL
+ *    works without any additional stylesheet changes.
+ *
+ * 5. Locale detection order:
+ *    localStorage → browser navigator.language → "en"
+ *
+ * ADDING A NEW LANGUAGE
+ * ---------------------
+ * 1. Add a new entry to SUPPORTED_LOCALES.
+ * 2. Add a full translation object to TRANSLATIONS keyed by the locale code.
+ * 3. That's it — the switcher and t() will pick it up automatically.
+ *
+ * KEY NAMING CONVENTION
+ * ---------------------
+ * Keys are dot-separated: section.element.variant
+ *   nav.github           → nav bar GitHub link
+ *   step1.title          → Step 1 main heading
+ *   clippy.setup         → Clippy speech bubble for setup step
+ *   toast.pdf_downloaded → Toast notification for PDF download
+ *
+ * @module i18n
+ */
+
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
+import React from "react";
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+/** All supported locale codes. */
+export type Locale =
+  | "en" | "fr" | "es" | "pt" | "de" | "nl" | "it"
+  | "zh" | "ru" | "hi" | "bg" | "pl" | "da" | "ja" | "ko" | "he" | "ar";
+
+/** A flat key→string dictionary for one locale. */
+export type TranslationDict = Record<string, string>;
+
+/** Shape of the i18n context value. */
+export interface I18nContextValue {
+  /** Current active locale. */
+  locale: Locale;
+  /** Change the active locale and persist to localStorage. */
+  setLocale: (locale: Locale) => void;
+  /**
+   * Translate a key to the current locale.
+   * Falls back to English if the key is missing.
+   * Supports `{{variable}}` interpolation.
+   *
+   * @param key - Dot-separated translation key
+   * @param vars - Optional variable map for interpolation
+   * @returns Translated string
+   */
+  t: (key: string, vars?: Record<string, string | number>) => string;
+  /** Whether the current locale is right-to-left. */
+  isRtl: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// Supported locales manifest
+// ---------------------------------------------------------------------------
+
+export interface LocaleInfo {
+  code: Locale;
+  /** Native name of the language (shown in switcher). */
+  nativeName: string;
+  /** Flag emoji. */
+  flag: string;
+  /** ISO 639-1 / BCP-47 lang attribute. */
+  htmlLang: string;
+  /** Whether the locale is right-to-left. */
+  rtl?: boolean;
+}
+
+export const SUPPORTED_LOCALES: LocaleInfo[] = [
+  { code: "en", nativeName: "English",    flag: "🇬🇧", htmlLang: "en" },
+  { code: "fr", nativeName: "Français",   flag: "🇫🇷", htmlLang: "fr" },
+  { code: "es", nativeName: "Español",    flag: "🇪🇸", htmlLang: "es" },
+  { code: "pt", nativeName: "Português",  flag: "🇵🇹", htmlLang: "pt" },
+  { code: "de", nativeName: "Deutsch",    flag: "🇩🇪", htmlLang: "de" },
+  { code: "nl", nativeName: "Nederlands", flag: "🇳🇱", htmlLang: "nl" },
+  { code: "it", nativeName: "Italiano",   flag: "🇮🇹", htmlLang: "it" },
+  { code: "zh", nativeName: "中文",        flag: "🇨🇳", htmlLang: "zh" },
+  { code: "ru", nativeName: "Русский",    flag: "🇷🇺", htmlLang: "ru" },
+  { code: "hi", nativeName: "हिन्दी",      flag: "🇮🇳", htmlLang: "hi" },
+  { code: "bg", nativeName: "Български",  flag: "🇧🇬", htmlLang: "bg" },
+  { code: "pl", nativeName: "Polski",     flag: "🇵🇱", htmlLang: "pl" },
+  { code: "da", nativeName: "Dansk",      flag: "🇩🇰", htmlLang: "da" },
+  { code: "ja", nativeName: "日本語",      flag: "🇯🇵", htmlLang: "ja" },
+  { code: "ko", nativeName: "한국어",      flag: "🇰🇷", htmlLang: "ko" },
+  { code: "he", nativeName: "עברית",      flag: "🇮🇱", htmlLang: "he", rtl: true },
+  { code: "ar", nativeName: "العربية",    flag: "🇸🇦", htmlLang: "ar", rtl: true },
+];
+
+/** Set of RTL locale codes for quick lookup. */
+export const RTL_LOCALES = new Set<Locale>(["he", "ar"]);
+
+// ---------------------------------------------------------------------------
+// Translations
+// ---------------------------------------------------------------------------
+
+const en: TranslationDict = {
+  // ---- Navigation ----------------------------------------------------------
+  "nav.brand":                      "clippy",
+  "nav.github":                     "GitHub",
+  "nav.version_badge":              "v3.0.0",
+  "nav.shared_badge":               "shared report",
+
+  // ---- Step indicator ------------------------------------------------------
+  "steps.setup":                    "Setup",
+  "steps.objectives":               "Objectives",
+  "steps.results":                  "Results",
+
+  // ---- Clippy speech bubbles -----------------------------------------------
+  "clippy.setup":                   "It looks like you're signing a contract. Would you like help checking for nasty clauses?",
+  "clippy.prompts":                 "Great! Now choose what I should look for. You can edit or add your own objectives!",
+  "clippy.analyzing":               "I'm reading every single clause so you don't have to. Give me a moment...",
+  "clippy.results":                 "Here's what I found! Red flags are sorted by severity. Compare results across models.",
+  "clippy.idle":                    "Drop your contract here and I'll tell you if you're about to get ripped off.",
+  "clippy.wrong_format":            "Hmm, I can only read PDF, DOCX, TXT, or MD files. Try one of those!",
+  "clippy.file_loaded":             "Nice! I can see \"{{filename}}\". Now let's configure your analysis.",
+  "clippy.file_error":              "Oops, I had trouble reading that file. Make sure it's not password-protected!",
+  "clippy.key_locked":              "API key locked. It's encrypted in memory — only used when running analysis.",
+  "clippy.need_file":               "Please upload a contract file first!",
+  "clippy.need_key":                "Psst — I need your OpenRouter API key to work my magic!",
+  "clippy.need_model":              "Pick at least one model to analyze with!",
+  "clippy.key_missing":             "API key is missing. Please go back and enter it.",
+  "clippy.need_objective":          "Enable at least one analysis objective first!",
+  "clippy.share_invalid":           "Hmm, this link doesn't look right. It might be corrupted or expired.",
+
+  // ---- Step 1: Setup -------------------------------------------------------
+  "step1.title":                    "Analyze Your Contract",
+  "step1.subtitle":                 "Upload your file, enter your API key, and choose AI models. Everything runs in your browser — nothing stored.",
+  "step1.drop_title":               "Drop your contract here",
+  "step1.drop_subtitle":            "PDF, DOCX, TXT, or MD",
+  "step1.drop_button":              "Or click to browse",
+  "step1.file_loaded":              "File loaded",
+  "step1.change_file":              "Change file",
+  "step1.api_key_label":            "OpenRouter API Key",
+  "step1.api_key_placeholder":      "sk-or-v1-...",
+  "step1.api_key_hint":             "Get yours at",
+  "step1.api_key_privacy":          "Never stored — encrypted in your browser session only.",
+  "step1.lock_button":              "Lock",
+  "step1.unlock_button":            "Unlock",
+  "step1.models_label":             "AI Models",
+  "step1.models_hint":              "Select one or more models to run in parallel.",
+  "step1.feature_multimodel":       "Multi-model",
+  "step1.feature_multimodel_desc":  "Run 8+ AI models simultaneously and compare findings.",
+  "step1.feature_private":          "100% private",
+  "step1.feature_private_desc":     "Your file goes directly to OpenRouter. No server, no logs.",
+  "step1.feature_dimensions":       "5 dimensions",
+  "step1.feature_dimensions_desc":  "Transparency, Balance, Compliance, Financial Risk, Exit Freedom.",
+  "step1.next_button":              "Next: Choose Objectives",
+
+  // ---- Step 2: Prompts -----------------------------------------------------
+  "step2.title":                    "Analysis Objectives",
+  "step2.subtitle":                 "Choose what Clippy should look for. Toggle, edit, or add your own custom objectives.",
+  "step2.enabled_count":            "{{count}} objective enabled",
+  "step2.enabled_count_plural":     "{{count}} objectives enabled",
+  "step2.back_button":              "Back",
+  "step2.run_button":               "Run Analysis",
+  "step2.add_custom":               "Add Custom Objective",
+  "step2.prompt_title_placeholder": "Objective title",
+  "step2.prompt_desc_placeholder":  "Short description (shown to users)",
+  "step2.prompt_body_placeholder":  "The instruction text sent to the AI model...",
+  "step2.edit_tooltip":             "Edit this objective",
+  "step2.delete_tooltip":           "Delete this custom objective",
+  "step2.save_button":              "Save",
+  "step2.cancel_button":            "Cancel",
+
+  // ---- Step 3: Results -----------------------------------------------------
+  "step3.title":                    "Analysis Results",
+  "step3.analyzing":                "Analyzing...",
+  "step3.back_button":              "New Analysis",
+  "step3.download_pdf":             "Download PDF",
+  "step3.download_md":              "Download Markdown",
+  "step3.share_url":                "Share URL",
+  "step3.copy_url":                 "Copy URL",
+  "step3.copied":                   "Copied!",
+  "step3.reading":                  "Reading...",
+  "step3.trust_score":              "Trust Score",
+  "step3.summary":                  "Summary",
+  "step3.dimensions":               "5 Dimensions",
+  "step3.flagged_clauses":          "Flagged Clauses",
+  "step3.issues":                   "{{count}} issues",
+  "step3.no_issues":                "No significant issues found. This contract looks fair!",
+  "step3.analysis_failed":          "Analysis failed",
+  "step3.critical":                 "Critical",
+  "step3.suspect":                  "Suspect",
+  "step3.minor":                    "Minor",
+  "step3.model_tabs_label":         "Model results",
+  "step3.jurisdiction":             "Jurisdiction",
+
+  // ---- Share view ----------------------------------------------------------
+  "share.analyzed_on":              "Analyzed on {{date}}",
+  "share.objectives":               "Objectives: {{list}}",
+  "share.models_badge":             "{{count}} model",
+  "share.models_badge_plural":      "{{count}} models",
+  "share.version_badge":            "Clippy v{{version}}",
+  "share.disclaimer":               "This is a shared contract analysis report generated by Clippy. The contract file was analyzed in the sharer's browser — no file was uploaded to any server. This report is for informational purposes only and does not constitute legal advice.",
+  "share.analyze_own":              "Analyze Your Own",
+  "share.cta_title":                "Want to analyze your own contract?",
+  "share.cta_subtitle":             "Clippy is free and open source. Bring your own OpenRouter API key.",
+  "share.cta_button":               "Try Clippy Free",
+  "share.invalid_title":            "Invalid Share Link",
+  "share.invalid_desc":             "This share URL could not be decoded. It may have been truncated, corrupted by your email client, or the format has changed.",
+  "share.invalid_button":           "Analyze Your Own Contract",
+
+  // ---- Footer --------------------------------------------------------------
+  "footer.tagline":                 "open source AI contract analyzer",
+  "footer.powered_by":              "Powered by OpenRouter",
+
+  // ---- Toast messages ------------------------------------------------------
+  "toast.encryption_error":         "Encryption error",
+  "toast.encryption_error_desc":    "Could not encrypt the API key. Continuing without encryption.",
+  "toast.decrypt_failed":           "Key decryption failed",
+  "toast.decrypt_failed_desc":      "Could not decrypt your API key. Please re-enter it.",
+  "toast.pdf_downloaded":           "PDF downloaded",
+  "toast.pdf_downloaded_desc":      "Check your downloads folder.",
+  "toast.md_downloaded":            "Markdown downloaded",
+  "toast.md_downloaded_desc":       "Check your downloads folder.",
+  "toast.url_copied":               "Share URL copied!",
+  "toast.url_copied_desc":          "Anyone with the link can view these results.",
+  "toast.url_generated":            "URL generated",
+  "toast.url_generated_desc":       "Copy it manually from the share field.",
+
+  // ---- Language switcher ---------------------------------------------------
+  "lang.label":                     "Language",
+  "lang.select":                    "Select language",
+
+  // ---- Prompt categories ---------------------------------------------------
+  "cat.general":                    "General",
+  "cat.financial":                  "Financial",
+  "cat.privacy":                    "Privacy",
+  "cat.employment":                 "Employment",
+  "cat.ip":                         "IP",
+  "cat.custom":                     "Custom",
+};
+
+// ---------------------------------------------------------------------------
+// French
+// ---------------------------------------------------------------------------
+const fr: TranslationDict = {
+  "nav.brand": "clippy",
+  "nav.github": "GitHub",
+  "nav.version_badge": "v3.0.0",
+  "nav.shared_badge": "rapport partagé",
+  "steps.setup": "Configuration",
+  "steps.objectives": "Objectifs",
+  "steps.results": "Résultats",
+  "clippy.setup": "Il semblerait que vous signiez un contrat. Voulez-vous que je vérifie les clauses abusives ?",
+  "clippy.prompts": "Parfait ! Choisissez maintenant ce que je dois rechercher. Vous pouvez modifier ou ajouter vos propres objectifs !",
+  "clippy.analyzing": "Je lis chaque clause à votre place. Donnez-moi un instant...",
+  "clippy.results": "Voici ce que j'ai trouvé ! Les signalements sont triés par gravité. Comparez les résultats entre les modèles.",
+  "clippy.idle": "Déposez votre contrat ici et je vous dirai si vous êtes sur le point de vous faire arnaquer.",
+  "clippy.wrong_format": "Hmm, je ne peux lire que des fichiers PDF, DOCX, TXT ou MD. Essayez l'un de ceux-là !",
+  "clippy.file_loaded": "Super ! Je vois «\u00a0{{filename}}\u00a0». Configurons maintenant votre analyse.",
+  "clippy.file_error": "Oups, j'ai eu du mal à lire ce fichier. Assurez-vous qu'il n'est pas protégé par un mot de passe !",
+  "clippy.key_locked": "Clé API verrouillée. Elle est chiffrée en mémoire — utilisée uniquement lors de l'analyse.",
+  "clippy.need_file": "Veuillez d'abord télécharger un fichier de contrat !",
+  "clippy.need_key": "Psst — j'ai besoin de votre clé API OpenRouter pour travailler !",
+  "clippy.need_model": "Choisissez au moins un modèle pour l'analyse !",
+  "clippy.key_missing": "Clé API manquante. Veuillez revenir en arrière et la saisir.",
+  "clippy.need_objective": "Activez d'abord au moins un objectif d'analyse !",
+  "clippy.share_invalid": "Hmm, ce lien ne semble pas correct. Il est peut-être corrompu ou expiré.",
+  "step1.title": "Analysez Votre Contrat",
+  "step1.subtitle": "Téléchargez votre fichier, entrez votre clé API et choisissez les modèles IA. Tout s'exécute dans votre navigateur — rien n'est stocké.",
+  "step1.drop_title": "Déposez votre contrat ici",
+  "step1.drop_subtitle": "PDF, DOCX, TXT ou MD",
+  "step1.drop_button": "Ou cliquez pour parcourir",
+  "step1.file_loaded": "Fichier chargé",
+  "step1.change_file": "Changer de fichier",
+  "step1.api_key_label": "Clé API OpenRouter",
+  "step1.api_key_placeholder": "sk-or-v1-...",
+  "step1.api_key_hint": "Obtenez la vôtre sur",
+  "step1.api_key_privacy": "Jamais stockée — chiffrée uniquement dans votre session navigateur.",
+  "step1.lock_button": "Verrouiller",
+  "step1.unlock_button": "Déverrouiller",
+  "step1.models_label": "Modèles IA",
+  "step1.models_hint": "Sélectionnez un ou plusieurs modèles à exécuter en parallèle.",
+  "step1.feature_multimodel": "Multi-modèle",
+  "step1.feature_multimodel_desc": "Exécutez plus de 8 modèles IA simultanément et comparez les résultats.",
+  "step1.feature_private": "100% privé",
+  "step1.feature_private_desc": "Votre fichier va directement vers OpenRouter. Pas de serveur, pas de logs.",
+  "step1.feature_dimensions": "5 dimensions",
+  "step1.feature_dimensions_desc": "Transparence, Équilibre, Conformité, Risque financier, Liberté de sortie.",
+  "step1.next_button": "Suivant\u00a0: Choisir les objectifs",
+  "step2.title": "Objectifs d'Analyse",
+  "step2.subtitle": "Choisissez ce que Clippy doit rechercher. Activez, modifiez ou ajoutez vos propres objectifs.",
+  "step2.enabled_count": "{{count}} objectif activé",
+  "step2.enabled_count_plural": "{{count}} objectifs activés",
+  "step2.back_button": "Retour",
+  "step2.run_button": "Lancer l'Analyse",
+  "step2.add_custom": "Ajouter un Objectif Personnalisé",
+  "step2.prompt_title_placeholder": "Titre de l'objectif",
+  "step2.prompt_desc_placeholder": "Courte description (affichée aux utilisateurs)",
+  "step2.prompt_body_placeholder": "Le texte d'instruction envoyé au modèle IA...",
+  "step2.edit_tooltip": "Modifier cet objectif",
+  "step2.delete_tooltip": "Supprimer cet objectif personnalisé",
+  "step2.save_button": "Enregistrer",
+  "step2.cancel_button": "Annuler",
+  "step3.title": "Résultats de l'Analyse",
+  "step3.analyzing": "Analyse en cours...",
+  "step3.back_button": "Nouvelle Analyse",
+  "step3.download_pdf": "Télécharger PDF",
+  "step3.download_md": "Télécharger Markdown",
+  "step3.share_url": "URL de partage",
+  "step3.copy_url": "Copier l'URL",
+  "step3.copied": "Copié\u00a0!",
+  "step3.reading": "Lecture...",
+  "step3.trust_score": "Score de confiance",
+  "step3.summary": "Résumé",
+  "step3.dimensions": "5 Dimensions",
+  "step3.flagged_clauses": "Clauses signalées",
+  "step3.issues": "{{count}} problème",
+  "step3.no_issues": "Aucun problème significatif trouvé. Ce contrat semble équitable\u00a0!",
+  "step3.analysis_failed": "Analyse échouée",
+  "step3.critical": "Critique",
+  "step3.suspect": "Suspect",
+  "step3.minor": "Mineur",
+  "step3.model_tabs_label": "Résultats par modèle",
+  "step3.jurisdiction": "Juridiction",
+  "share.analyzed_on": "Analysé le {{date}}",
+  "share.objectives": "Objectifs\u00a0: {{list}}",
+  "share.models_badge": "{{count}} modèle",
+  "share.models_badge_plural": "{{count}} modèles",
+  "share.version_badge": "Clippy v{{version}}",
+  "share.disclaimer": "Ceci est un rapport d'analyse de contrat partagé généré par Clippy. Le fichier a été analysé dans le navigateur de l'expéditeur — aucun fichier n'a été envoyé à un serveur. Ce rapport est fourni à titre informatif uniquement et ne constitue pas un avis juridique.",
+  "share.analyze_own": "Analyser le vôtre",
+  "share.cta_title": "Vous voulez analyser votre propre contrat\u00a0?",
+  "share.cta_subtitle": "Clippy est gratuit et open source. Apportez votre propre clé API OpenRouter.",
+  "share.cta_button": "Essayer Clippy Gratuitement",
+  "share.invalid_title": "Lien de partage invalide",
+  "share.invalid_desc": "Cette URL de partage ne peut pas être décodée. Elle est peut-être tronquée, corrompue par votre client mail, ou le format a changé.",
+  "share.invalid_button": "Analyser Votre Propre Contrat",
+  "footer.tagline": "analyseur de contrats IA open source",
+  "footer.powered_by": "Propulsé par OpenRouter",
+  "toast.encryption_error": "Erreur de chiffrement",
+  "toast.encryption_error_desc": "Impossible de chiffrer la clé API. Continuer sans chiffrement.",
+  "toast.decrypt_failed": "Échec du déchiffrement",
+  "toast.decrypt_failed_desc": "Impossible de déchiffrer votre clé API. Veuillez la ressaisir.",
+  "toast.pdf_downloaded": "PDF téléchargé",
+  "toast.pdf_downloaded_desc": "Vérifiez votre dossier de téléchargements.",
+  "toast.md_downloaded": "Markdown téléchargé",
+  "toast.md_downloaded_desc": "Vérifiez votre dossier de téléchargements.",
+  "toast.url_copied": "URL de partage copiée\u00a0!",
+  "toast.url_copied_desc": "Toute personne disposant du lien peut voir ces résultats.",
+  "toast.url_generated": "URL générée",
+  "toast.url_generated_desc": "Copiez-la manuellement depuis le champ de partage.",
+  "lang.label": "Langue",
+  "lang.select": "Choisir la langue",
+  "cat.general": "Général",
+  "cat.financial": "Financier",
+  "cat.privacy": "Confidentialité",
+  "cat.employment": "Emploi",
+  "cat.ip": "PI",
+  "cat.custom": "Personnalisé",
+};
+
+// ---------------------------------------------------------------------------
+// Spanish
+// ---------------------------------------------------------------------------
+const es: TranslationDict = {
+  "nav.brand": "clippy",
+  "nav.github": "GitHub",
+  "nav.version_badge": "v3.0.0",
+  "nav.shared_badge": "informe compartido",
+  "steps.setup": "Configuración",
+  "steps.objectives": "Objetivos",
+  "steps.results": "Resultados",
+  "clippy.setup": "Parece que vas a firmar un contrato. ¿Te ayudo a revisar las cláusulas abusivas?",
+  "clippy.prompts": "¡Genial! Ahora elige qué debo buscar. ¡Puedes editar o añadir tus propios objetivos!",
+  "clippy.analyzing": "Estoy leyendo cada cláusula por ti. Dame un momento...",
+  "clippy.results": "¡Esto es lo que encontré! Las alertas están ordenadas por gravedad. Compara resultados entre modelos.",
+  "clippy.idle": "Suelta tu contrato aquí y te diré si estás a punto de ser estafado.",
+  "clippy.wrong_format": "Hmm, solo puedo leer archivos PDF, DOCX, TXT o MD. ¡Prueba con uno de esos!",
+  "clippy.file_loaded": "¡Perfecto! Veo «{{filename}}». Ahora configuremos tu análisis.",
+  "clippy.file_error": "Vaya, tuve problemas para leer ese archivo. ¡Asegúrate de que no esté protegido con contraseña!",
+  "clippy.key_locked": "Clave API bloqueada. Está cifrada en memoria — solo se usa al ejecutar el análisis.",
+  "clippy.need_file": "¡Por favor, sube primero un archivo de contrato!",
+  "clippy.need_key": "Psst — ¡necesito tu clave API de OpenRouter para trabajar!",
+  "clippy.need_model": "¡Elige al menos un modelo para analizar!",
+  "clippy.key_missing": "Falta la clave API. Por favor, vuelve atrás e introdúcela.",
+  "clippy.need_objective": "¡Activa al menos un objetivo de análisis primero!",
+  "clippy.share_invalid": "Hmm, este enlace no parece correcto. Puede estar corrupto o caducado.",
+  "step1.title": "Analiza Tu Contrato",
+  "step1.subtitle": "Sube tu archivo, introduce tu clave API y elige modelos de IA. Todo se ejecuta en tu navegador — nada se almacena.",
+  "step1.drop_title": "Suelta tu contrato aquí",
+  "step1.drop_subtitle": "PDF, DOCX, TXT o MD",
+  "step1.drop_button": "O haz clic para explorar",
+  "step1.file_loaded": "Archivo cargado",
+  "step1.change_file": "Cambiar archivo",
+  "step1.api_key_label": "Clave API de OpenRouter",
+  "step1.api_key_placeholder": "sk-or-v1-...",
+  "step1.api_key_hint": "Consigue la tuya en",
+  "step1.api_key_privacy": "Nunca almacenada — cifrada solo en tu sesión de navegador.",
+  "step1.lock_button": "Bloquear",
+  "step1.unlock_button": "Desbloquear",
+  "step1.models_label": "Modelos de IA",
+  "step1.models_hint": "Selecciona uno o más modelos para ejecutar en paralelo.",
+  "step1.feature_multimodel": "Multi-modelo",
+  "step1.feature_multimodel_desc": "Ejecuta más de 8 modelos de IA simultáneamente y compara hallazgos.",
+  "step1.feature_private": "100% privado",
+  "step1.feature_private_desc": "Tu archivo va directamente a OpenRouter. Sin servidor, sin registros.",
+  "step1.feature_dimensions": "5 dimensiones",
+  "step1.feature_dimensions_desc": "Transparencia, Equilibrio, Cumplimiento, Riesgo financiero, Libertad de salida.",
+  "step1.next_button": "Siguiente: Elegir Objetivos",
+  "step2.title": "Objetivos de Análisis",
+  "step2.subtitle": "Elige qué debe buscar Clippy. Activa, edita o añade tus propios objetivos personalizados.",
+  "step2.enabled_count": "{{count}} objetivo activado",
+  "step2.enabled_count_plural": "{{count}} objetivos activados",
+  "step2.back_button": "Atrás",
+  "step2.run_button": "Ejecutar Análisis",
+  "step2.add_custom": "Añadir Objetivo Personalizado",
+  "step2.prompt_title_placeholder": "Título del objetivo",
+  "step2.prompt_desc_placeholder": "Descripción corta (mostrada a los usuarios)",
+  "step2.prompt_body_placeholder": "El texto de instrucción enviado al modelo de IA...",
+  "step2.edit_tooltip": "Editar este objetivo",
+  "step2.delete_tooltip": "Eliminar este objetivo personalizado",
+  "step2.save_button": "Guardar",
+  "step2.cancel_button": "Cancelar",
+  "step3.title": "Resultados del Análisis",
+  "step3.analyzing": "Analizando...",
+  "step3.back_button": "Nuevo Análisis",
+  "step3.download_pdf": "Descargar PDF",
+  "step3.download_md": "Descargar Markdown",
+  "step3.share_url": "URL para compartir",
+  "step3.copy_url": "Copiar URL",
+  "step3.copied": "¡Copiado!",
+  "step3.reading": "Leyendo...",
+  "step3.trust_score": "Puntuación de confianza",
+  "step3.summary": "Resumen",
+  "step3.dimensions": "5 Dimensiones",
+  "step3.flagged_clauses": "Cláusulas marcadas",
+  "step3.issues": "{{count}} problema",
+  "step3.no_issues": "No se encontraron problemas significativos. ¡Este contrato parece justo!",
+  "step3.analysis_failed": "Análisis fallido",
+  "step3.critical": "Crítico",
+  "step3.suspect": "Sospechoso",
+  "step3.minor": "Menor",
+  "step3.model_tabs_label": "Resultados por modelo",
+  "step3.jurisdiction": "Jurisdicción",
+  "share.analyzed_on": "Analizado el {{date}}",
+  "share.objectives": "Objetivos: {{list}}",
+  "share.models_badge": "{{count}} modelo",
+  "share.models_badge_plural": "{{count}} modelos",
+  "share.version_badge": "Clippy v{{version}}",
+  "share.disclaimer": "Este es un informe de análisis de contrato compartido generado por Clippy. El archivo fue analizado en el navegador del remitente — no se subió ningún archivo a ningún servidor. Este informe es solo informativo y no constituye asesoramiento legal.",
+  "share.analyze_own": "Analizar el tuyo",
+  "share.cta_title": "¿Quieres analizar tu propio contrato?",
+  "share.cta_subtitle": "Clippy es gratuito y de código abierto. Trae tu propia clave API de OpenRouter.",
+  "share.cta_button": "Prueba Clippy Gratis",
+  "share.invalid_title": "Enlace de Compartición Inválido",
+  "share.invalid_desc": "Esta URL de compartición no pudo descodificarse. Puede haber sido truncada, corrompida por tu cliente de correo, o el formato ha cambiado.",
+  "share.invalid_button": "Analizar Tu Propio Contrato",
+  "footer.tagline": "analizador de contratos IA de código abierto",
+  "footer.powered_by": "Impulsado por OpenRouter",
+  "toast.encryption_error": "Error de cifrado",
+  "toast.encryption_error_desc": "No se pudo cifrar la clave API. Continuando sin cifrado.",
+  "toast.decrypt_failed": "Error de descifrado",
+  "toast.decrypt_failed_desc": "No se pudo descifrar tu clave API. Por favor, vuelve a introducirla.",
+  "toast.pdf_downloaded": "PDF descargado",
+  "toast.pdf_downloaded_desc": "Revisa tu carpeta de descargas.",
+  "toast.md_downloaded": "Markdown descargado",
+  "toast.md_downloaded_desc": "Revisa tu carpeta de descargas.",
+  "toast.url_copied": "¡URL de compartición copiada!",
+  "toast.url_copied_desc": "Cualquiera con el enlace puede ver estos resultados.",
+  "toast.url_generated": "URL generada",
+  "toast.url_generated_desc": "Cópiala manualmente desde el campo de compartición.",
+  "lang.label": "Idioma",
+  "lang.select": "Seleccionar idioma",
+  "cat.general": "General",
+  "cat.financial": "Financiero",
+  "cat.privacy": "Privacidad",
+  "cat.employment": "Empleo",
+  "cat.ip": "PI",
+  "cat.custom": "Personalizado",
+};
+
+// ---------------------------------------------------------------------------
+// Portuguese
+// ---------------------------------------------------------------------------
+const pt: TranslationDict = {
+  "nav.brand": "clippy",
+  "nav.github": "GitHub",
+  "nav.version_badge": "v3.0.0",
+  "nav.shared_badge": "relatório partilhado",
+  "steps.setup": "Configuração",
+  "steps.objectives": "Objetivos",
+  "steps.results": "Resultados",
+  "clippy.setup": "Parece que vai assinar um contrato. Quer que eu verifique as cláusulas abusivas?",
+  "clippy.prompts": "Ótimo! Agora escolha o que devo procurar. Pode editar ou adicionar os seus próprios objetivos!",
+  "clippy.analyzing": "Estou a ler cada cláusula por si. Aguarde um momento...",
+  "clippy.results": "Aqui está o que encontrei! Os alertas estão ordenados por gravidade. Compare os resultados entre modelos.",
+  "clippy.idle": "Largue o seu contrato aqui e digo-lhe se está prestes a ser enganado.",
+  "clippy.wrong_format": "Hmm, só consigo ler ficheiros PDF, DOCX, TXT ou MD. Experimente um desses!",
+  "clippy.file_loaded": "Óptimo! Vejo «{{filename}}». Agora vamos configurar a sua análise.",
+  "clippy.file_error": "Ups, tive dificuldade em ler esse ficheiro. Certifique-se de que não está protegido por palavra-passe!",
+  "clippy.key_locked": "Chave API bloqueada. Está cifrada em memória — usada apenas ao executar a análise.",
+  "clippy.need_file": "Por favor, carregue primeiro um ficheiro de contrato!",
+  "clippy.need_key": "Psst — preciso da sua chave API OpenRouter para trabalhar!",
+  "clippy.need_model": "Escolha pelo menos um modelo para analisar!",
+  "clippy.key_missing": "Chave API em falta. Por favor, volte atrás e introduza-a.",
+  "clippy.need_objective": "Ative pelo menos um objetivo de análise primeiro!",
+  "clippy.share_invalid": "Hmm, este link não parece correto. Pode estar corrompido ou expirado.",
+  "step1.title": "Analise o Seu Contrato",
+  "step1.subtitle": "Carregue o seu ficheiro, introduza a sua chave API e escolha modelos de IA. Tudo corre no seu navegador — nada é armazenado.",
+  "step1.drop_title": "Largue o seu contrato aqui",
+  "step1.drop_subtitle": "PDF, DOCX, TXT ou MD",
+  "step1.drop_button": "Ou clique para procurar",
+  "step1.file_loaded": "Ficheiro carregado",
+  "step1.change_file": "Mudar ficheiro",
+  "step1.api_key_label": "Chave API OpenRouter",
+  "step1.api_key_placeholder": "sk-or-v1-...",
+  "step1.api_key_hint": "Obtenha a sua em",
+  "step1.api_key_privacy": "Nunca armazenada — cifrada apenas na sua sessão de navegador.",
+  "step1.lock_button": "Bloquear",
+  "step1.unlock_button": "Desbloquear",
+  "step1.models_label": "Modelos de IA",
+  "step1.models_hint": "Selecione um ou mais modelos para executar em paralelo.",
+  "step1.feature_multimodel": "Multi-modelo",
+  "step1.feature_multimodel_desc": "Execute mais de 8 modelos de IA simultaneamente e compare as descobertas.",
+  "step1.feature_private": "100% privado",
+  "step1.feature_private_desc": "O seu ficheiro vai diretamente para o OpenRouter. Sem servidor, sem registos.",
+  "step1.feature_dimensions": "5 dimensões",
+  "step1.feature_dimensions_desc": "Transparência, Equilíbrio, Conformidade, Risco financeiro, Liberdade de saída.",
+  "step1.next_button": "Seguinte: Escolher Objetivos",
+  "step2.title": "Objetivos de Análise",
+  "step2.subtitle": "Escolha o que o Clippy deve procurar. Ative, edite ou adicione os seus próprios objetivos personalizados.",
+  "step2.enabled_count": "{{count}} objetivo ativado",
+  "step2.enabled_count_plural": "{{count}} objetivos ativados",
+  "step2.back_button": "Voltar",
+  "step2.run_button": "Executar Análise",
+  "step2.add_custom": "Adicionar Objetivo Personalizado",
+  "step2.prompt_title_placeholder": "Título do objetivo",
+  "step2.prompt_desc_placeholder": "Descrição curta (mostrada aos utilizadores)",
+  "step2.prompt_body_placeholder": "O texto de instrução enviado ao modelo de IA...",
+  "step2.edit_tooltip": "Editar este objetivo",
+  "step2.delete_tooltip": "Eliminar este objetivo personalizado",
+  "step2.save_button": "Guardar",
+  "step2.cancel_button": "Cancelar",
+  "step3.title": "Resultados da Análise",
+  "step3.analyzing": "A analisar...",
+  "step3.back_button": "Nova Análise",
+  "step3.download_pdf": "Descarregar PDF",
+  "step3.download_md": "Descarregar Markdown",
+  "step3.share_url": "URL de partilha",
+  "step3.copy_url": "Copiar URL",
+  "step3.copied": "Copiado!",
+  "step3.reading": "A ler...",
+  "step3.trust_score": "Pontuação de confiança",
+  "step3.summary": "Resumo",
+  "step3.dimensions": "5 Dimensões",
+  "step3.flagged_clauses": "Cláusulas assinaladas",
+  "step3.issues": "{{count}} problema",
+  "step3.no_issues": "Não foram encontrados problemas significativos. Este contrato parece justo!",
+  "step3.analysis_failed": "Análise falhada",
+  "step3.critical": "Crítico",
+  "step3.suspect": "Suspeito",
+  "step3.minor": "Menor",
+  "step3.model_tabs_label": "Resultados por modelo",
+  "step3.jurisdiction": "Jurisdição",
+  "share.analyzed_on": "Analisado em {{date}}",
+  "share.objectives": "Objetivos: {{list}}",
+  "share.models_badge": "{{count}} modelo",
+  "share.models_badge_plural": "{{count}} modelos",
+  "share.version_badge": "Clippy v{{version}}",
+  "share.disclaimer": "Este é um relatório de análise de contrato partilhado gerado pelo Clippy. O ficheiro foi analisado no navegador do remetente — nenhum ficheiro foi enviado para qualquer servidor. Este relatório é apenas para fins informativos e não constitui aconselhamento jurídico.",
+  "share.analyze_own": "Analisar o seu",
+  "share.cta_title": "Quer analisar o seu próprio contrato?",
+  "share.cta_subtitle": "O Clippy é gratuito e open source. Traga a sua própria chave API OpenRouter.",
+  "share.cta_button": "Experimente o Clippy Gratuitamente",
+  "share.invalid_title": "Ligação de Partilha Inválida",
+  "share.invalid_desc": "Este URL de partilha não pôde ser descodificado. Pode ter sido truncado, corrompido pelo seu cliente de email, ou o formato mudou.",
+  "share.invalid_button": "Analisar o Seu Próprio Contrato",
+  "footer.tagline": "analisador de contratos IA open source",
+  "footer.powered_by": "Desenvolvido com OpenRouter",
+  "toast.encryption_error": "Erro de cifragem",
+  "toast.encryption_error_desc": "Não foi possível cifrar a chave API. A continuar sem cifragem.",
+  "toast.decrypt_failed": "Falha na descifragem",
+  "toast.decrypt_failed_desc": "Não foi possível decifrar a sua chave API. Por favor, introduza-a novamente.",
+  "toast.pdf_downloaded": "PDF descarregado",
+  "toast.pdf_downloaded_desc": "Verifique a sua pasta de transferências.",
+  "toast.md_downloaded": "Markdown descarregado",
+  "toast.md_downloaded_desc": "Verifique a sua pasta de transferências.",
+  "toast.url_copied": "URL de partilha copiado!",
+  "toast.url_copied_desc": "Qualquer pessoa com a ligação pode ver estes resultados.",
+  "toast.url_generated": "URL gerado",
+  "toast.url_generated_desc": "Copie-o manualmente do campo de partilha.",
+  "lang.label": "Idioma",
+  "lang.select": "Selecionar idioma",
+  "cat.general": "Geral",
+  "cat.financial": "Financeiro",
+  "cat.privacy": "Privacidade",
+  "cat.employment": "Emprego",
+  "cat.ip": "PI",
+  "cat.custom": "Personalizado",
+};
+
+// ---------------------------------------------------------------------------
+// German
+// ---------------------------------------------------------------------------
+const de: TranslationDict = {
+  "nav.brand": "clippy",
+  "nav.github": "GitHub",
+  "nav.version_badge": "v3.0.0",
+  "nav.shared_badge": "geteilter Bericht",
+  "steps.setup": "Einrichtung",
+  "steps.objectives": "Ziele",
+  "steps.results": "Ergebnisse",
+  "clippy.setup": "Sieht aus, als würdest du einen Vertrag unterschreiben. Soll ich die Klauseln prüfen?",
+  "clippy.prompts": "Super! Wähle jetzt, wonach ich suchen soll. Du kannst Ziele bearbeiten oder eigene hinzufügen!",
+  "clippy.analyzing": "Ich lese jede einzelne Klausel für dich. Einen Moment bitte...",
+  "clippy.results": "Das habe ich gefunden! Warnungen sind nach Schweregrad sortiert. Vergleiche Ergebnisse zwischen Modellen.",
+  "clippy.idle": "Lass deinen Vertrag hier fallen und ich sage dir, ob du gleich übers Ohr gehauen wirst.",
+  "clippy.wrong_format": "Hmm, ich kann nur PDF-, DOCX-, TXT- oder MD-Dateien lesen. Versuche eine davon!",
+  "clippy.file_loaded": "Super! Ich sehe «{{filename}}». Lass uns jetzt deine Analyse konfigurieren.",
+  "clippy.file_error": "Hoppla, ich hatte Probleme beim Lesen dieser Datei. Stell sicher, dass sie nicht passwortgeschützt ist!",
+  "clippy.key_locked": "API-Schlüssel gesperrt. Er ist im Speicher verschlüsselt — wird nur bei der Analyse verwendet.",
+  "clippy.need_file": "Bitte lade zuerst eine Vertragsdatei hoch!",
+  "clippy.need_key": "Psst — ich brauche deinen OpenRouter-API-Schlüssel, um zu arbeiten!",
+  "clippy.need_model": "Wähle mindestens ein Modell zur Analyse aus!",
+  "clippy.key_missing": "API-Schlüssel fehlt. Bitte geh zurück und gib ihn ein.",
+  "clippy.need_objective": "Aktiviere zuerst mindestens ein Analyseziel!",
+  "clippy.share_invalid": "Hmm, dieser Link sieht nicht richtig aus. Er könnte beschädigt oder abgelaufen sein.",
+  "step1.title": "Deinen Vertrag Analysieren",
+  "step1.subtitle": "Lade deine Datei hoch, gib deinen API-Schlüssel ein und wähle KI-Modelle. Alles läuft in deinem Browser — nichts wird gespeichert.",
+  "step1.drop_title": "Vertrag hier ablegen",
+  "step1.drop_subtitle": "PDF, DOCX, TXT oder MD",
+  "step1.drop_button": "Oder zum Durchsuchen klicken",
+  "step1.file_loaded": "Datei geladen",
+  "step1.change_file": "Datei ändern",
+  "step1.api_key_label": "OpenRouter API-Schlüssel",
+  "step1.api_key_placeholder": "sk-or-v1-...",
+  "step1.api_key_hint": "Holen dir deinen auf",
+  "step1.api_key_privacy": "Nie gespeichert — nur in deiner Browsersitzung verschlüsselt.",
+  "step1.lock_button": "Sperren",
+  "step1.unlock_button": "Entsperren",
+  "step1.models_label": "KI-Modelle",
+  "step1.models_hint": "Wähle ein oder mehrere Modelle für den parallelen Betrieb aus.",
+  "step1.feature_multimodel": "Multi-Modell",
+  "step1.feature_multimodel_desc": "Führe 8+ KI-Modelle gleichzeitig aus und vergleiche die Ergebnisse.",
+  "step1.feature_private": "100% privat",
+  "step1.feature_private_desc": "Deine Datei geht direkt zu OpenRouter. Kein Server, keine Logs.",
+  "step1.feature_dimensions": "5 Dimensionen",
+  "step1.feature_dimensions_desc": "Transparenz, Ausgewogenheit, Konformität, Finanzrisiko, Ausstiegsfreiheit.",
+  "step1.next_button": "Weiter: Ziele auswählen",
+  "step2.title": "Analyseziele",
+  "step2.subtitle": "Wähle, wonach Clippy suchen soll. Aktiviere, bearbeite oder füge eigene Ziele hinzu.",
+  "step2.enabled_count": "{{count}} Ziel aktiviert",
+  "step2.enabled_count_plural": "{{count}} Ziele aktiviert",
+  "step2.back_button": "Zurück",
+  "step2.run_button": "Analyse starten",
+  "step2.add_custom": "Benutzerdefiniertes Ziel hinzufügen",
+  "step2.prompt_title_placeholder": "Ziel-Titel",
+  "step2.prompt_desc_placeholder": "Kurze Beschreibung (für Benutzer angezeigt)",
+  "step2.prompt_body_placeholder": "Der Anweisungstext, der an das KI-Modell gesendet wird...",
+  "step2.edit_tooltip": "Dieses Ziel bearbeiten",
+  "step2.delete_tooltip": "Dieses benutzerdefinierte Ziel löschen",
+  "step2.save_button": "Speichern",
+  "step2.cancel_button": "Abbrechen",
+  "step3.title": "Analyseergebnisse",
+  "step3.analyzing": "Analysiere...",
+  "step3.back_button": "Neue Analyse",
+  "step3.download_pdf": "PDF herunterladen",
+  "step3.download_md": "Markdown herunterladen",
+  "step3.share_url": "URL teilen",
+  "step3.copy_url": "URL kopieren",
+  "step3.copied": "Kopiert!",
+  "step3.reading": "Lese...",
+  "step3.trust_score": "Vertrauenswert",
+  "step3.summary": "Zusammenfassung",
+  "step3.dimensions": "5 Dimensionen",
+  "step3.flagged_clauses": "Markierte Klauseln",
+  "step3.issues": "{{count}} Problem",
+  "step3.no_issues": "Keine wesentlichen Probleme gefunden. Dieser Vertrag sieht fair aus!",
+  "step3.analysis_failed": "Analyse fehlgeschlagen",
+  "step3.critical": "Kritisch",
+  "step3.suspect": "Verdächtig",
+  "step3.minor": "Geringfügig",
+  "step3.model_tabs_label": "Ergebnisse nach Modell",
+  "step3.jurisdiction": "Zuständigkeit",
+  "share.analyzed_on": "Analysiert am {{date}}",
+  "share.objectives": "Ziele: {{list}}",
+  "share.models_badge": "{{count}} Modell",
+  "share.models_badge_plural": "{{count}} Modelle",
+  "share.version_badge": "Clippy v{{version}}",
+  "share.disclaimer": "Dies ist ein geteilter Vertragsanalysebericht, der von Clippy erstellt wurde. Die Vertragsdatei wurde im Browser des Absenders analysiert — keine Datei wurde auf einen Server hochgeladen. Dieser Bericht dient nur zu Informationszwecken und stellt keine Rechtsberatung dar.",
+  "share.analyze_own": "Eigenen analysieren",
+  "share.cta_title": "Möchtest du deinen eigenen Vertrag analysieren?",
+  "share.cta_subtitle": "Clippy ist kostenlos und Open Source. Bring deinen eigenen OpenRouter API-Schlüssel mit.",
+  "share.cta_button": "Clippy kostenlos testen",
+  "share.invalid_title": "Ungültiger Freigabelink",
+  "share.invalid_desc": "Diese Freigabe-URL konnte nicht dekodiert werden. Sie wurde möglicherweise abgeschnitten, durch deinen E-Mail-Client beschädigt oder das Format hat sich geändert.",
+  "share.invalid_button": "Eigenen Vertrag analysieren",
+  "footer.tagline": "Open-Source KI-Vertragsanalysator",
+  "footer.powered_by": "Unterstützt von OpenRouter",
+  "toast.encryption_error": "Verschlüsselungsfehler",
+  "toast.encryption_error_desc": "API-Schlüssel konnte nicht verschlüsselt werden. Ohne Verschlüsselung fortfahren.",
+  "toast.decrypt_failed": "Entschlüsselung fehlgeschlagen",
+  "toast.decrypt_failed_desc": "Dein API-Schlüssel konnte nicht entschlüsselt werden. Bitte gib ihn erneut ein.",
+  "toast.pdf_downloaded": "PDF heruntergeladen",
+  "toast.pdf_downloaded_desc": "Überprüfe deinen Downloads-Ordner.",
+  "toast.md_downloaded": "Markdown heruntergeladen",
+  "toast.md_downloaded_desc": "Überprüfe deinen Downloads-Ordner.",
+  "toast.url_copied": "Freigabe-URL kopiert!",
+  "toast.url_copied_desc": "Jeder mit dem Link kann diese Ergebnisse sehen.",
+  "toast.url_generated": "URL generiert",
+  "toast.url_generated_desc": "Kopiere sie manuell aus dem Freigabefeld.",
+  "lang.label": "Sprache",
+  "lang.select": "Sprache auswählen",
+  "cat.general": "Allgemein",
+  "cat.financial": "Finanziell",
+  "cat.privacy": "Datenschutz",
+  "cat.employment": "Beschäftigung",
+  "cat.ip": "IP",
+  "cat.custom": "Benutzerdefiniert",
+};
+
+// ---------------------------------------------------------------------------
+// Dutch
+// ---------------------------------------------------------------------------
+const nl: TranslationDict = {
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.0.0", "nav.shared_badge": "gedeeld rapport",
+  "steps.setup": "Instelling", "steps.objectives": "Doelen", "steps.results": "Resultaten",
+  "clippy.setup": "Het lijkt erop dat je een contract gaat tekenen. Wil je dat ik de vervelende clausules controleer?",
+  "clippy.prompts": "Geweldig! Kies nu wat ik moet zoeken. Je kunt doelen bewerken of je eigen toevoegen!",
+  "clippy.analyzing": "Ik lees elke clausule zodat jij het niet hoeft. Even geduld...",
+  "clippy.results": "Dit is wat ik gevonden heb! Rode vlaggen zijn gesorteerd op ernst. Vergelijk resultaten tussen modellen.",
+  "clippy.idle": "Laat hier je contract vallen en ik vertel je of je op het punt staat opgelicht te worden.",
+  "clippy.wrong_format": "Hmm, ik kan alleen PDF-, DOCX-, TXT- of MD-bestanden lezen. Probeer een van die!",
+  "clippy.file_loaded": "Mooi! Ik zie «{{filename}}». Laten we nu je analyse configureren.",
+  "clippy.file_error": "Oeps, ik had moeite met het lezen van dat bestand. Zorg ervoor dat het niet met een wachtwoord is beveiligd!",
+  "clippy.key_locked": "API-sleutel vergrendeld. In geheugen versleuteld — alleen gebruikt bij analyse.",
+  "clippy.need_file": "Upload eerst een contractbestand!", "clippy.need_key": "Psst — ik heb je OpenRouter API-sleutel nodig om te werken!",
+  "clippy.need_model": "Kies minstens één model voor analyse!", "clippy.key_missing": "API-sleutel ontbreekt. Ga terug en voer hem in.",
+  "clippy.need_objective": "Activeer eerst minstens één analysedoel!", "clippy.share_invalid": "Hmm, deze link ziet er niet goed uit. Mogelijk beschadigd of verlopen.",
+  "step1.title": "Analyseer Je Contract", "step1.subtitle": "Upload je bestand, voer je API-sleutel in en kies AI-modellen. Alles draait in je browser — niets opgeslagen.",
+  "step1.drop_title": "Laat je contract hier vallen", "step1.drop_subtitle": "PDF, DOCX, TXT of MD", "step1.drop_button": "Of klik om te bladeren",
+  "step1.file_loaded": "Bestand geladen", "step1.change_file": "Bestand wijzigen",
+  "step1.api_key_label": "OpenRouter API-sleutel", "step1.api_key_placeholder": "sk-or-v1-...",
+  "step1.api_key_hint": "Haal de jouwe op", "step1.api_key_privacy": "Nooit opgeslagen — alleen versleuteld in je browsersessie.",
+  "step1.lock_button": "Vergrendelen", "step1.unlock_button": "Ontgrendelen",
+  "step1.models_label": "AI-modellen", "step1.models_hint": "Selecteer één of meer modellen om parallel te draaien.",
+  "step1.feature_multimodel": "Multi-model", "step1.feature_multimodel_desc": "Voer 8+ AI-modellen tegelijk uit en vergelijk bevindingen.",
+  "step1.feature_private": "100% privé", "step1.feature_private_desc": "Je bestand gaat rechtstreeks naar OpenRouter. Geen server, geen logs.",
+  "step1.feature_dimensions": "5 dimensies", "step1.feature_dimensions_desc": "Transparantie, Balans, Naleving, Financieel risico, Uitstapvrijheid.",
+  "step1.next_button": "Volgende: Doelen kiezen",
+  "step2.title": "Analysedoelen", "step2.subtitle": "Kies wat Clippy moet zoeken. Schakel in, bewerk of voeg je eigen doelen toe.",
+  "step2.enabled_count": "{{count}} doel ingeschakeld", "step2.enabled_count_plural": "{{count}} doelen ingeschakeld",
+  "step2.back_button": "Terug", "step2.run_button": "Analyse uitvoeren", "step2.add_custom": "Aangepast doel toevoegen",
+  "step2.prompt_title_placeholder": "Doeltitel", "step2.prompt_desc_placeholder": "Korte beschrijving",
+  "step2.prompt_body_placeholder": "De instructietekst naar het AI-model...", "step2.edit_tooltip": "Dit doel bewerken",
+  "step2.delete_tooltip": "Dit aangepaste doel verwijderen", "step2.save_button": "Opslaan", "step2.cancel_button": "Annuleren",
+  "step3.title": "Analyseresultaten", "step3.analyzing": "Analyseren...", "step3.back_button": "Nieuwe analyse",
+  "step3.download_pdf": "PDF downloaden", "step3.download_md": "Markdown downloaden",
+  "step3.share_url": "Deel-URL", "step3.copy_url": "URL kopiëren", "step3.copied": "Gekopieerd!",
+  "step3.reading": "Lezen...", "step3.trust_score": "Vertrouwensscore", "step3.summary": "Samenvatting",
+  "step3.dimensions": "5 Dimensies", "step3.flagged_clauses": "Gemarkeerde clausules",
+  "step3.issues": "{{count}} probleem", "step3.no_issues": "Geen significante problemen gevonden. Dit contract ziet er eerlijk uit!",
+  "step3.analysis_failed": "Analyse mislukt", "step3.critical": "Kritiek", "step3.suspect": "Verdacht", "step3.minor": "Klein",
+  "step3.model_tabs_label": "Resultaten per model", "step3.jurisdiction": "Jurisdictie",
+  "share.analyzed_on": "Geanalyseerd op {{date}}", "share.objectives": "Doelen: {{list}}",
+  "share.models_badge": "{{count}} model", "share.models_badge_plural": "{{count}} modellen",
+  "share.version_badge": "Clippy v{{version}}",
+  "share.disclaimer": "Dit is een gedeeld contractanalyserapport gegenereerd door Clippy. Het bestand werd geanalyseerd in de browser van de deler — geen bestand werd naar een server geüpload. Dit rapport is uitsluitend voor informatieve doeleinden en vormt geen juridisch advies.",
+  "share.analyze_own": "Je eigen analyseren", "share.cta_title": "Wil je je eigen contract analyseren?",
+  "share.cta_subtitle": "Clippy is gratis en open source. Breng je eigen OpenRouter API-sleutel mee.",
+  "share.cta_button": "Probeer Clippy gratis", "share.invalid_title": "Ongeldige deellink",
+  "share.invalid_desc": "Deze deel-URL kon niet worden gedecodeerd.", "share.invalid_button": "Analyseer je eigen contract",
+  "footer.tagline": "open-source AI-contractanalysator", "footer.powered_by": "Aangedreven door OpenRouter",
+  "toast.encryption_error": "Versleutelingsfout", "toast.encryption_error_desc": "Kon API-sleutel niet versleutelen.",
+  "toast.decrypt_failed": "Ontsleuteling mislukt", "toast.decrypt_failed_desc": "Kon je API-sleutel niet ontsleutelen. Voer hem opnieuw in.",
+  "toast.pdf_downloaded": "PDF gedownload", "toast.pdf_downloaded_desc": "Controleer je downloadmap.",
+  "toast.md_downloaded": "Markdown gedownload", "toast.md_downloaded_desc": "Controleer je downloadmap.",
+  "toast.url_copied": "Deel-URL gekopieerd!", "toast.url_copied_desc": "Iedereen met de link kan deze resultaten zien.",
+  "toast.url_generated": "URL gegenereerd", "toast.url_generated_desc": "Kopieer het handmatig uit het deelveld.",
+  "lang.label": "Taal", "lang.select": "Taal selecteren",
+  "cat.general": "Algemeen", "cat.financial": "Financieel", "cat.privacy": "Privacy",
+  "cat.employment": "Arbeidsmarkt", "cat.ip": "IP", "cat.custom": "Aangepast",
+};
+
+// ---------------------------------------------------------------------------
+// Italian
+// ---------------------------------------------------------------------------
+const it: TranslationDict = {
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.0.0", "nav.shared_badge": "report condiviso",
+  "steps.setup": "Configurazione", "steps.objectives": "Obiettivi", "steps.results": "Risultati",
+  "clippy.setup": "Sembra che tu stia per firmare un contratto. Vuoi che controlli le clausole abusive?",
+  "clippy.prompts": "Ottimo! Ora scegli cosa cercare. Puoi modificare o aggiungere i tuoi obiettivi!",
+  "clippy.analyzing": "Sto leggendo ogni clausola al posto tuo. Dammi un momento...",
+  "clippy.results": "Ecco cosa ho trovato! Le segnalazioni sono ordinate per gravità. Confronta i risultati tra i modelli.",
+  "clippy.idle": "Lascia qui il tuo contratto e ti dirò se stai per essere fregato.",
+  "clippy.wrong_format": "Hmm, posso leggere solo file PDF, DOCX, TXT o MD. Prova con uno di quelli!",
+  "clippy.file_loaded": "Ottimo! Vedo «{{filename}}». Ora configuriamo la tua analisi.",
+  "clippy.file_error": "Ops, ho avuto problemi a leggere quel file. Assicurati che non sia protetto da password!",
+  "clippy.key_locked": "Chiave API bloccata. È cifrata in memoria — usata solo durante l'analisi.",
+  "clippy.need_file": "Per favore, carica prima un file contratto!", "clippy.need_key": "Psst — ho bisogno della tua chiave API OpenRouter per lavorare!",
+  "clippy.need_model": "Scegli almeno un modello per l'analisi!", "clippy.key_missing": "Chiave API mancante. Torna indietro e inseriscila.",
+  "clippy.need_objective": "Attiva almeno un obiettivo di analisi prima!", "clippy.share_invalid": "Hmm, questo link non sembra corretto. Potrebbe essere corrotto o scaduto.",
+  "step1.title": "Analizza il Tuo Contratto", "step1.subtitle": "Carica il tuo file, inserisci la chiave API e scegli modelli AI. Tutto gira nel browser — niente viene salvato.",
+  "step1.drop_title": "Lascia qui il tuo contratto", "step1.drop_subtitle": "PDF, DOCX, TXT o MD", "step1.drop_button": "O clicca per sfogliare",
+  "step1.file_loaded": "File caricato", "step1.change_file": "Cambia file",
+  "step1.api_key_label": "Chiave API OpenRouter", "step1.api_key_placeholder": "sk-or-v1-...",
+  "step1.api_key_hint": "Ottieni la tua su", "step1.api_key_privacy": "Mai salvata — cifrata solo nella tua sessione browser.",
+  "step1.lock_button": "Blocca", "step1.unlock_button": "Sblocca",
+  "step1.models_label": "Modelli AI", "step1.models_hint": "Seleziona uno o più modelli da eseguire in parallelo.",
+  "step1.feature_multimodel": "Multi-modello", "step1.feature_multimodel_desc": "Esegui 8+ modelli AI contemporaneamente e confronta i risultati.",
+  "step1.feature_private": "100% privato", "step1.feature_private_desc": "Il tuo file va direttamente a OpenRouter. Nessun server, nessun log.",
+  "step1.feature_dimensions": "5 dimensioni", "step1.feature_dimensions_desc": "Trasparenza, Equilibrio, Conformità, Rischio finanziario, Libertà di uscita.",
+  "step1.next_button": "Avanti: Scegli Obiettivi",
+  "step2.title": "Obiettivi di Analisi", "step2.subtitle": "Scegli cosa deve cercare Clippy. Attiva, modifica o aggiungi i tuoi obiettivi personalizzati.",
+  "step2.enabled_count": "{{count}} obiettivo attivato", "step2.enabled_count_plural": "{{count}} obiettivi attivati",
+  "step2.back_button": "Indietro", "step2.run_button": "Esegui Analisi", "step2.add_custom": "Aggiungi Obiettivo Personalizzato",
+  "step2.prompt_title_placeholder": "Titolo obiettivo", "step2.prompt_desc_placeholder": "Breve descrizione",
+  "step2.prompt_body_placeholder": "Il testo di istruzione inviato al modello AI...",
+  "step2.edit_tooltip": "Modifica questo obiettivo", "step2.delete_tooltip": "Elimina questo obiettivo personalizzato",
+  "step2.save_button": "Salva", "step2.cancel_button": "Annulla",
+  "step3.title": "Risultati dell'Analisi", "step3.analyzing": "Analisi in corso...", "step3.back_button": "Nuova Analisi",
+  "step3.download_pdf": "Scarica PDF", "step3.download_md": "Scarica Markdown",
+  "step3.share_url": "URL condivisione", "step3.copy_url": "Copia URL", "step3.copied": "Copiato!",
+  "step3.reading": "Lettura...", "step3.trust_score": "Punteggio di fiducia", "step3.summary": "Riepilogo",
+  "step3.dimensions": "5 Dimensioni", "step3.flagged_clauses": "Clausole segnalate",
+  "step3.issues": "{{count}} problema", "step3.no_issues": "Nessun problema significativo trovato. Questo contratto sembra equo!",
+  "step3.analysis_failed": "Analisi fallita", "step3.critical": "Critico", "step3.suspect": "Sospetto", "step3.minor": "Minore",
+  "step3.model_tabs_label": "Risultati per modello", "step3.jurisdiction": "Giurisdizione",
+  "share.analyzed_on": "Analizzato il {{date}}", "share.objectives": "Obiettivi: {{list}}",
+  "share.models_badge": "{{count}} modello", "share.models_badge_plural": "{{count}} modelli",
+  "share.version_badge": "Clippy v{{version}}",
+  "share.disclaimer": "Questo è un report di analisi contrattuale condiviso generato da Clippy. Il file è stato analizzato nel browser del condivisore — nessun file è stato caricato su alcun server. Questo report è solo a scopo informativo e non costituisce consulenza legale.",
+  "share.analyze_own": "Analizza il tuo", "share.cta_title": "Vuoi analizzare il tuo contratto?",
+  "share.cta_subtitle": "Clippy è gratuito e open source. Porta la tua chiave API OpenRouter.",
+  "share.cta_button": "Prova Clippy gratis", "share.invalid_title": "Link di condivisione non valido",
+  "share.invalid_desc": "Questo URL di condivisione non può essere decodificato.", "share.invalid_button": "Analizza il tuo contratto",
+  "footer.tagline": "analizzatore di contratti AI open source", "footer.powered_by": "Alimentato da OpenRouter",
+  "toast.encryption_error": "Errore di cifratura", "toast.encryption_error_desc": "Impossibile cifrare la chiave API.",
+  "toast.decrypt_failed": "Decifratura fallita", "toast.decrypt_failed_desc": "Impossibile decifrare la chiave API. Reinseriscila.",
+  "toast.pdf_downloaded": "PDF scaricato", "toast.pdf_downloaded_desc": "Controlla la cartella download.",
+  "toast.md_downloaded": "Markdown scaricato", "toast.md_downloaded_desc": "Controlla la cartella download.",
+  "toast.url_copied": "URL di condivisione copiato!", "toast.url_copied_desc": "Chiunque abbia il link può vedere questi risultati.",
+  "toast.url_generated": "URL generato", "toast.url_generated_desc": "Copialo manualmente dal campo di condivisione.",
+  "lang.label": "Lingua", "lang.select": "Seleziona lingua",
+  "cat.general": "Generale", "cat.financial": "Finanziario", "cat.privacy": "Privacy",
+  "cat.employment": "Impiego", "cat.ip": "PI", "cat.custom": "Personalizzato",
+};
+
+// ---------------------------------------------------------------------------
+// Chinese (Simplified)
+// ---------------------------------------------------------------------------
+const zh: TranslationDict = {
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.0.0", "nav.shared_badge": "共享报告",
+  "steps.setup": "设置", "steps.objectives": "目标", "steps.results": "结果",
+  "clippy.setup": "看起来您要签署合同。需要我帮您检查不公平条款吗？",
+  "clippy.prompts": "太棒了！现在选择我应该寻找什么。您可以编辑或添加自己的目标！",
+  "clippy.analyzing": "我正在逐条阅读合同条款，请稍等...",
+  "clippy.results": "这是我发现的内容！红旗按严重程度排序。比较不同模型的结果。",
+  "clippy.idle": "将您的合同放在这里，我会告诉您是否快要被坑了。",
+  "clippy.wrong_format": "嗯，我只能读取PDF、DOCX、TXT或MD文件。请尝试其中一种！",
+  "clippy.file_loaded": "很好！我看到了「{{filename}}」。现在让我们配置您的分析。",
+  "clippy.file_error": "哎呀，我在读取该文件时遇到了问题。请确保它没有密码保护！",
+  "clippy.key_locked": "API密钥已锁定。在内存中加密——仅在运行分析时使用。",
+  "clippy.need_file": "请先上传合同文件！", "clippy.need_key": "嘿——我需要您的OpenRouter API密钥才能工作！",
+  "clippy.need_model": "请至少选择一个模型进行分析！", "clippy.key_missing": "API密钥缺失。请返回并输入它。",
+  "clippy.need_objective": "请先启用至少一个分析目标！", "clippy.share_invalid": "嗯，此链接看起来不对。可能已损坏或已过期。",
+  "step1.title": "分析您的合同", "step1.subtitle": "上传文件，输入API密钥，选择AI模型。一切在浏览器中运行——不存储任何内容。",
+  "step1.drop_title": "将合同拖放到这里", "step1.drop_subtitle": "PDF、DOCX、TXT或MD", "step1.drop_button": "或点击浏览",
+  "step1.file_loaded": "文件已加载", "step1.change_file": "更换文件",
+  "step1.api_key_label": "OpenRouter API密钥", "step1.api_key_placeholder": "sk-or-v1-...",
+  "step1.api_key_hint": "获取您的密钥：", "step1.api_key_privacy": "从不存储——仅在浏览器会话中加密。",
+  "step1.lock_button": "锁定", "step1.unlock_button": "解锁",
+  "step1.models_label": "AI模型", "step1.models_hint": "选择一个或多个模型并行运行。",
+  "step1.feature_multimodel": "多模型", "step1.feature_multimodel_desc": "同时运行8+个AI模型并比较结果。",
+  "step1.feature_private": "100%私密", "step1.feature_private_desc": "您的文件直接发送到OpenRouter。无服务器，无日志。",
+  "step1.feature_dimensions": "5个维度", "step1.feature_dimensions_desc": "透明度、平衡性、合规性、财务风险、退出自由。",
+  "step1.next_button": "下一步：选择目标",
+  "step2.title": "分析目标", "step2.subtitle": "选择Clippy应该查找的内容。启用、编辑或添加您自己的目标。",
+  "step2.enabled_count": "已启用{{count}}个目标", "step2.enabled_count_plural": "已启用{{count}}个目标",
+  "step2.back_button": "返回", "step2.run_button": "运行分析", "step2.add_custom": "添加自定义目标",
+  "step2.prompt_title_placeholder": "目标标题", "step2.prompt_desc_placeholder": "简短描述",
+  "step2.prompt_body_placeholder": "发送给AI模型的指令文本...",
+  "step2.edit_tooltip": "编辑此目标", "step2.delete_tooltip": "删除此自定义目标",
+  "step2.save_button": "保存", "step2.cancel_button": "取消",
+  "step3.title": "分析结果", "step3.analyzing": "正在分析...", "step3.back_button": "新建分析",
+  "step3.download_pdf": "下载PDF", "step3.download_md": "下载Markdown",
+  "step3.share_url": "分享URL", "step3.copy_url": "复制URL", "step3.copied": "已复制！",
+  "step3.reading": "正在读取...", "step3.trust_score": "信任评分", "step3.summary": "摘要",
+  "step3.dimensions": "5个维度", "step3.flagged_clauses": "标记条款",
+  "step3.issues": "{{count}}个问题", "step3.no_issues": "未发现重大问题。这份合同看起来很公平！",
+  "step3.analysis_failed": "分析失败", "step3.critical": "严重", "step3.suspect": "可疑", "step3.minor": "轻微",
+  "step3.model_tabs_label": "模型结果", "step3.jurisdiction": "司法管辖区",
+  "share.analyzed_on": "分析于{{date}}", "share.objectives": "目标：{{list}}",
+  "share.models_badge": "{{count}}个模型", "share.models_badge_plural": "{{count}}个模型",
+  "share.version_badge": "Clippy v{{version}}",
+  "share.disclaimer": "这是由Clippy生成的共享合同分析报告。合同文件在分享者的浏览器中分析——没有文件上传到任何服务器。本报告仅供参考，不构成法律建议。",
+  "share.analyze_own": "分析您自己的", "share.cta_title": "想要分析您自己的合同吗？",
+  "share.cta_subtitle": "Clippy免费且开源。带上您自己的OpenRouter API密钥。",
+  "share.cta_button": "免费试用Clippy", "share.invalid_title": "无效的分享链接",
+  "share.invalid_desc": "此分享URL无法解码。", "share.invalid_button": "分析您自己的合同",
+  "footer.tagline": "开源AI合同分析器", "footer.powered_by": "由OpenRouter提供支持",
+  "toast.encryption_error": "加密错误", "toast.encryption_error_desc": "无法加密API密钥。",
+  "toast.decrypt_failed": "解密失败", "toast.decrypt_failed_desc": "无法解密您的API密钥。请重新输入。",
+  "toast.pdf_downloaded": "PDF已下载", "toast.pdf_downloaded_desc": "查看您的下载文件夹。",
+  "toast.md_downloaded": "Markdown已下载", "toast.md_downloaded_desc": "查看您的下载文件夹。",
+  "toast.url_copied": "分享URL已复制！", "toast.url_copied_desc": "任何有链接的人都可以查看这些结果。",
+  "toast.url_generated": "URL已生成", "toast.url_generated_desc": "从分享字段手动复制。",
+  "lang.label": "语言", "lang.select": "选择语言",
+  "cat.general": "通用", "cat.financial": "财务", "cat.privacy": "隐私",
+  "cat.employment": "就业", "cat.ip": "知识产权", "cat.custom": "自定义",
+};
+
+// ---------------------------------------------------------------------------
+// Russian
+// ---------------------------------------------------------------------------
+const ru: TranslationDict = {
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.0.0", "nav.shared_badge": "общий отчёт",
+  "steps.setup": "Настройка", "steps.objectives": "Цели", "steps.results": "Результаты",
+  "clippy.setup": "Похоже, вы собираетесь подписать договор. Хотите, чтобы я проверил неудобные пункты?",
+  "clippy.prompts": "Отлично! Теперь выберите, что я должен искать. Вы можете редактировать или добавлять свои цели!",
+  "clippy.analyzing": "Я читаю каждый пункт за вас. Минуту...",
+  "clippy.results": "Вот что я нашёл! Красные флаги отсортированы по степени серьёзности. Сравните результаты по моделям.",
+  "clippy.idle": "Перетащите договор сюда, и я скажу вам, не обманывают ли вас.",
+  "clippy.wrong_format": "Хм, я умею читать только PDF, DOCX, TXT или MD. Попробуйте один из этих форматов!",
+  "clippy.file_loaded": "Отлично! Я вижу «{{filename}}». Теперь настроим анализ.",
+  "clippy.file_error": "Упс, не удалось прочитать файл. Убедитесь, что он не защищён паролем!",
+  "clippy.key_locked": "API-ключ заблокирован. Зашифрован в памяти — используется только при анализе.",
+  "clippy.need_file": "Пожалуйста, сначала загрузите файл договора!", "clippy.need_key": "Psst — мне нужен ваш API-ключ OpenRouter!",
+  "clippy.need_model": "Выберите хотя бы одну модель для анализа!", "clippy.key_missing": "API-ключ отсутствует. Пожалуйста, вернитесь и введите его.",
+  "clippy.need_objective": "Сначала включите хотя бы одну цель анализа!", "clippy.share_invalid": "Хм, эта ссылка выглядит неправильно. Возможно, она повреждена или устарела.",
+  "step1.title": "Анализ Договора", "step1.subtitle": "Загрузите файл, введите API-ключ и выберите модели ИИ. Всё работает в браузере — ничего не сохраняется.",
+  "step1.drop_title": "Перетащите договор сюда", "step1.drop_subtitle": "PDF, DOCX, TXT или MD", "step1.drop_button": "Или нажмите для выбора",
+  "step1.file_loaded": "Файл загружен", "step1.change_file": "Изменить файл",
+  "step1.api_key_label": "API-ключ OpenRouter", "step1.api_key_placeholder": "sk-or-v1-...",
+  "step1.api_key_hint": "Получите свой на", "step1.api_key_privacy": "Никогда не сохраняется — шифруется только в сессии браузера.",
+  "step1.lock_button": "Заблокировать", "step1.unlock_button": "Разблокировать",
+  "step1.models_label": "Модели ИИ", "step1.models_hint": "Выберите одну или несколько моделей для параллельного запуска.",
+  "step1.feature_multimodel": "Мульти-модель", "step1.feature_multimodel_desc": "Запускайте 8+ моделей ИИ одновременно и сравнивайте результаты.",
+  "step1.feature_private": "100% приватно", "step1.feature_private_desc": "Файл идёт напрямую в OpenRouter. Без сервера, без логов.",
+  "step1.feature_dimensions": "5 измерений", "step1.feature_dimensions_desc": "Прозрачность, Баланс, Соответствие, Финансовый риск, Свобода выхода.",
+  "step1.next_button": "Далее: Выбрать цели",
+  "step2.title": "Цели Анализа", "step2.subtitle": "Выберите, что должен искать Clippy. Включайте, редактируйте или добавляйте свои цели.",
+  "step2.enabled_count": "{{count}} цель включена", "step2.enabled_count_plural": "{{count}} целей включено",
+  "step2.back_button": "Назад", "step2.run_button": "Запустить анализ", "step2.add_custom": "Добавить пользовательскую цель",
+  "step2.prompt_title_placeholder": "Название цели", "step2.prompt_desc_placeholder": "Краткое описание",
+  "step2.prompt_body_placeholder": "Текст инструкции для модели ИИ...",
+  "step2.edit_tooltip": "Редактировать эту цель", "step2.delete_tooltip": "Удалить эту цель",
+  "step2.save_button": "Сохранить", "step2.cancel_button": "Отмена",
+  "step3.title": "Результаты Анализа", "step3.analyzing": "Анализирую...", "step3.back_button": "Новый анализ",
+  "step3.download_pdf": "Скачать PDF", "step3.download_md": "Скачать Markdown",
+  "step3.share_url": "Поделиться URL", "step3.copy_url": "Копировать URL", "step3.copied": "Скопировано!",
+  "step3.reading": "Читаю...", "step3.trust_score": "Рейтинг доверия", "step3.summary": "Сводка",
+  "step3.dimensions": "5 Измерений", "step3.flagged_clauses": "Отмеченные пункты",
+  "step3.issues": "{{count}} проблема", "step3.no_issues": "Серьёзных проблем не найдено. Договор выглядит честно!",
+  "step3.analysis_failed": "Анализ не удался", "step3.critical": "Критично", "step3.suspect": "Подозрительно", "step3.minor": "Незначительно",
+  "step3.model_tabs_label": "Результаты по моделям", "step3.jurisdiction": "Юрисдикция",
+  "share.analyzed_on": "Проанализировано {{date}}", "share.objectives": "Цели: {{list}}",
+  "share.models_badge": "{{count}} модель", "share.models_badge_plural": "{{count}} моделей",
+  "share.version_badge": "Clippy v{{version}}",
+  "share.disclaimer": "Это общий отчёт об анализе договора, созданный Clippy. Файл был проанализирован в браузере пользователя — ни один файл не загружался на сервер. Отчёт носит исключительно информационный характер и не является юридической консультацией.",
+  "share.analyze_own": "Проанализировать своё", "share.cta_title": "Хотите проанализировать свой договор?",
+  "share.cta_subtitle": "Clippy бесплатен и с открытым исходным кодом. Используйте свой API-ключ OpenRouter.",
+  "share.cta_button": "Попробовать Clippy бесплатно", "share.invalid_title": "Недействительная ссылка",
+  "share.invalid_desc": "Этот URL не удалось декодировать.", "share.invalid_button": "Проанализировать свой договор",
+  "footer.tagline": "анализатор договоров на ИИ с открытым кодом", "footer.powered_by": "Работает на OpenRouter",
+  "toast.encryption_error": "Ошибка шифрования", "toast.encryption_error_desc": "Не удалось зашифровать API-ключ.",
+  "toast.decrypt_failed": "Ошибка расшифровки", "toast.decrypt_failed_desc": "Не удалось расшифровать API-ключ. Введите его заново.",
+  "toast.pdf_downloaded": "PDF скачан", "toast.pdf_downloaded_desc": "Проверьте папку загрузок.",
+  "toast.md_downloaded": "Markdown скачан", "toast.md_downloaded_desc": "Проверьте папку загрузок.",
+  "toast.url_copied": "URL скопирован!", "toast.url_copied_desc": "Любой с ссылкой может просмотреть результаты.",
+  "toast.url_generated": "URL создан", "toast.url_generated_desc": "Скопируйте его вручную из поля.",
+  "lang.label": "Язык", "lang.select": "Выбрать язык",
+  "cat.general": "Общее", "cat.financial": "Финансовое", "cat.privacy": "Конфиденциальность",
+  "cat.employment": "Занятость", "cat.ip": "ИС", "cat.custom": "Пользовательское",
+};
+
+// ---------------------------------------------------------------------------
+// Hindi
+// ---------------------------------------------------------------------------
+const hi: TranslationDict = {
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.0.0", "nav.shared_badge": "साझा रिपोर्ट",
+  "steps.setup": "सेटअप", "steps.objectives": "उद्देश्य", "steps.results": "परिणाम",
+  "clippy.setup": "लगता है आप एक अनुबंध पर हस्ताक्षर करने वाले हैं। क्या मैं हानिकारक खंडों की जांच करूं?",
+  "clippy.prompts": "बढ़िया! अब चुनें कि मुझे क्या ढूंढना चाहिए। आप अपने उद्देश्य संपादित या जोड़ सकते हैं!",
+  "clippy.analyzing": "मैं आपके लिए हर खंड पढ़ रहा हूं। एक पल...",
+  "clippy.results": "यह रहा जो मुझे मिला! चेतावनियां गंभीरता के अनुसार क्रमबद्ध हैं।",
+  "clippy.idle": "यहाँ अपना अनुबंध छोड़ें और मैं बताऊंगा कि आप ठगे जाने वाले हैं या नहीं।",
+  "clippy.wrong_format": "हम्म, मैं केवल PDF, DOCX, TXT या MD फ़ाइलें पढ़ सकता हूं।",
+  "clippy.file_loaded": "बढ़िया! मैं «{{filename}}» देख सकता हूं। अब विश्लेषण कॉन्फ़िगर करें।",
+  "clippy.file_error": "ओह, उस फ़ाइल को पढ़ने में समस्या हुई। सुनिश्चित करें कि यह पासवर्ड से सुरक्षित नहीं है!",
+  "clippy.key_locked": "API कुंजी लॉक है। मेमोरी में एन्क्रिप्टेड — केवल विश्लेषण के दौरान उपयोग।",
+  "clippy.need_file": "पहले अनुबंध फ़ाइल अपलोड करें!", "clippy.need_key": "मुझे आपकी OpenRouter API कुंजी चाहिए!",
+  "clippy.need_model": "विश्लेषण के लिए कम से कम एक मॉडल चुनें!", "clippy.key_missing": "API कुंजी गायब है। वापस जाकर दर्ज करें।",
+  "clippy.need_objective": "पहले कम से कम एक उद्देश्य सक्रिय करें!", "clippy.share_invalid": "हम्म, यह लिंक सही नहीं लगती। दूषित या समाप्त हो सकती है।",
+  "step1.title": "अपना अनुबंध विश्लेषण करें", "step1.subtitle": "फ़ाइल अपलोड करें, API कुंजी दर्ज करें, AI मॉडल चुनें। सब ब्राउज़र में — कुछ संग्रहीत नहीं।",
+  "step1.drop_title": "अनुबंध यहाँ छोड़ें", "step1.drop_subtitle": "PDF, DOCX, TXT या MD", "step1.drop_button": "या ब्राउज़ करने के लिए क्लिक करें",
+  "step1.file_loaded": "फ़ाइल लोड हुई", "step1.change_file": "फ़ाइल बदलें",
+  "step1.api_key_label": "OpenRouter API कुंजी", "step1.api_key_placeholder": "sk-or-v1-...",
+  "step1.api_key_hint": "यहाँ से प्राप्त करें", "step1.api_key_privacy": "कभी संग्रहीत नहीं — केवल ब्राउज़र सत्र में एन्क्रिप्टेड।",
+  "step1.lock_button": "लॉक", "step1.unlock_button": "अनलॉक",
+  "step1.models_label": "AI मॉडल", "step1.models_hint": "समानांतर चलाने के लिए एक या अधिक मॉडल चुनें।",
+  "step1.feature_multimodel": "मल्टी-मॉडल", "step1.feature_multimodel_desc": "8+ AI मॉडल एक साथ चलाएं और परिणाम तुलना करें।",
+  "step1.feature_private": "100% निजी", "step1.feature_private_desc": "फ़ाइल सीधे OpenRouter को जाती है। कोई सर्वर नहीं, कोई लॉग नहीं।",
+  "step1.feature_dimensions": "5 आयाम", "step1.feature_dimensions_desc": "पारदर्शिता, संतुलन, अनुपालन, वित्तीय जोखिम, निकास स्वतंत्रता।",
+  "step1.next_button": "अगला: उद्देश्य चुनें",
+  "step2.title": "विश्लेषण उद्देश्य", "step2.subtitle": "चुनें कि Clippy क्या ढूंढे। सक्रिय करें, संपादित करें या अपने उद्देश्य जोड़ें।",
+  "step2.enabled_count": "{{count}} उद्देश्य सक्रिय", "step2.enabled_count_plural": "{{count}} उद्देश्य सक्रिय",
+  "step2.back_button": "वापस", "step2.run_button": "विश्लेषण चलाएं", "step2.add_custom": "कस्टम उद्देश्य जोड़ें",
+  "step2.prompt_title_placeholder": "उद्देश्य शीर्षक", "step2.prompt_desc_placeholder": "संक्षिप्त विवरण",
+  "step2.prompt_body_placeholder": "AI मॉडल को भेजा जाने वाला निर्देश...",
+  "step2.edit_tooltip": "इस उद्देश्य को संपादित करें", "step2.delete_tooltip": "यह उद्देश्य हटाएं",
+  "step2.save_button": "सहेजें", "step2.cancel_button": "रद्द करें",
+  "step3.title": "विश्लेषण परिणाम", "step3.analyzing": "विश्लेषण हो रहा है...", "step3.back_button": "नया विश्लेषण",
+  "step3.download_pdf": "PDF डाउनलोड", "step3.download_md": "Markdown डाउनलोड",
+  "step3.share_url": "URL साझा करें", "step3.copy_url": "URL कॉपी करें", "step3.copied": "कॉपी हो गया!",
+  "step3.reading": "पढ़ रहा है...", "step3.trust_score": "विश्वास स्कोर", "step3.summary": "सारांश",
+  "step3.dimensions": "5 आयाम", "step3.flagged_clauses": "चिह्नित खंड",
+  "step3.issues": "{{count}} समस्या", "step3.no_issues": "कोई महत्वपूर्ण समस्या नहीं मिली। यह अनुबंध उचित लगता है!",
+  "step3.analysis_failed": "विश्लेषण विफल", "step3.critical": "गंभीर", "step3.suspect": "संदिग्ध", "step3.minor": "छोटा",
+  "step3.model_tabs_label": "मॉडल परिणाम", "step3.jurisdiction": "न्यायिक क्षेत्र",
+  "share.analyzed_on": "{{date}} को विश्लेषण", "share.objectives": "उद्देश्य: {{list}}",
+  "share.models_badge": "{{count}} मॉडल", "share.models_badge_plural": "{{count}} मॉडल",
+  "share.version_badge": "Clippy v{{version}}",
+  "share.disclaimer": "यह Clippy द्वारा उत्पन्न साझा अनुबंध विश्लेषण रिपोर्ट है। फ़ाइल साझाकर्ता के ब्राउज़र में विश्लेषण की गई — कोई फ़ाइल सर्वर पर अपलोड नहीं हुई। यह रिपोर्ट केवल सूचना के लिए है और कानूनी सलाह नहीं है।",
+  "share.analyze_own": "अपना विश्लेषण करें", "share.cta_title": "अपना अनुबंध विश्लेषण करना चाहते हैं?",
+  "share.cta_subtitle": "Clippy मुफ़्त और ओपन सोर्स है। अपनी OpenRouter API कुंजी लाएं।",
+  "share.cta_button": "Clippy मुफ़्त में आज़माएं", "share.invalid_title": "अमान्य साझा लिंक",
+  "share.invalid_desc": "यह URL डीकोड नहीं हो सका।", "share.invalid_button": "अपना अनुबंध विश्लेषण करें",
+  "footer.tagline": "ओपन सोर्स AI अनुबंध विश्लेषक", "footer.powered_by": "OpenRouter द्वारा संचालित",
+  "toast.encryption_error": "एन्क्रिप्शन त्रुटि", "toast.encryption_error_desc": "API कुंजी एन्क्रिप्ट नहीं हो सकी।",
+  "toast.decrypt_failed": "डिक्रिप्शन विफल", "toast.decrypt_failed_desc": "API कुंजी डिक्रिप्ट नहीं हो सकी। पुनः दर्ज करें।",
+  "toast.pdf_downloaded": "PDF डाउनलोड हुआ", "toast.pdf_downloaded_desc": "डाउनलोड फ़ोल्डर देखें।",
+  "toast.md_downloaded": "Markdown डाउनलोड हुआ", "toast.md_downloaded_desc": "डाउनलोड फ़ोल्डर देखें।",
+  "toast.url_copied": "URL कॉपी हुआ!", "toast.url_copied_desc": "लिंक वाला कोई भी परिणाम देख सकता है।",
+  "toast.url_generated": "URL बना", "toast.url_generated_desc": "साझा फ़ील्ड से मैन्युअल कॉपी करें।",
+  "lang.label": "भाषा", "lang.select": "भाषा चुनें",
+  "cat.general": "सामान्य", "cat.financial": "वित्तीय", "cat.privacy": "गोपनीयता",
+  "cat.employment": "रोजगार", "cat.ip": "बौद्धिक संपदा", "cat.custom": "कस्टम",
+};
+
+// ---------------------------------------------------------------------------
+// Bulgarian
+// ---------------------------------------------------------------------------
+const bg: TranslationDict = {
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.0.0", "nav.shared_badge": "споделен отчет",
+  "steps.setup": "Настройка", "steps.objectives": "Цели", "steps.results": "Резултати",
+  "clippy.setup": "Изглежда, че ще подписвате договор. Искате ли да проверя клаузите?",
+  "clippy.prompts": "Чудесно! Изберете какво да търся. Можете да редактирате или добавяте свои цели!",
+  "clippy.analyzing": "Чета всяка клауза вместо вас. Момент...",
+  "clippy.results": "Ето какво открих! Предупрежденията са сортирани по сериозност.",
+  "clippy.idle": "Пуснете договора си тук и ще ви кажа дали ще бъдете измамени.",
+  "clippy.wrong_format": "Хм, мога да чета само PDF, DOCX, TXT или MD файлове.",
+  "clippy.file_loaded": "Чудесно! Виждам «{{filename}}». Нека конфигурираме анализа.",
+  "clippy.file_error": "Ох, имах проблем с четенето на файла. Уверете се, че не е защитен с парола!",
+  "clippy.key_locked": "API ключът е заключен. Шифрован в паметта — използван само при анализ.",
+  "clippy.need_file": "Моля, качете файл на договора!", "clippy.need_key": "Нуждая се от вашия OpenRouter API ключ!",
+  "clippy.need_model": "Изберете поне един модел!", "clippy.key_missing": "Липсва API ключ. Върнете се и го въведете.",
+  "clippy.need_objective": "Активирайте поне една цел!", "clippy.share_invalid": "Хм, тази връзка не изглежда правилна.",
+  "step1.title": "Анализирайте Договора Си", "step1.subtitle": "Качете файла, въведете API ключ и изберете AI модели. Всичко работи в браузъра — нищо не се съхранява.",
+  "step1.drop_title": "Пуснете договора тук", "step1.drop_subtitle": "PDF, DOCX, TXT или MD", "step1.drop_button": "Или кликнете за преглед",
+  "step1.file_loaded": "Файлът е зареден", "step1.change_file": "Смяна на файл",
+  "step1.api_key_label": "OpenRouter API Ключ", "step1.api_key_placeholder": "sk-or-v1-...",
+  "step1.api_key_hint": "Вземете своя от", "step1.api_key_privacy": "Никога не се съхранява — шифрован в браузър сесията.",
+  "step1.lock_button": "Заключи", "step1.unlock_button": "Отключи",
+  "step1.models_label": "AI Модели", "step1.models_hint": "Изберете един или повече модели за паралелно изпълнение.",
+  "step1.feature_multimodel": "Мулти-модел", "step1.feature_multimodel_desc": "Изпълнявайте 8+ AI модела едновременно.",
+  "step1.feature_private": "100% частно", "step1.feature_private_desc": "Файлът отива директно в OpenRouter. Без сървър, без логове.",
+  "step1.feature_dimensions": "5 измерения", "step1.feature_dimensions_desc": "Прозрачност, Баланс, Съответствие, Финансов риск, Свобода на изход.",
+  "step1.next_button": "Следващо: Избор на цели",
+  "step2.title": "Цели за Анализ", "step2.subtitle": "Изберете какво да търси Clippy. Активирайте, редактирайте или добавяйте свои цели.",
+  "step2.enabled_count": "{{count}} цел активирана", "step2.enabled_count_plural": "{{count}} цели активирани",
+  "step2.back_button": "Назад", "step2.run_button": "Стартирай Анализ", "step2.add_custom": "Добави Персонализирана Цел",
+  "step2.prompt_title_placeholder": "Заглавие на целта", "step2.prompt_desc_placeholder": "Кратко описание",
+  "step2.prompt_body_placeholder": "Текстът с инструкции за AI модела...",
+  "step2.edit_tooltip": "Редактирай тази цел", "step2.delete_tooltip": "Изтрий тази цел",
+  "step2.save_button": "Запази", "step2.cancel_button": "Отмени",
+  "step3.title": "Резултати от Анализа", "step3.analyzing": "Анализиране...", "step3.back_button": "Нов Анализ",
+  "step3.download_pdf": "Изтегли PDF", "step3.download_md": "Изтегли Markdown",
+  "step3.share_url": "Споделен URL", "step3.copy_url": "Копирай URL", "step3.copied": "Копирано!",
+  "step3.reading": "Четене...", "step3.trust_score": "Оценка на доверие", "step3.summary": "Резюме",
+  "step3.dimensions": "5 Измерения", "step3.flagged_clauses": "Маркирани клаузи",
+  "step3.issues": "{{count}} проблема", "step3.no_issues": "Не са намерени значими проблеми. Договорът изглежда справедлив!",
+  "step3.analysis_failed": "Анализът е неуспешен", "step3.critical": "Критично", "step3.suspect": "Съмнително", "step3.minor": "Незначително",
+  "step3.model_tabs_label": "Резултати по модели", "step3.jurisdiction": "Юрисдикция",
+  "share.analyzed_on": "Анализирано на {{date}}", "share.objectives": "Цели: {{list}}",
+  "share.models_badge": "{{count}} модел", "share.models_badge_plural": "{{count}} модела",
+  "share.version_badge": "Clippy v{{version}}",
+  "share.disclaimer": "Това е споделен отчет за анализ на договор, генериран от Clippy. Файлът беше анализиран в браузъра на споделящия — не е качен файл на сървър. Отчетът е само за информационни цели и не представлява правен съвет.",
+  "share.analyze_own": "Анализирайте своя", "share.cta_title": "Искате да анализирате договора си?",
+  "share.cta_subtitle": "Clippy е безплатен и с отворен код. Донесете свой OpenRouter API ключ.",
+  "share.cta_button": "Изпробвайте Clippy безплатно", "share.invalid_title": "Невалидна споделена връзка",
+  "share.invalid_desc": "Този URL не може да бъде декодиран.", "share.invalid_button": "Анализирайте договора си",
+  "footer.tagline": "анализатор на договори с AI с отворен код", "footer.powered_by": "Работи на OpenRouter",
+  "toast.encryption_error": "Грешка при шифроване", "toast.encryption_error_desc": "Не може да се шифрова API ключът.",
+  "toast.decrypt_failed": "Дешифрирането е неуспешно", "toast.decrypt_failed_desc": "Не може да се дешифрира API ключът. Въведете го отново.",
+  "toast.pdf_downloaded": "PDF изтеглен", "toast.pdf_downloaded_desc": "Проверете папката за изтегляния.",
+  "toast.md_downloaded": "Markdown изтеглен", "toast.md_downloaded_desc": "Проверете папката за изтегляния.",
+  "toast.url_copied": "URL е копиран!", "toast.url_copied_desc": "Всеки с връзката може да види резултатите.",
+  "toast.url_generated": "URL е генериран", "toast.url_generated_desc": "Копирайте го ръчно от полето.",
+  "lang.label": "Език", "lang.select": "Изберете език",
+  "cat.general": "Общо", "cat.financial": "Финансово", "cat.privacy": "Поверителност",
+  "cat.employment": "Заетост", "cat.ip": "ИС", "cat.custom": "Персонализирано",
+};
+
+// ---------------------------------------------------------------------------
+// Polish
+// ---------------------------------------------------------------------------
+const pl: TranslationDict = {
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.0.0", "nav.shared_badge": "udostępniony raport",
+  "steps.setup": "Konfiguracja", "steps.objectives": "Cele", "steps.results": "Wyniki",
+  "clippy.setup": "Wygląda na to, że zamierzasz podpisać umowę. Chcesz, żebym sprawdził kłopotliwe klauzule?",
+  "clippy.prompts": "Świetnie! Teraz wybierz, czego szukać. Możesz edytować lub dodawać własne cele!",
+  "clippy.analyzing": "Czytam każdą klauzulę za Ciebie. Chwilę...",
+  "clippy.results": "Oto co znalazłem! Ostrzeżenia posortowane według powagi. Porównaj wyniki między modelami.",
+  "clippy.idle": "Upuść tu umowę, a powiem ci, czy zaraz zostaniesz oszukany.",
+  "clippy.wrong_format": "Hmm, mogę czytać tylko pliki PDF, DOCX, TXT lub MD.",
+  "clippy.file_loaded": "Świetnie! Widzę «{{filename}}». Teraz skonfigurujmy analizę.",
+  "clippy.file_error": "Ups, miałem problem z odczytaniem tego pliku. Upewnij się, że nie jest chroniony hasłem!",
+  "clippy.key_locked": "Klucz API zablokowany. Zaszyfrowany w pamięci — używany tylko podczas analizy.",
+  "clippy.need_file": "Najpierw prześlij plik umowy!", "clippy.need_key": "Potrzebuję Twojego klucza API OpenRouter!",
+  "clippy.need_model": "Wybierz co najmniej jeden model do analizy!", "clippy.key_missing": "Brak klucza API. Wróć i wprowadź go.",
+  "clippy.need_objective": "Najpierw włącz co najmniej jeden cel!", "clippy.share_invalid": "Hmm, ten link wygląda nieprawidłowo.",
+  "step1.title": "Analizuj Swoją Umowę", "step1.subtitle": "Prześlij plik, wprowadź klucz API i wybierz modele AI. Wszystko działa w przeglądarce — nic nie jest przechowywane.",
+  "step1.drop_title": "Upuść tu umowę", "step1.drop_subtitle": "PDF, DOCX, TXT lub MD", "step1.drop_button": "Lub kliknij, aby przeglądać",
+  "step1.file_loaded": "Plik załadowany", "step1.change_file": "Zmień plik",
+  "step1.api_key_label": "Klucz API OpenRouter", "step1.api_key_placeholder": "sk-or-v1-...",
+  "step1.api_key_hint": "Uzyskaj swój na", "step1.api_key_privacy": "Nigdy nie przechowywany — zaszyfrowany tylko w sesji przeglądarki.",
+  "step1.lock_button": "Zablokuj", "step1.unlock_button": "Odblokuj",
+  "step1.models_label": "Modele AI", "step1.models_hint": "Wybierz jeden lub więcej modeli do równoległego działania.",
+  "step1.feature_multimodel": "Multi-model", "step1.feature_multimodel_desc": "Uruchamiaj 8+ modeli AI jednocześnie i porównuj wyniki.",
+  "step1.feature_private": "100% prywatne", "step1.feature_private_desc": "Plik trafia bezpośrednio do OpenRouter. Bez serwera, bez logów.",
+  "step1.feature_dimensions": "5 wymiarów", "step1.feature_dimensions_desc": "Przejrzystość, Równowaga, Zgodność, Ryzyko finansowe, Swoboda wyjścia.",
+  "step1.next_button": "Dalej: Wybierz cele",
+  "step2.title": "Cele Analizy", "step2.subtitle": "Wybierz, czego Clippy ma szukać. Włącz, edytuj lub dodaj własne cele.",
+  "step2.enabled_count": "{{count}} cel włączony", "step2.enabled_count_plural": "{{count}} celów włączonych",
+  "step2.back_button": "Wstecz", "step2.run_button": "Uruchom Analizę", "step2.add_custom": "Dodaj Niestandardowy Cel",
+  "step2.prompt_title_placeholder": "Tytuł celu", "step2.prompt_desc_placeholder": "Krótki opis",
+  "step2.prompt_body_placeholder": "Tekst instrukcji wysyłany do modelu AI...",
+  "step2.edit_tooltip": "Edytuj ten cel", "step2.delete_tooltip": "Usuń ten cel",
+  "step2.save_button": "Zapisz", "step2.cancel_button": "Anuluj",
+  "step3.title": "Wyniki Analizy", "step3.analyzing": "Analizowanie...", "step3.back_button": "Nowa Analiza",
+  "step3.download_pdf": "Pobierz PDF", "step3.download_md": "Pobierz Markdown",
+  "step3.share_url": "URL udostępniania", "step3.copy_url": "Kopiuj URL", "step3.copied": "Skopiowano!",
+  "step3.reading": "Czytanie...", "step3.trust_score": "Ocena zaufania", "step3.summary": "Podsumowanie",
+  "step3.dimensions": "5 Wymiarów", "step3.flagged_clauses": "Oznaczone klauzule",
+  "step3.issues": "{{count}} problem", "step3.no_issues": "Nie znaleziono istotnych problemów. Ta umowa wygląda uczciwie!",
+  "step3.analysis_failed": "Analiza nie powiodła się", "step3.critical": "Krytyczny", "step3.suspect": "Podejrzany", "step3.minor": "Drobny",
+  "step3.model_tabs_label": "Wyniki według modeli", "step3.jurisdiction": "Jurysdykcja",
+  "share.analyzed_on": "Przeanalizowano {{date}}", "share.objectives": "Cele: {{list}}",
+  "share.models_badge": "{{count}} model", "share.models_badge_plural": "{{count}} modeli",
+  "share.version_badge": "Clippy v{{version}}",
+  "share.disclaimer": "Jest to udostępniony raport analizy umowy wygenerowany przez Clippy. Plik został przeanalizowany w przeglądarce udostępniającego — żaden plik nie został przesłany na serwer. Ten raport służy wyłącznie celom informacyjnym i nie stanowi porady prawnej.",
+  "share.analyze_own": "Analizuj swoją", "share.cta_title": "Chcesz analizować własną umowę?",
+  "share.cta_subtitle": "Clippy jest darmowy i open source. Przynieś własny klucz API OpenRouter.",
+  "share.cta_button": "Wypróbuj Clippy za darmo", "share.invalid_title": "Nieprawidłowy link udostępniania",
+  "share.invalid_desc": "Ten URL udostępniania nie mógł zostać zdekodowany.", "share.invalid_button": "Analizuj własną umowę",
+  "footer.tagline": "analizator umów AI open source", "footer.powered_by": "Zasilany przez OpenRouter",
+  "toast.encryption_error": "Błąd szyfrowania", "toast.encryption_error_desc": "Nie można zaszyfrować klucza API.",
+  "toast.decrypt_failed": "Odszyfrowanie nie powiodło się", "toast.decrypt_failed_desc": "Nie można odszyfrować klucza API. Wprowadź ponownie.",
+  "toast.pdf_downloaded": "PDF pobrany", "toast.pdf_downloaded_desc": "Sprawdź folder pobierania.",
+  "toast.md_downloaded": "Markdown pobrany", "toast.md_downloaded_desc": "Sprawdź folder pobierania.",
+  "toast.url_copied": "URL udostępniania skopiowany!", "toast.url_copied_desc": "Każdy z linkiem może zobaczyć wyniki.",
+  "toast.url_generated": "URL wygenerowany", "toast.url_generated_desc": "Skopiuj go ręcznie z pola.",
+  "lang.label": "Język", "lang.select": "Wybierz język",
+  "cat.general": "Ogólne", "cat.financial": "Finansowe", "cat.privacy": "Prywatność",
+  "cat.employment": "Zatrudnienie", "cat.ip": "IP", "cat.custom": "Niestandardowe",
+};
+
+// ---------------------------------------------------------------------------
+// Danish
+// ---------------------------------------------------------------------------
+const da: TranslationDict = {
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.0.0", "nav.shared_badge": "delt rapport",
+  "steps.setup": "Opsætning", "steps.objectives": "Mål", "steps.results": "Resultater",
+  "clippy.setup": "Det ser ud til, at du er ved at underskrive en kontrakt. Vil du have hjælp til at tjekke de grimme klausuler?",
+  "clippy.prompts": "Fantastisk! Vælg nu, hvad jeg skal kigge efter. Du kan redigere eller tilføje dine egne mål!",
+  "clippy.analyzing": "Jeg læser hver eneste klausul for dig. Et øjeblik...",
+  "clippy.results": "Her er hvad jeg fandt! Advarsler sorteret efter alvorlighed. Sammenlign resultater på tværs af modeller.",
+  "clippy.idle": "Slip din kontrakt her, og jeg fortæller dig, om du er ved at blive snydt.",
+  "clippy.wrong_format": "Hmm, jeg kan kun læse PDF-, DOCX-, TXT- eller MD-filer.",
+  "clippy.file_loaded": "Fint! Jeg kan se «{{filename}}». Lad os konfigurere din analyse.",
+  "clippy.file_error": "Ups, jeg havde problemer med at læse den fil. Sørg for, at den ikke er adgangskodebeskyttet!",
+  "clippy.key_locked": "API-nøgle låst. Krypteret i hukommelsen — bruges kun under analyse.",
+  "clippy.need_file": "Upload venligst en kontraktfil først!", "clippy.need_key": "Jeg har brug for din OpenRouter API-nøgle!",
+  "clippy.need_model": "Vælg mindst én model til analyse!", "clippy.key_missing": "API-nøgle mangler. Gå tilbage og indtast den.",
+  "clippy.need_objective": "Aktivér mindst ét analysemål først!", "clippy.share_invalid": "Hmm, dette link ser ikke rigtigt ud.",
+  "step1.title": "Analysér Din Kontrakt", "step1.subtitle": "Upload din fil, indtast din API-nøgle og vælg AI-modeller. Alt kører i din browser — intet gemmes.",
+  "step1.drop_title": "Slip din kontrakt her", "step1.drop_subtitle": "PDF, DOCX, TXT eller MD", "step1.drop_button": "Eller klik for at gennemse",
+  "step1.file_loaded": "Fil indlæst", "step1.change_file": "Skift fil",
+  "step1.api_key_label": "OpenRouter API-nøgle", "step1.api_key_placeholder": "sk-or-v1-...",
+  "step1.api_key_hint": "Hent din på", "step1.api_key_privacy": "Aldrig gemt — krypteret kun i din browsersession.",
+  "step1.lock_button": "Lås", "step1.unlock_button": "Lås op",
+  "step1.models_label": "AI-modeller", "step1.models_hint": "Vælg en eller flere modeller til at køre parallelt.",
+  "step1.feature_multimodel": "Multi-model", "step1.feature_multimodel_desc": "Kør 8+ AI-modeller samtidigt og sammenlign fund.",
+  "step1.feature_private": "100% privat", "step1.feature_private_desc": "Din fil går direkte til OpenRouter. Ingen server, ingen logs.",
+  "step1.feature_dimensions": "5 dimensioner", "step1.feature_dimensions_desc": "Gennemsigtighed, Balance, Overholdelse, Finansiel risiko, Exitfrihed.",
+  "step1.next_button": "Næste: Vælg mål",
+  "step2.title": "Analysemål", "step2.subtitle": "Vælg hvad Clippy skal kigge efter. Aktivér, rediger eller tilføj dine egne mål.",
+  "step2.enabled_count": "{{count}} mål aktiveret", "step2.enabled_count_plural": "{{count}} mål aktiveret",
+  "step2.back_button": "Tilbage", "step2.run_button": "Kør analyse", "step2.add_custom": "Tilføj brugerdefineret mål",
+  "step2.prompt_title_placeholder": "Måltitel", "step2.prompt_desc_placeholder": "Kort beskrivelse",
+  "step2.prompt_body_placeholder": "Instruktionsteksten sendt til AI-modellen...",
+  "step2.edit_tooltip": "Rediger dette mål", "step2.delete_tooltip": "Slet dette mål",
+  "step2.save_button": "Gem", "step2.cancel_button": "Annuller",
+  "step3.title": "Analyseresultater", "step3.analyzing": "Analyserer...", "step3.back_button": "Ny analyse",
+  "step3.download_pdf": "Download PDF", "step3.download_md": "Download Markdown",
+  "step3.share_url": "Del URL", "step3.copy_url": "Kopiér URL", "step3.copied": "Kopieret!",
+  "step3.reading": "Læser...", "step3.trust_score": "Tillidsscor", "step3.summary": "Sammenfatning",
+  "step3.dimensions": "5 Dimensioner", "step3.flagged_clauses": "Markerede klausuler",
+  "step3.issues": "{{count}} problem", "step3.no_issues": "Ingen væsentlige problemer fundet. Denne kontrakt ser rimelig ud!",
+  "step3.analysis_failed": "Analyse mislykkedes", "step3.critical": "Kritisk", "step3.suspect": "Mistænkelig", "step3.minor": "Mindre",
+  "step3.model_tabs_label": "Resultater per model", "step3.jurisdiction": "Jurisdiktion",
+  "share.analyzed_on": "Analyseret den {{date}}", "share.objectives": "Mål: {{list}}",
+  "share.models_badge": "{{count}} model", "share.models_badge_plural": "{{count}} modeller",
+  "share.version_badge": "Clippy v{{version}}",
+  "share.disclaimer": "Dette er en delt kontraktanalyserapport genereret af Clippy. Filen blev analyseret i delerens browser — ingen fil blev uploadet til nogen server. Denne rapport er kun til informationsformål og udgør ikke juridisk rådgivning.",
+  "share.analyze_own": "Analysér din egen", "share.cta_title": "Vil du analysere din egen kontrakt?",
+  "share.cta_subtitle": "Clippy er gratis og open source. Tag din egen OpenRouter API-nøgle med.",
+  "share.cta_button": "Prøv Clippy gratis", "share.invalid_title": "Ugyldigt delingslink",
+  "share.invalid_desc": "Denne delings-URL kunne ikke afkodes.", "share.invalid_button": "Analysér din egen kontrakt",
+  "footer.tagline": "open source AI-kontraktanalysator", "footer.powered_by": "Drevet af OpenRouter",
+  "toast.encryption_error": "Krypteringsfejl", "toast.encryption_error_desc": "Kunne ikke kryptere API-nøglen.",
+  "toast.decrypt_failed": "Dekryptering mislykkedes", "toast.decrypt_failed_desc": "Kunne ikke dekryptere din API-nøgle. Indtast den igen.",
+  "toast.pdf_downloaded": "PDF downloadet", "toast.pdf_downloaded_desc": "Tjek din downloadmappe.",
+  "toast.md_downloaded": "Markdown downloadet", "toast.md_downloaded_desc": "Tjek din downloadmappe.",
+  "toast.url_copied": "Del-URL kopieret!", "toast.url_copied_desc": "Alle med linket kan se disse resultater.",
+  "toast.url_generated": "URL genereret", "toast.url_generated_desc": "Kopiér det manuelt fra delingsfeltet.",
+  "lang.label": "Sprog", "lang.select": "Vælg sprog",
+  "cat.general": "Generelt", "cat.financial": "Finansielt", "cat.privacy": "Privatliv",
+  "cat.employment": "Beskæftigelse", "cat.ip": "IP", "cat.custom": "Brugerdefineret",
+};
+
+// ---------------------------------------------------------------------------
+// Japanese
+// ---------------------------------------------------------------------------
+const ja: TranslationDict = {
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.0.0", "nav.shared_badge": "共有レポート",
+  "steps.setup": "設定", "steps.objectives": "目標", "steps.results": "結果",
+  "clippy.setup": "契約書に署名しようとしているようですね。不公平な条項を確認しましょうか？",
+  "clippy.prompts": "素晴らしい！何を調べるか選んでください。目標を編集したり、独自のものを追加できます！",
+  "clippy.analyzing": "すべての条項を読んでいます。しばらくお待ちください...",
+  "clippy.results": "結果です！警告は深刻度順に並べられています。モデル間で結果を比較してください。",
+  "clippy.idle": "契約書をここにドロップすれば、騙されそうかどうか教えます。",
+  "clippy.wrong_format": "PDF、DOCX、TXT、またはMDファイルのみ対応しています。",
+  "clippy.file_loaded": "「{{filename}}」が表示されています。分析を設定しましょう。",
+  "clippy.file_error": "そのファイルの読み込みに問題がありました。パスワード保護されていないか確認してください。",
+  "clippy.key_locked": "APIキーがロックされています。メモリ内で暗号化 — 分析時のみ使用。",
+  "clippy.need_file": "最初に契約書ファイルをアップロードしてください！", "clippy.need_key": "OpenRouter APIキーが必要です！",
+  "clippy.need_model": "分析に使用するモデルを少なくとも1つ選択してください！", "clippy.key_missing": "APIキーがありません。戻って入力してください。",
+  "clippy.need_objective": "まず少なくとも1つの分析目標を有効にしてください！", "clippy.share_invalid": "このリンクが正しくないようです。破損または期限切れの可能性があります。",
+  "step1.title": "契約書を分析する", "step1.subtitle": "ファイルをアップロードし、APIキーを入力して、AIモデルを選択してください。すべてブラウザで実行 — 何も保存されません。",
+  "step1.drop_title": "ここに契約書をドロップ", "step1.drop_subtitle": "PDF、DOCX、TXT、またはMD", "step1.drop_button": "またはクリックして参照",
+  "step1.file_loaded": "ファイル読み込み済み", "step1.change_file": "ファイルを変更",
+  "step1.api_key_label": "OpenRouter APIキー", "step1.api_key_placeholder": "sk-or-v1-...",
+  "step1.api_key_hint": "こちらで取得：", "step1.api_key_privacy": "保存されません — ブラウザセッション内でのみ暗号化。",
+  "step1.lock_button": "ロック", "step1.unlock_button": "ロック解除",
+  "step1.models_label": "AIモデル", "step1.models_hint": "並行実行する1つ以上のモデルを選択してください。",
+  "step1.feature_multimodel": "マルチモデル", "step1.feature_multimodel_desc": "8以上のAIモデルを同時実行して結果を比較。",
+  "step1.feature_private": "100%プライベート", "step1.feature_private_desc": "ファイルはOpenRouterに直接送信。サーバーなし、ログなし。",
+  "step1.feature_dimensions": "5つの次元", "step1.feature_dimensions_desc": "透明性、バランス、コンプライアンス、財務リスク、退出の自由。",
+  "step1.next_button": "次へ：目標を選択",
+  "step2.title": "分析目標", "step2.subtitle": "Clippyが何を探すか選択してください。有効化、編集、または独自の目標を追加できます。",
+  "step2.enabled_count": "{{count}}つの目標が有効", "step2.enabled_count_plural": "{{count}}つの目標が有効",
+  "step2.back_button": "戻る", "step2.run_button": "分析を実行", "step2.add_custom": "カスタム目標を追加",
+  "step2.prompt_title_placeholder": "目標タイトル", "step2.prompt_desc_placeholder": "短い説明",
+  "step2.prompt_body_placeholder": "AIモデルに送信する指示テキスト...",
+  "step2.edit_tooltip": "この目標を編集", "step2.delete_tooltip": "このカスタム目標を削除",
+  "step2.save_button": "保存", "step2.cancel_button": "キャンセル",
+  "step3.title": "分析結果", "step3.analyzing": "分析中...", "step3.back_button": "新しい分析",
+  "step3.download_pdf": "PDFダウンロード", "step3.download_md": "Markdownダウンロード",
+  "step3.share_url": "共有URL", "step3.copy_url": "URLをコピー", "step3.copied": "コピーしました！",
+  "step3.reading": "読み込み中...", "step3.trust_score": "信頼スコア", "step3.summary": "要約",
+  "step3.dimensions": "5つの次元", "step3.flagged_clauses": "フラグ付き条項",
+  "step3.issues": "{{count}}件の問題", "step3.no_issues": "重大な問題は見つかりませんでした。この契約書は公平に見えます！",
+  "step3.analysis_failed": "分析失敗", "step3.critical": "重大", "step3.suspect": "疑わしい", "step3.minor": "軽微",
+  "step3.model_tabs_label": "モデル別結果", "step3.jurisdiction": "管轄",
+  "share.analyzed_on": "{{date}}に分析", "share.objectives": "目標：{{list}}",
+  "share.models_badge": "{{count}}モデル", "share.models_badge_plural": "{{count}}モデル",
+  "share.version_badge": "Clippy v{{version}}",
+  "share.disclaimer": "これはClippyによって生成された共有契約分析レポートです。ファイルは共有者のブラウザで分析されました — サーバーにファイルはアップロードされていません。このレポートは情報提供のみを目的としており、法的アドバイスを構成するものではありません。",
+  "share.analyze_own": "自分で分析する", "share.cta_title": "自分の契約書を分析したいですか？",
+  "share.cta_subtitle": "Clippyは無料でオープンソースです。OpenRouter APIキーをご用意ください。",
+  "share.cta_button": "Clippyを無料で試す", "share.invalid_title": "無効な共有リンク",
+  "share.invalid_desc": "この共有URLをデコードできませんでした。", "share.invalid_button": "自分の契約書を分析する",
+  "footer.tagline": "オープンソースAI契約分析ツール", "footer.powered_by": "OpenRouter搭載",
+  "toast.encryption_error": "暗号化エラー", "toast.encryption_error_desc": "APIキーを暗号化できませんでした。",
+  "toast.decrypt_failed": "復号化失敗", "toast.decrypt_failed_desc": "APIキーを復号化できませんでした。再入力してください。",
+  "toast.pdf_downloaded": "PDFダウンロード完了", "toast.pdf_downloaded_desc": "ダウンロードフォルダを確認してください。",
+  "toast.md_downloaded": "Markdownダウンロード完了", "toast.md_downloaded_desc": "ダウンロードフォルダを確認してください。",
+  "toast.url_copied": "共有URLをコピーしました！", "toast.url_copied_desc": "リンクを持つ誰でも結果を見ることができます。",
+  "toast.url_generated": "URL生成完了", "toast.url_generated_desc": "共有フィールドから手動でコピーしてください。",
+  "lang.label": "言語", "lang.select": "言語を選択",
+  "cat.general": "一般", "cat.financial": "財務", "cat.privacy": "プライバシー",
+  "cat.employment": "雇用", "cat.ip": "知的財産", "cat.custom": "カスタム",
+};
+
+// ---------------------------------------------------------------------------
+// Korean
+// ---------------------------------------------------------------------------
+const ko: TranslationDict = {
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.0.0", "nav.shared_badge": "공유 보고서",
+  "steps.setup": "설정", "steps.objectives": "목표", "steps.results": "결과",
+  "clippy.setup": "계약서에 서명하려는 것 같군요. 불공정한 조항을 확인해 드릴까요?",
+  "clippy.prompts": "훌륭해요! 이제 무엇을 찾을지 선택하세요. 목표를 편집하거나 직접 추가할 수 있어요!",
+  "clippy.analyzing": "모든 조항을 읽고 있어요. 잠시만 기다려 주세요...",
+  "clippy.results": "발견한 내용이에요! 경고는 심각도 순으로 정렬되었어요. 모델 간 결과를 비교해 보세요.",
+  "clippy.idle": "여기에 계약서를 드래그하면 사기를 당할 위험이 있는지 알려드릴게요.",
+  "clippy.wrong_format": "PDF, DOCX, TXT 또는 MD 파일만 읽을 수 있어요.",
+  "clippy.file_loaded": "좋아요! «{{filename}}»을 볼 수 있어요. 이제 분석을 설정해요.",
+  "clippy.file_error": "이런, 파일 읽기에 문제가 있었어요. 암호로 보호되지 않았는지 확인해 주세요!",
+  "clippy.key_locked": "API 키가 잠겼어요. 메모리에 암호화 — 분석 실행 시에만 사용.",
+  "clippy.need_file": "먼저 계약서 파일을 업로드해 주세요!", "clippy.need_key": "OpenRouter API 키가 필요해요!",
+  "clippy.need_model": "분석할 모델을 하나 이상 선택해 주세요!", "clippy.key_missing": "API 키가 없어요. 돌아가서 입력해 주세요.",
+  "clippy.need_objective": "먼저 분석 목표를 하나 이상 활성화해 주세요!", "clippy.share_invalid": "이 링크가 올바르지 않아 보여요. 손상되거나 만료되었을 수 있어요.",
+  "step1.title": "계약서 분석하기", "step1.subtitle": "파일을 업로드하고, API 키를 입력하고, AI 모델을 선택하세요. 모든 것이 브라우저에서 실행 — 저장되지 않아요.",
+  "step1.drop_title": "여기에 계약서를 드롭", "step1.drop_subtitle": "PDF, DOCX, TXT 또는 MD", "step1.drop_button": "또는 클릭해서 찾아보기",
+  "step1.file_loaded": "파일 로드됨", "step1.change_file": "파일 변경",
+  "step1.api_key_label": "OpenRouter API 키", "step1.api_key_placeholder": "sk-or-v1-...",
+  "step1.api_key_hint": "여기서 발급받기:", "step1.api_key_privacy": "저장되지 않아요 — 브라우저 세션에서만 암호화.",
+  "step1.lock_button": "잠금", "step1.unlock_button": "잠금 해제",
+  "step1.models_label": "AI 모델", "step1.models_hint": "병렬로 실행할 모델을 하나 이상 선택하세요.",
+  "step1.feature_multimodel": "멀티 모델", "step1.feature_multimodel_desc": "8개 이상의 AI 모델을 동시에 실행하고 결과를 비교해요.",
+  "step1.feature_private": "100% 비공개", "step1.feature_private_desc": "파일이 OpenRouter로 직접 전송돼요. 서버 없음, 로그 없음.",
+  "step1.feature_dimensions": "5가지 차원", "step1.feature_dimensions_desc": "투명성, 균형, 준수, 재무 위험, 탈퇴 자유.",
+  "step1.next_button": "다음: 목표 선택",
+  "step2.title": "분석 목표", "step2.subtitle": "Clippy가 무엇을 찾을지 선택하세요. 활성화, 편집하거나 직접 목표를 추가하세요.",
+  "step2.enabled_count": "{{count}}개 목표 활성화", "step2.enabled_count_plural": "{{count}}개 목표 활성화",
+  "step2.back_button": "뒤로", "step2.run_button": "분석 실행", "step2.add_custom": "사용자 지정 목표 추가",
+  "step2.prompt_title_placeholder": "목표 제목", "step2.prompt_desc_placeholder": "짧은 설명",
+  "step2.prompt_body_placeholder": "AI 모델에 전송할 지시 텍스트...",
+  "step2.edit_tooltip": "이 목표 편집", "step2.delete_tooltip": "이 사용자 지정 목표 삭제",
+  "step2.save_button": "저장", "step2.cancel_button": "취소",
+  "step3.title": "분석 결과", "step3.analyzing": "분석 중...", "step3.back_button": "새 분석",
+  "step3.download_pdf": "PDF 다운로드", "step3.download_md": "Markdown 다운로드",
+  "step3.share_url": "공유 URL", "step3.copy_url": "URL 복사", "step3.copied": "복사됨!",
+  "step3.reading": "읽는 중...", "step3.trust_score": "신뢰 점수", "step3.summary": "요약",
+  "step3.dimensions": "5가지 차원", "step3.flagged_clauses": "표시된 조항",
+  "step3.issues": "{{count}}개 문제", "step3.no_issues": "중요한 문제가 발견되지 않았어요. 이 계약서는 공정해 보여요!",
+  "step3.analysis_failed": "분석 실패", "step3.critical": "심각", "step3.suspect": "의심스러움", "step3.minor": "경미",
+  "step3.model_tabs_label": "모델별 결과", "step3.jurisdiction": "관할권",
+  "share.analyzed_on": "{{date}}에 분석", "share.objectives": "목표: {{list}}",
+  "share.models_badge": "{{count}}개 모델", "share.models_badge_plural": "{{count}}개 모델",
+  "share.version_badge": "Clippy v{{version}}",
+  "share.disclaimer": "이것은 Clippy가 생성한 공유 계약서 분석 보고서입니다. 파일은 공유자의 브라우저에서 분석되었으며 서버에 업로드되지 않았습니다. 이 보고서는 정보 제공 목적으로만 사용되며 법적 조언을 구성하지 않습니다.",
+  "share.analyze_own": "내 계약서 분석", "share.cta_title": "내 계약서를 분석하고 싶으신가요?",
+  "share.cta_subtitle": "Clippy는 무료이고 오픈 소스입니다. OpenRouter API 키를 가져오세요.",
+  "share.cta_button": "Clippy 무료로 사용해 보기", "share.invalid_title": "유효하지 않은 공유 링크",
+  "share.invalid_desc": "이 공유 URL을 디코딩할 수 없었습니다.", "share.invalid_button": "내 계약서 분석하기",
+  "footer.tagline": "오픈 소스 AI 계약서 분석기", "footer.powered_by": "OpenRouter 제공",
+  "toast.encryption_error": "암호화 오류", "toast.encryption_error_desc": "API 키를 암호화할 수 없었습니다.",
+  "toast.decrypt_failed": "복호화 실패", "toast.decrypt_failed_desc": "API 키를 복호화할 수 없었습니다. 다시 입력해 주세요.",
+  "toast.pdf_downloaded": "PDF 다운로드됨", "toast.pdf_downloaded_desc": "다운로드 폴더를 확인하세요.",
+  "toast.md_downloaded": "Markdown 다운로드됨", "toast.md_downloaded_desc": "다운로드 폴더를 확인하세요.",
+  "toast.url_copied": "공유 URL 복사됨!", "toast.url_copied_desc": "링크를 가진 누구나 이 결과를 볼 수 있어요.",
+  "toast.url_generated": "URL 생성됨", "toast.url_generated_desc": "공유 필드에서 수동으로 복사하세요.",
+  "lang.label": "언어", "lang.select": "언어 선택",
+  "cat.general": "일반", "cat.financial": "재무", "cat.privacy": "개인정보",
+  "cat.employment": "고용", "cat.ip": "지식재산", "cat.custom": "사용자 지정",
+};
+
+// ---------------------------------------------------------------------------
+// Hebrew (RTL)
+// ---------------------------------------------------------------------------
+const he: TranslationDict = {
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.0.0", "nav.shared_badge": "דוח משותף",
+  "steps.setup": "הגדרה", "steps.objectives": "מטרות", "steps.results": "תוצאות",
+  "clippy.setup": "נראה שאתה עומד לחתום על חוזה. רוצה שאבדוק סעיפים בעייתיים?",
+  "clippy.prompts": "מצוין! עכשיו בחר מה לחפש. אתה יכול לערוך או להוסיף מטרות משלך!",
+  "clippy.analyzing": "אני קורא כל סעיף בשבילך. רגע...",
+  "clippy.results": "הנה מה שמצאתי! האזהרות ממוינות לפי חומרה. השווה תוצאות בין מודלים.",
+  "clippy.idle": "שחרר כאן את החוזה שלך ואומר לך אם אתה עומד להיות מרומה.",
+  "clippy.wrong_format": "אני יכול לקרוא רק קבצי PDF, DOCX, TXT או MD.",
+  "clippy.file_loaded": "מצוין! אני רואה את «{{filename}}». עכשיו נגדיר את הניתוח.",
+  "clippy.file_error": "אוי, היה לי קושי לקרוא את הקובץ. ודא שאינו מוגן בסיסמה!",
+  "clippy.key_locked": "מפתח API נעול. מוצפן בזיכרון — נמצא בשימוש רק בזמן ניתוח.",
+  "clippy.need_file": "אנא העלה קובץ חוזה תחילה!", "clippy.need_key": "אני צריך את מפתח ה-API של OpenRouter שלך!",
+  "clippy.need_model": "בחר לפחות מודל אחד לניתוח!", "clippy.key_missing": "מפתח API חסר. חזור ורשום אותו.",
+  "clippy.need_objective": "הפעל לפחות מטרה אחת!", "clippy.share_invalid": "הקישור הזה לא נראה נכון. ייתכן שהוא פגום או פג תוקף.",
+  "step1.title": "נתח את החוזה שלך", "step1.subtitle": "העלה קובץ, הזן מפתח API ובחר מודלי AI. הכל רץ בדפדפן — לא נשמר שום דבר.",
+  "step1.drop_title": "שחרר כאן את החוזה", "step1.drop_subtitle": "PDF, DOCX, TXT או MD", "step1.drop_button": "או לחץ לעיון",
+  "step1.file_loaded": "קובץ נטען", "step1.change_file": "החלף קובץ",
+  "step1.api_key_label": "מפתח API של OpenRouter", "step1.api_key_placeholder": "sk-or-v1-...",
+  "step1.api_key_hint": "קבל שלך ב-", "step1.api_key_privacy": "לעולם לא נשמר — מוצפן רק בסשן הדפדפן שלך.",
+  "step1.lock_button": "נעל", "step1.unlock_button": "פתח נעילה",
+  "step1.models_label": "מודלי AI", "step1.models_hint": "בחר מודל אחד או יותר להרצה מקבילה.",
+  "step1.feature_multimodel": "מרובה מודלים", "step1.feature_multimodel_desc": "הרץ 8+ מודלי AI בו-זמנית והשווה תוצאות.",
+  "step1.feature_private": "100% פרטי", "step1.feature_private_desc": "הקובץ שלך הולך ישירות ל-OpenRouter. אין שרת, אין לוגים.",
+  "step1.feature_dimensions": "5 ממדים", "step1.feature_dimensions_desc": "שקיפות, איזון, תאימות, סיכון פיננסי, חופש יציאה.",
+  "step1.next_button": "הבא: בחר מטרות",
+  "step2.title": "מטרות ניתוח", "step2.subtitle": "בחר מה Clippy יחפש. הפעל, ערוך או הוסף מטרות משלך.",
+  "step2.enabled_count": "{{count}} מטרה מופעלת", "step2.enabled_count_plural": "{{count}} מטרות מופעלות",
+  "step2.back_button": "חזור", "step2.run_button": "הרץ ניתוח", "step2.add_custom": "הוסף מטרה מותאמת אישית",
+  "step2.prompt_title_placeholder": "כותרת מטרה", "step2.prompt_desc_placeholder": "תיאור קצר",
+  "step2.prompt_body_placeholder": "טקסט ההוראה שנשלח למודל AI...",
+  "step2.edit_tooltip": "ערוך מטרה זו", "step2.delete_tooltip": "מחק מטרה זו",
+  "step2.save_button": "שמור", "step2.cancel_button": "בטל",
+  "step3.title": "תוצאות הניתוח", "step3.analyzing": "מנתח...", "step3.back_button": "ניתוח חדש",
+  "step3.download_pdf": "הורד PDF", "step3.download_md": "הורד Markdown",
+  "step3.share_url": "שתף URL", "step3.copy_url": "העתק URL", "step3.copied": "הועתק!",
+  "step3.reading": "קורא...", "step3.trust_score": "ציון אמון", "step3.summary": "סיכום",
+  "step3.dimensions": "5 ממדים", "step3.flagged_clauses": "סעיפים מסומנים",
+  "step3.issues": "{{count}} בעיה", "step3.no_issues": "לא נמצאו בעיות משמעותיות. החוזה הזה נראה הוגן!",
+  "step3.analysis_failed": "הניתוח נכשל", "step3.critical": "קריטי", "step3.suspect": "חשוד", "step3.minor": "קל",
+  "step3.model_tabs_label": "תוצאות לפי מודל", "step3.jurisdiction": "סמכות שיפוטית",
+  "share.analyzed_on": "נותח ב-{{date}}", "share.objectives": "מטרות: {{list}}",
+  "share.models_badge": "{{count}} מודל", "share.models_badge_plural": "{{count}} מודלים",
+  "share.version_badge": "Clippy v{{version}}",
+  "share.disclaimer": "זהו דוח ניתוח חוזה משותף שנוצר על ידי Clippy. הקובץ נותח בדפדפן של המשתף — לא הועלה קובץ לשום שרת. דוח זה מיועד למטרות מידע בלבד ואינו מהווה ייעוץ משפטי.",
+  "share.analyze_own": "נתח את שלך", "share.cta_title": "רוצה לנתח את החוזה שלך?",
+  "share.cta_subtitle": "Clippy חינמי וקוד פתוח. הבא את מפתח ה-API של OpenRouter שלך.",
+  "share.cta_button": "נסה את Clippy בחינם", "share.invalid_title": "קישור שיתוף לא חוקי",
+  "share.invalid_desc": "לא ניתן לפענח URL זה.", "share.invalid_button": "נתח את החוזה שלך",
+  "footer.tagline": "מנתח חוזים AI קוד פתוח", "footer.powered_by": "מופעל על ידי OpenRouter",
+  "toast.encryption_error": "שגיאת הצפנה", "toast.encryption_error_desc": "לא ניתן להצפין את מפתח ה-API.",
+  "toast.decrypt_failed": "פענוח נכשל", "toast.decrypt_failed_desc": "לא ניתן לפענח את מפתח ה-API. אנא הזן מחדש.",
+  "toast.pdf_downloaded": "PDF הורד", "toast.pdf_downloaded_desc": "בדוק את תיקיית ההורדות שלך.",
+  "toast.md_downloaded": "Markdown הורד", "toast.md_downloaded_desc": "בדוק את תיקיית ההורדות שלך.",
+  "toast.url_copied": "URL שיתוף הועתק!", "toast.url_copied_desc": "כל מי שיש לו את הקישור יכול לראות את התוצאות.",
+  "toast.url_generated": "URL נוצר", "toast.url_generated_desc": "העתק אותו ידנית משדה השיתוף.",
+  "lang.label": "שפה", "lang.select": "בחר שפה",
+  "cat.general": "כללי", "cat.financial": "פיננסי", "cat.privacy": "פרטיות",
+  "cat.employment": "תעסוקה", "cat.ip": "קנין רוחני", "cat.custom": "מותאם אישית",
+};
+
+// ---------------------------------------------------------------------------
+// Arabic (RTL)
+// ---------------------------------------------------------------------------
+const ar: TranslationDict = {
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.0.0", "nav.shared_badge": "تقرير مشترك",
+  "steps.setup": "الإعداد", "steps.objectives": "الأهداف", "steps.results": "النتائج",
+  "clippy.setup": "يبدو أنك ستوقع على عقد. هل تريدني أن أفحص البنود الضارة؟",
+  "clippy.prompts": "رائع! اختر الآن ما يجب أن أبحث عنه. يمكنك تعديل أهدافك الخاصة أو إضافتها!",
+  "clippy.analyzing": "أقرأ كل بند بدلاً منك. لحظة من فضلك...",
+  "clippy.results": "إليك ما وجدته! التحذيرات مرتبة حسب الخطورة. قارن النتائج عبر النماذج.",
+  "clippy.idle": "أسقط عقدك هنا وسأخبرك إذا كنت على وشك التعرض للاحتيال.",
+  "clippy.wrong_format": "يمكنني قراءة ملفات PDF أو DOCX أو TXT أو MD فقط.",
+  "clippy.file_loaded": "رائع! أرى «{{filename}}». لنقم الآن بتكوين تحليلك.",
+  "clippy.file_error": "عذرًا، واجهت مشكلة في قراءة هذا الملف. تأكد من أنه غير محمي بكلمة مرور!",
+  "clippy.key_locked": "مفتاح API مقفل. مشفر في الذاكرة — يُستخدم فقط عند التشغيل.",
+  "clippy.need_file": "يرجى تحميل ملف عقد أولاً!", "clippy.need_key": "أحتاج إلى مفتاح OpenRouter API الخاص بك!",
+  "clippy.need_model": "اختر نموذجًا واحدًا على الأقل للتحليل!", "clippy.key_missing": "مفتاح API مفقود. ارجع وأدخله.",
+  "clippy.need_objective": "فعّل هدفًا واحدًا على الأقل أولاً!", "clippy.share_invalid": "يبدو هذا الرابط غير صحيح. قد يكون تالفًا أو منتهي الصلاحية.",
+  "step1.title": "تحليل عقدك", "step1.subtitle": "حمّل ملفك، أدخل مفتاح API، واختر نماذج الذكاء الاصطناعي. كل شيء يعمل في متصفحك — لا يُخزَّن شيء.",
+  "step1.drop_title": "أسقط عقدك هنا", "step1.drop_subtitle": "PDF أو DOCX أو TXT أو MD", "step1.drop_button": "أو انقر للاستعراض",
+  "step1.file_loaded": "تم تحميل الملف", "step1.change_file": "تغيير الملف",
+  "step1.api_key_label": "مفتاح API لـ OpenRouter", "step1.api_key_placeholder": "sk-or-v1-...",
+  "step1.api_key_hint": "احصل على مفتاحك من", "step1.api_key_privacy": "لا يُخزَّن أبدًا — مشفر فقط في جلسة المتصفح.",
+  "step1.lock_button": "قفل", "step1.unlock_button": "فتح القفل",
+  "step1.models_label": "نماذج الذكاء الاصطناعي", "step1.models_hint": "اختر نموذجًا أو أكثر للتشغيل المتوازي.",
+  "step1.feature_multimodel": "متعدد النماذج", "step1.feature_multimodel_desc": "شغّل 8+ نماذج ذكاء اصطناعي في آنٍ واحد وقارن النتائج.",
+  "step1.feature_private": "خاص 100%", "step1.feature_private_desc": "ملفك يذهب مباشرة إلى OpenRouter. لا خادم، لا سجلات.",
+  "step1.feature_dimensions": "5 أبعاد", "step1.feature_dimensions_desc": "الشفافية، التوازن، الامتثال، المخاطر المالية، حرية الخروج.",
+  "step1.next_button": "التالي: اختر الأهداف",
+  "step2.title": "أهداف التحليل", "step2.subtitle": "اختر ما يجب على Clippy البحث عنه. فعّل أو عدّل أو أضف أهدافك الخاصة.",
+  "step2.enabled_count": "{{count}} هدف مفعّل", "step2.enabled_count_plural": "{{count}} أهداف مفعّلة",
+  "step2.back_button": "رجوع", "step2.run_button": "تشغيل التحليل", "step2.add_custom": "إضافة هدف مخصص",
+  "step2.prompt_title_placeholder": "عنوان الهدف", "step2.prompt_desc_placeholder": "وصف قصير",
+  "step2.prompt_body_placeholder": "نص التعليمات المرسل إلى نموذج الذكاء الاصطناعي...",
+  "step2.edit_tooltip": "تعديل هذا الهدف", "step2.delete_tooltip": "حذف هذا الهدف",
+  "step2.save_button": "حفظ", "step2.cancel_button": "إلغاء",
+  "step3.title": "نتائج التحليل", "step3.analyzing": "جارٍ التحليل...", "step3.back_button": "تحليل جديد",
+  "step3.download_pdf": "تنزيل PDF", "step3.download_md": "تنزيل Markdown",
+  "step3.share_url": "مشاركة الرابط", "step3.copy_url": "نسخ الرابط", "step3.copied": "تم النسخ!",
+  "step3.reading": "جارٍ القراءة...", "step3.trust_score": "نقاط الثقة", "step3.summary": "ملخص",
+  "step3.dimensions": "5 أبعاد", "step3.flagged_clauses": "البنود المُعلَّمة",
+  "step3.issues": "{{count}} مشكلة", "step3.no_issues": "لم يتم العثور على مشاكل مهمة. يبدو هذا العقد عادلاً!",
+  "step3.analysis_failed": "فشل التحليل", "step3.critical": "حرج", "step3.suspect": "مشبوه", "step3.minor": "بسيط",
+  "step3.model_tabs_label": "نتائج حسب النموذج", "step3.jurisdiction": "الاختصاص القضائي",
+  "share.analyzed_on": "تم التحليل في {{date}}", "share.objectives": "الأهداف: {{list}}",
+  "share.models_badge": "{{count}} نموذج", "share.models_badge_plural": "{{count}} نماذج",
+  "share.version_badge": "Clippy v{{version}}",
+  "share.disclaimer": "هذا تقرير تحليل عقد مشترك تم إنشاؤه بواسطة Clippy. تم تحليل الملف في متصفح المشارك — لم يُرفع أي ملف إلى أي خادم. هذا التقرير لأغراض إعلامية فقط ولا يُعدّ استشارةً قانونية.",
+  "share.analyze_own": "حلّل عقدك", "share.cta_title": "هل تريد تحليل عقدك الخاص؟",
+  "share.cta_subtitle": "Clippy مجاني ومفتوح المصدر. أحضر مفتاح OpenRouter API الخاص بك.",
+  "share.cta_button": "جرّب Clippy مجانًا", "share.invalid_title": "رابط مشاركة غير صالح",
+  "share.invalid_desc": "تعذّر فك تشفير رابط المشاركة هذا.", "share.invalid_button": "حلّل عقدك الخاص",
+  "footer.tagline": "محلل عقود بالذكاء الاصطناعي مفتوح المصدر", "footer.powered_by": "مدعوم بـ OpenRouter",
+  "toast.encryption_error": "خطأ في التشفير", "toast.encryption_error_desc": "تعذّر تشفير مفتاح API.",
+  "toast.decrypt_failed": "فشل فك التشفير", "toast.decrypt_failed_desc": "تعذّر فك تشفير مفتاح API. يرجى إعادة إدخاله.",
+  "toast.pdf_downloaded": "تم تنزيل PDF", "toast.pdf_downloaded_desc": "تحقق من مجلد التنزيلات.",
+  "toast.md_downloaded": "تم تنزيل Markdown", "toast.md_downloaded_desc": "تحقق من مجلد التنزيلات.",
+  "toast.url_copied": "تم نسخ رابط المشاركة!", "toast.url_copied_desc": "يمكن لأي شخص لديه الرابط رؤية هذه النتائج.",
+  "toast.url_generated": "تم إنشاء الرابط", "toast.url_generated_desc": "انسخه يدويًا من حقل المشاركة.",
+  "lang.label": "اللغة", "lang.select": "اختر اللغة",
+  "cat.general": "عام", "cat.financial": "مالي", "cat.privacy": "الخصوصية",
+  "cat.employment": "التوظيف", "cat.ip": "الملكية الفكرية", "cat.custom": "مخصص",
+};
+
+// ---------------------------------------------------------------------------
+// Translation registry
+// ---------------------------------------------------------------------------
+
+/**
+ * Master translation registry.
+ * Maps locale code → full translation dictionary.
+ * English is always the fallback for missing keys.
+ */
+export const TRANSLATIONS: Record<Locale, TranslationDict> = {
+  en, fr, es, pt, de, nl, it, zh, ru, hi, bg, pl, da, ja, ko, he, ar,
+};
+
+// ---------------------------------------------------------------------------
+// Locale detection
+// ---------------------------------------------------------------------------
+
+/**
+ * Detect the best locale to use at startup.
+ *
+ * Priority:
+ *   1. localStorage "clippy_locale" — explicit user preference
+ *   2. navigator.language prefix — browser's preferred language
+ *   3. "en" fallback
+ *
+ * @returns The detected Locale code
+ */
+export function detectLocale(): Locale {
+  const supported = SUPPORTED_LOCALES.map(l => l.code) as Locale[];
+
+  // 1. Check persisted preference
+  const stored = typeof localStorage !== "undefined"
+    ? localStorage.getItem("clippy_locale")
+    : null;
+  if (stored && supported.includes(stored as Locale)) {
+    return stored as Locale;
+  }
+
+  // 2. Check browser language
+  if (typeof navigator !== "undefined" && navigator.language) {
+    const lang = navigator.language.split("-")[0].toLowerCase() as Locale;
+    if (supported.includes(lang)) return lang;
+  }
+
+  return "en";
+}
+
+// ---------------------------------------------------------------------------
+// React context + provider
+// ---------------------------------------------------------------------------
+
+const I18nContext = createContext<I18nContextValue | null>(null);
+
+/**
+ * Provider component — wraps the app and supplies the i18n context.
+ *
+ * Usage:
+ *   <I18nProvider>
+ *     <App />
+ *   </I18nProvider>
+ *
+ * Automatically applies `dir="rtl"` to `<html>` for Arabic and Hebrew,
+ * and sets the `lang` attribute to the current locale's BCP-47 code.
+ */
+export function I18nProvider({ children }: { children: ReactNode }) {
+  const [locale, setLocaleState] = useState<Locale>(detectLocale);
+
+  const isRtl = RTL_LOCALES.has(locale);
+
+  // Apply dir and lang attributes to <html> whenever locale changes
+  useEffect(() => {
+    const html = document.documentElement;
+    const info = SUPPORTED_LOCALES.find(l => l.code === locale);
+    html.setAttribute("lang", info?.htmlLang ?? locale);
+    html.setAttribute("dir", isRtl ? "rtl" : "ltr");
+  }, [locale, isRtl]);
+
+  const setLocale = useCallback((newLocale: Locale) => {
+    setLocaleState(newLocale);
+    try { localStorage.setItem("clippy_locale", newLocale); } catch { /* private browsing */ }
+  }, []);
+
+  /**
+   * Translate a key for the current locale.
+   *
+   * Interpolation syntax: `{{variable}}` in the string is replaced with the
+   * value from `vars`. Example:
+   *   t("clippy.file_loaded", { filename: "contract.pdf" })
+   *   → "Nice! I can see «contract.pdf». Now let's configure your analysis."
+   *
+   * Falls back to English if the key is missing in the current locale.
+   * Returns the raw key if it's missing in English too (should not happen
+   * in production, but avoids silent blank strings during development).
+   */
+  const t = useCallback((key: string, vars?: Record<string, string | number>): string => {
+    const dict = TRANSLATIONS[locale] ?? {};
+    const fallback = TRANSLATIONS["en"] ?? {};
+    let str = dict[key] ?? fallback[key] ?? key;
+
+    if (vars) {
+      Object.entries(vars).forEach(([k, v]) => {
+        str = str.replaceAll(`{{${k}}}`, String(v));
+      });
+    }
+
+    return str;
+  }, [locale]);
+
+  const value: I18nContextValue = { locale, setLocale, t, isRtl };
+
+  return React.createElement(I18nContext.Provider, { value }, children);
+}
+
+/**
+ * Hook to access the i18n context from any component.
+ *
+ * Throws if called outside of <I18nProvider>.
+ */
+export function useI18n(): I18nContextValue {
+  const ctx = useContext(I18nContext);
+  if (!ctx) throw new Error("useI18n must be used inside <I18nProvider>");
+  return ctx;
+}

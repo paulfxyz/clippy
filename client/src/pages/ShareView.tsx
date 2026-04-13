@@ -1,6 +1,7 @@
 /**
  * @file ShareView.tsx
  * @description Read-only results page for shared Clippy analysis links.
+ * @version 3.0.0
  *
  * OVERVIEW
  * --------
@@ -31,6 +32,11 @@
  *
  * The decodeSharePayload() function in share.ts is designed to return null
  * on any decoding failure — this component renders accordingly.
+ *
+ * i18n
+ * ----
+ * All user-visible strings are translated via useI18n() / t(). The LanguageSwitcher
+ * component is included in the header so visitors can switch language on the share page.
  */
 
 import { useMemo } from "react";
@@ -42,7 +48,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TrustScoreRing } from "@/components/TrustScoreRing";
 import { ClippyCharacter } from "@/components/ClippyCharacter";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { decodeSharePayload } from "@/lib/share";
+import { useI18n } from "@/lib/i18n";
 import type { Severity } from "@shared/schema";
 
 // ---------------------------------------------------------------------------
@@ -104,11 +112,16 @@ function DimensionBar({ name, score, note }: { name: string; score: number; note
  *   1. Valid payload → full results dashboard
  *   2. Invalid/corrupt payload → friendly error with a link back to the app
  *   3. Missing payload → redirect to home (handled by wouter route matching)
+ *
+ * All user-visible strings are translated via the `t()` helper from useI18n().
  */
 export default function ShareView() {
   // wouter passes route params (`:payload`) via useParams
   const params = useParams<{ payload: string }>();
   const rawPayload = params.payload || "";
+
+  // i18n — provides t() for all translated strings
+  const { t } = useI18n();
 
   /**
    * Decode the payload once on mount (or when rawPayload changes).
@@ -126,19 +139,19 @@ export default function ShareView() {
   if (!payload) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4">
-        <ClippyCharacter message="Hmm, this link doesn't look right. It might be corrupted or expired." size="md" />
+        {/* Clippy mascot with a confused message */}
+        <ClippyCharacter message={t("clippy.share_invalid")} size="md" />
         <div className="mt-8 text-center space-y-4 max-w-md">
           <div className="flex items-center justify-center gap-2 text-destructive">
             <AlertTriangle className="w-5 h-5" />
-            <p className="font-semibold">Invalid Share Link</p>
+            <p className="font-semibold">{t("share.invalid_title")}</p>
           </div>
           <p className="text-sm text-muted-foreground">
-            This share URL could not be decoded. It may have been truncated,
-            corrupted by your email client, or the format has changed.
+            {t("share.invalid_desc")}
           </p>
           <Button asChild variant="default">
             <a href="/">
-              <ExternalLink className="w-4 h-4 mr-2" /> Analyze Your Own Contract
+              <ExternalLink className="w-4 h-4 mr-2" /> {t("share.invalid_button")}
             </a>
           </Button>
         </div>
@@ -156,26 +169,32 @@ export default function ShareView() {
   return (
     <div className="min-h-screen bg-background">
 
-      {/* Header */}
+      {/* Header — sticky, shows logo + share badge + language switcher */}
       <header className="border-b border-border bg-card/70 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {/* Clippy logo */}
+            {/* Clippy logo mark */}
             <svg viewBox="0 0 32 32" width="26" height="26" fill="none" aria-label="Clippy logo">
               <path d="M 11 28 C 7 28 4 25 4 21 L 4 8 C 4 4 7 1 11 1 C 15 1 18 4 18 8 L 18 21 C 18 23.2 16.2 25 14 25 C 11.8 25 10 23.2 10 21 L 10 10"
                     stroke="#C8A800" strokeWidth="4" strokeLinecap="round" fill="none"/>
               <path d="M 11 28 C 7 28 4 25 4 21 L 4 8 C 4 4 7 1 11 1 C 15 1 18 4 18 8 L 18 21 C 18 23.2 16.2 25 14 25 C 11.8 25 10 23.2 10 21 L 10 10"
                     stroke="#F5D000" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
             </svg>
-            <span className="font-bold text-base tracking-tight">clippy</span>
-            <Badge variant="secondary" className="text-xs hidden sm:inline-flex">shared report</Badge>
+            <span className="font-bold text-base tracking-tight">{t("nav.brand")}</span>
+            <span className="hidden sm:inline text-muted-foreground text-sm select-none">·</span>
+            <span className="hidden sm:inline text-xs text-muted-foreground tracking-wide">your contract analyst</span>
+            {/* "shared report" badge — translated */}
+            <Badge variant="secondary" className="text-xs hidden sm:inline-flex">
+              {t("nav.shared_badge")}
+            </Badge>
           </div>
 
           <div className="flex items-center gap-2">
             {/* Link back to the main app */}
             <Button variant="ghost" size="sm" asChild>
-              <a href="/">Analyze Your Own</a>
+              <a href="/">{t("share.analyze_own")}</a>
             </Button>
+            {/* GitHub link */}
             <a
               href="https://github.com/paulfxyz/clippy"
               target="_blank"
@@ -183,51 +202,58 @@ export default function ShareView() {
               className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded"
             >
               <Github className="w-4 h-4" />
-              <span className="hidden sm:inline">GitHub</span>
+              <span className="hidden sm:inline">{t("nav.github")}</span>
             </a>
+            {/* Language switcher — so share page visitors can also switch languages */}
+            <LanguageSwitcher />
           </div>
         </div>
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-8 space-y-8">
 
-        {/* Report metadata banner */}
+        {/* ---- Report metadata banner ---- */}
         <Card className="border-border bg-primary/5 border-primary/20">
           <CardContent className="pt-5 pb-5">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="space-y-1">
                 <p className="font-bold">{fileName}</p>
-                <p className="text-sm text-muted-foreground">Analyzed on {analyzedDate}</p>
+                {/* "Analyzed on <date>" — translated with {{date}} interpolation */}
+                <p className="text-sm text-muted-foreground">
+                  {t("share.analyzed_on", { date: analyzedDate })}
+                </p>
                 {promptTitles?.length > 0 && (
                   <p className="text-xs text-muted-foreground">
-                    Objectives: {promptTitles.join(", ")}
+                    {t("share.objectives", { list: promptTitles.join(", ") })}
                   </p>
                 )}
               </div>
               <div className="flex items-center gap-2">
+                {/* "N model(s)" badge — plural-aware via separate key */}
                 <Badge variant="outline" className="text-xs">
-                  {results.length} model{results.length !== 1 ? "s" : ""}
+                  {results.length !== 1
+                    ? t("share.models_badge_plural", { count: results.length })
+                    : t("share.models_badge",        { count: results.length })}
                 </Badge>
+                {/* Version badge */}
                 <Badge variant="outline" className="text-xs">
-                  Clippy v{version}
+                  {t("share.version_badge", { version })}
                 </Badge>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Read-only disclaimer */}
+        {/* ---- Read-only disclaimer — translated ---- */}
         <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 flex items-start gap-3">
           <span className="text-lg">📎</span>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            This is a shared contract analysis report generated by{" "}
-            <a href="https://clippy.legal" className="text-primary hover:underline">Clippy</a>.
-            The contract file was analyzed in the sharer's browser — no file was uploaded to any server.
-            This report is for informational purposes only and does not constitute legal advice.
+            {t("share.disclaimer")}{" "}
+            <a href="https://clippy.legal" className="text-primary hover:underline">clippy.legal</a>.
           </p>
         </div>
 
-        {/* Results tabs */}
+        {/* ---- Results tabs — one tab per model ---- */}
         {results.length > 0 && (
           <Tabs defaultValue={results[0].modelId}>
             <TabsList className="flex-wrap h-auto gap-1 p-1">
@@ -248,30 +274,32 @@ export default function ShareView() {
             {results.map(result => (
               <TabsContent key={result.modelId} value={result.modelId} className="space-y-6 mt-4">
 
-                {/* Error state */}
+                {/* ---- Error state ---- */}
                 {result.status === "error" && (
                   <Card className="border-destructive bg-destructive/5">
                     <CardContent className="pt-5 flex items-center gap-3">
                       <AlertTriangle className="w-5 h-5 text-destructive flex-shrink-0" />
                       <div>
-                        <p className="font-semibold text-sm">Analysis failed</p>
+                        {/* "Analysis failed" — translated */}
+                        <p className="font-semibold text-sm">{t("step3.analysis_failed")}</p>
                         <p className="text-xs text-muted-foreground">{result.error}</p>
                       </div>
                     </CardContent>
                   </Card>
                 )}
 
-                {/* Done state */}
+                {/* ---- Done state — full read-only dashboard ---- */}
                 {result.status === "done" && (
                   <>
-                    {/* Trust score + Summary */}
+                    {/* Top row: Trust score ring + Summary card */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <Card className="border-border flex items-center justify-center py-6">
                         <div className="text-center space-y-3">
                           <TrustScoreRing score={result.trustScore} size={120} />
                           <div>
+                            {/* "Trust Score" label — translated */}
                             <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
-                              Trust Score
+                              {t("step3.trust_score")}
                             </p>
                             {result.jurisdiction && result.jurisdiction !== "Unknown" && (
                               <p className="text-xs text-muted-foreground mt-1">
@@ -288,17 +316,20 @@ export default function ShareView() {
                         </div>
                       </Card>
 
+                      {/* Summary card */}
                       <Card className="border-border sm:col-span-2">
                         <CardHeader className="pb-2">
-                          <CardTitle className="text-sm">Summary</CardTitle>
+                          {/* "Summary" — translated */}
+                          <CardTitle className="text-sm">{t("step3.summary")}</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
                           <p className="text-sm leading-relaxed">{result.summary}</p>
+                          {/* Severity counts — labels translated */}
                           <div className="flex gap-4 pt-1">
                             {[
-                              { label: "Critical", count: result.flags.filter(f => f.severity === "CRITICAL").length, color: "text-red-500" },
-                              { label: "Suspect",  count: result.flags.filter(f => f.severity === "SUSPECT").length,  color: "text-orange-500" },
-                              { label: "Minor",    count: result.flags.filter(f => f.severity === "MINOR").length,    color: "text-yellow-600" },
+                              { label: t("step3.critical"), count: result.flags.filter(f => f.severity === "CRITICAL").length, color: "text-red-500" },
+                              { label: t("step3.suspect"),  count: result.flags.filter(f => f.severity === "SUSPECT").length,  color: "text-orange-500" },
+                              { label: t("step3.minor"),    count: result.flags.filter(f => f.severity === "MINOR").length,    color: "text-yellow-600" },
                             ].map(s => (
                               <div key={s.label} className="text-center">
                                 <p className={`text-xl font-bold ${s.color}`}>{s.count}</p>
@@ -310,11 +341,12 @@ export default function ShareView() {
                       </Card>
                     </div>
 
-                    {/* Dimensions */}
+                    {/* ---- 5 Dimensions card ---- */}
                     {result.dimensions.length > 0 && (
                       <Card className="border-border">
                         <CardHeader className="pb-3">
-                          <CardTitle className="text-sm">5 Dimensions</CardTitle>
+                          {/* "5 Dimensions" — translated */}
+                          <CardTitle className="text-sm">{t("step3.dimensions")}</CardTitle>
                         </CardHeader>
                         <CardContent>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -326,13 +358,14 @@ export default function ShareView() {
                       </Card>
                     )}
 
-                    {/* Flagged clauses */}
+                    {/* ---- Flagged clauses — or no-issues green card ---- */}
                     {result.flags.length === 0 ? (
                       <Card className="border-border bg-green-50/60 dark:bg-green-950/20">
                         <CardContent className="pt-5 flex items-center gap-3">
                           <span className="text-2xl">✅</span>
+                          {/* "No significant issues found" — translated */}
                           <p className="text-sm font-medium">
-                            No significant issues found. This contract looks fair!
+                            {t("step3.no_issues")}
                           </p>
                         </CardContent>
                       </Card>
@@ -340,8 +373,11 @@ export default function ShareView() {
                       <Card className="border-border">
                         <CardHeader className="pb-3">
                           <CardTitle className="text-sm flex items-center gap-2">
-                            Flagged Clauses
-                            <Badge variant="secondary">{result.flags.length} issues</Badge>
+                            {/* "Flagged Clauses" + issue count badge — translated */}
+                            {t("step3.flagged_clauses")}
+                            <Badge variant="secondary">
+                              {t("step3.issues", { count: result.flags.length })}
+                            </Badge>
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
@@ -374,25 +410,26 @@ export default function ShareView() {
           </Tabs>
         )}
 
-        {/* CTA — encourage to run their own analysis */}
+        {/* ---- CTA — encourage visitors to run their own analysis ---- */}
         <Card className="border-border bg-primary/5 border-primary/20">
           <CardContent className="pt-5 pb-5 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
-              <p className="font-semibold text-sm">Want to analyze your own contract?</p>
+              {/* CTA title + subtitle — translated */}
+              <p className="font-semibold text-sm">{t("share.cta_title")}</p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Clippy is free and open source. Bring your own OpenRouter API key.
+                {t("share.cta_subtitle")}
               </p>
             </div>
             <Button asChild>
               <a href="/">
-                Try Clippy Free <ExternalLink className="w-3.5 h-3.5 ml-2" />
+                {t("share.cta_button")} <ExternalLink className="w-3.5 h-3.5 ml-2" />
               </a>
             </Button>
           </CardContent>
         </Card>
       </main>
 
-      {/* Footer */}
+      {/* Footer — translated, version bumped to v3.0.0 */}
       <footer className="mt-16 border-t border-border">
         <div className="max-w-5xl mx-auto px-4 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
@@ -405,7 +442,7 @@ export default function ShareView() {
                 fill="none"
               />
             </svg>
-            <span>clippy v2.0.0 — open source AI contract analyzer</span>
+            <span>clippy v3.0.0 — {t("footer.tagline")}</span>
           </div>
           <div className="flex items-center gap-4">
             <a href="https://github.com/paulfxyz/clippy" target="_blank" rel="noopener noreferrer"
@@ -414,7 +451,7 @@ export default function ShareView() {
             </a>
             <a href="https://openrouter.ai" target="_blank" rel="noopener noreferrer"
                className="hover:text-foreground transition-colors">
-              Powered by OpenRouter
+              {t("footer.powered_by")}
             </a>
           </div>
         </div>

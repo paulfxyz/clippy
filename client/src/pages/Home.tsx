@@ -66,19 +66,24 @@ import { encryptKey, decryptKey, maskKey } from "@/lib/encryption";
 import { DEFAULT_PROMPTS, createCustomPrompt, CATEGORY_META } from "@/lib/prompts";
 import { downloadAsPDF, downloadAsMarkdown } from "@/lib/export";
 import { buildShareUrl } from "@/lib/share";
+import { useI18n } from "@/lib/i18n";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import type { AppState, AppStep, AnalysisPrompt, ModelResult, Severity, SharePayload } from "@shared/schema";
 
 // ---------------------------------------------------------------------------
 // Clippy speech bubble messages per step
 // ---------------------------------------------------------------------------
 
-/** Pre-written messages for each step — Clippy "narrates" the flow. */
-const CLIPPY_MESSAGES: Record<string, string> = {
-  setup:    "It looks like you're signing a contract. Would you like help checking for nasty clauses?",
-  prompts:  "Great! Now choose what I should look for. You can edit or add your own objectives!",
-  analyzing: "I'm reading every single clause so you don't have to. Give me a moment...",
-  results:  "Here's what I found! Red flags are sorted by severity. Compare results across models.",
-  idle:     "Drop your contract here and I'll tell you if you're about to get ripped off.",
+/**
+ * Pre-written message keys for each step — actual text is resolved via t().
+ * This allows Clippy's speech bubble to update when the locale changes.
+ */
+const CLIPPY_MESSAGE_KEYS: Record<string, string> = {
+  setup:     "clippy.setup",
+  prompts:   "clippy.prompts",
+  analyzing: "clippy.analyzing",
+  results:   "clippy.results",
+  idle:      "clippy.idle",
 };
 
 // ---------------------------------------------------------------------------
@@ -234,6 +239,9 @@ function DimensionBar({ name, score, note }: { name: string; score: number; note
  * State is entirely local (no server, no localStorage — privacy-first).
  */
 export default function Home() {
+  // i18n context — provides t() for all UI strings and locale-aware Clippy messages
+  const { t } = useI18n();
+
   // ---------------------------------------------------------------------------
   // State
   // ---------------------------------------------------------------------------
@@ -254,7 +262,7 @@ export default function Home() {
   const [isDragging, setIsDragging]   = useState(false);
   const [showKey, setShowKey]         = useState(false);
   const [isKeyLocked, setIsKeyLocked] = useState(false);
-  const [clippyMsg, setClippyMsg]     = useState(CLIPPY_MESSAGES.idle);
+  const [clippyMsgKey, setClippyMsgKey] = useState("clippy.idle");
   const [clippyTalking, setClippyTalking] = useState(false);
   const [activeModel, setActiveModel] = useState<string>("");
   const [copied, setCopied]           = useState(false);
@@ -272,16 +280,20 @@ export default function Home() {
   // Clippy speech bubble helper
   // ---------------------------------------------------------------------------
 
-  /** Sets Clippy's speech bubble and briefly plays the talking animation. */
-  const setClippy = (msg: string) => {
+  /**
+   * Sets Clippy's speech bubble by key and briefly plays the talking animation.
+   * Accepts a translation key (e.g. "clippy.setup") — resolved at render time
+   * via t(), so it auto-updates when the locale changes.
+   */
+  const setClippy = (key: string) => {
     setClippyTalking(true);
-    setClippyMsg(msg);
+    setClippyMsgKey(key);
     setTimeout(() => setClippyTalking(false), 2000);
   };
 
-  // Update Clippy's message whenever the step changes
+  // Update Clippy's message key whenever the step changes
   useEffect(() => {
-    setClippy(CLIPPY_MESSAGES[state.step] || CLIPPY_MESSAGES.idle);
+    setClippy(CLIPPY_MESSAGE_KEYS[state.step] || CLIPPY_MESSAGE_KEYS.idle);
   }, [state.step]);
 
   // ---------------------------------------------------------------------------
@@ -296,7 +308,7 @@ export default function Home() {
   const handleFile = useCallback(async (file: File) => {
     const isValid = /\.(pdf|docx|txt|md)$/i.test(file.name);
     if (!isValid) {
-      setClippy("Hmm, I can only read PDF, DOCX, TXT, or MD files. Try one of those!");
+      setClippy("clippy.wrong_format");
       return;
     }
     try {
@@ -307,9 +319,9 @@ export default function Home() {
         fileText: text,
         fileName: file.name,
       }));
-      setClippy(`Nice! I can see "${file.name}". Now let's configure your analysis.`);
+      setClippy("clippy.file_loaded");
     } catch {
-      setClippy("Oops, I had trouble reading that file. Make sure it's not password-protected!");
+      setClippy("clippy.file_error");
     }
   }, []);
 
@@ -341,9 +353,9 @@ export default function Home() {
         apiKey: "",
       }));
       setIsKeyLocked(true);
-      setClippy("API key locked. It's encrypted in memory — only used when running analysis.");
+      setClippy("clippy.key_locked");
     } catch {
-      toast({ title: "Encryption error", description: "Could not encrypt the API key. Continuing without encryption.", variant: "destructive" });
+      toast({ title: t("toast.encryption_error"), description: t("toast.encryption_error_desc"), variant: "destructive" });
     }
   };
 
@@ -361,15 +373,15 @@ export default function Home() {
   const goToPrompts = () => {
     const hasKey = isKeyLocked ? !!state.apiKeyEncrypted : !!state.apiKey.trim();
     if (!state.file) {
-      setClippy("Please upload a contract file first!");
+      setClippy("clippy.need_file");
       return;
     }
     if (!hasKey) {
-      setClippy("Psst — I need your OpenRouter API key to work my magic!");
+      setClippy("clippy.need_key");
       return;
     }
     if (state.selectedModels.length === 0) {
-      setClippy("Pick at least one model to analyze with!");
+      setClippy("clippy.need_model");
       return;
     }
     setState(s => ({ ...s, step: "prompts" }));
@@ -453,19 +465,19 @@ export default function Home() {
         ? await decryptKey(state.apiKeyEncrypted)
         : state.apiKey.trim();
     } catch {
-      toast({ title: "Key decryption failed", description: "Could not decrypt your API key. Please re-enter it.", variant: "destructive" });
+      toast({ title: t("toast.decrypt_failed"), description: t("toast.decrypt_failed_desc"), variant: "destructive" });
       return;
     }
 
     if (!rawKey) {
-      setClippy("API key is missing. Please go back and enter it.");
+      setClippy("clippy.key_missing");
       return;
     }
 
     // Check that at least one prompt is enabled
     const enabledPrompts = state.prompts.filter(p => p.enabled);
     if (enabledPrompts.length === 0) {
-      setClippy("Enable at least one analysis objective first!");
+      setClippy("clippy.need_objective");
       return;
     }
 
@@ -531,7 +543,7 @@ export default function Home() {
       results:     state.results,
     };
     downloadAsPDF(ctx, state.fileName.replace(/\.[^.]+$/, ""));
-    toast({ title: "PDF downloaded", description: "Check your downloads folder." });
+    toast({ title: t("toast.pdf_downloaded"), description: t("toast.pdf_downloaded_desc") });
   };
 
   /**
@@ -545,7 +557,7 @@ export default function Home() {
       results:     state.results,
     };
     downloadAsMarkdown(ctx, state.fileName.replace(/\.[^.]+$/, ""));
-    toast({ title: "Markdown downloaded", description: "Check your downloads folder." });
+    toast({ title: t("toast.md_downloaded"), description: t("toast.md_downloaded_desc") });
   };
 
   /**
@@ -564,10 +576,10 @@ export default function Home() {
     setShareUrl(url);
     navigator.clipboard.writeText(url).then(() => {
       setCopied(true);
-      toast({ title: "Share URL copied!", description: "Anyone with the link can view these results." });
+      toast({ title: t("toast.url_copied"), description: t("toast.url_copied_desc") });
       setTimeout(() => setCopied(false), 2000);
     }).catch(() => {
-      toast({ title: "URL generated", description: "Copy it manually from the share field." });
+      toast({ title: t("toast.url_generated"), description: t("toast.url_generated_desc") });
     });
   };
 
@@ -634,14 +646,16 @@ export default function Home() {
                     stroke="#F5D000" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
             </svg>
             <span className="font-bold text-base tracking-tight">clippy</span>
-            <Badge variant="secondary" className="text-xs hidden sm:inline-flex">v2.0.0</Badge>
+            <span className="hidden sm:inline text-muted-foreground text-sm select-none">·</span>
+            <span className="hidden sm:inline text-xs text-muted-foreground tracking-wide">your contract analyst</span>
+            <Badge variant="secondary" className="text-xs hidden sm:inline-flex">{t("nav.version_badge")}</Badge>
           </div>
 
           {/* Nav actions */}
           <div className="flex items-center gap-2">
             {state.step !== "setup" && (
               <Button variant="ghost" size="sm" onClick={reset} data-testid="button-reset">
-                <RefreshCw className="w-3.5 h-3.5 mr-1.5" /> New Analysis
+                <RefreshCw className="w-3.5 h-3.5 mr-1.5" /> {t("step3.back_button")}
               </Button>
             )}
             <a
@@ -651,8 +665,9 @@ export default function Home() {
               className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded"
             >
               <Github className="w-4 h-4" />
-              <span className="hidden sm:inline">GitHub</span>
+              <span className="hidden sm:inline">{t("nav.github")}</span>
             </a>
+            <LanguageSwitcher />
           </div>
         </div>
       </header>
@@ -662,7 +677,7 @@ export default function Home() {
         {/* Clippy mascot row */}
         <div className="flex justify-end">
           <ClippyCharacter
-            message={clippyMsg}
+            message={t(clippyMsgKey)}
             isTalking={clippyTalking}
             size="md"
           />
@@ -679,11 +694,8 @@ export default function Home() {
         {state.step === "setup" && (
           <div className="fade-in-up space-y-6 max-w-2xl mx-auto">
             <div className="text-center space-y-1">
-              <h1 className="text-2xl font-bold tracking-tight">Analyze Your Contract</h1>
-              <p className="text-sm text-muted-foreground">
-                Upload your file, enter your API key, and choose AI models.
-                Everything runs in your browser — nothing stored.
-              </p>
+              <h1 className="text-2xl font-bold tracking-tight">{t("step1.title")}</h1>
+              <p className="text-sm text-muted-foreground">{t("step1.subtitle")}</p>
             </div>
 
             {/* ---- Drop zone ---- */}
@@ -713,11 +725,11 @@ export default function Home() {
                     <Upload className="w-7 h-7 text-primary" />
                   </div>
                   <div>
-                    <p className="text-base font-semibold">Drop your contract here</p>
-                    <p className="text-sm text-muted-foreground mt-1">PDF, DOCX, TXT, or MD</p>
+                    <p className="text-base font-semibold">{t("step1.drop_title")}</p>
+                    <p className="text-sm text-muted-foreground mt-1">{t("step1.drop_subtitle")}</p>
                   </div>
                   <Button variant="outline" size="sm" className="pointer-events-none">
-                    Or click to browse
+                    {t("step1.drop_button")}
                   </Button>
                 </div>
               </div>
@@ -747,7 +759,7 @@ export default function Home() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm flex items-center gap-2">
                   <Key className="w-4 h-4 text-primary" />
-                  OpenRouter API Key
+                  {t("step1.api_key_label")}
                   {isKeyLocked && (
                     <Badge variant="secondary" className="ml-auto text-xs flex items-center gap-1">
                       <Lock className="w-3 h-3" /> Encrypted
@@ -764,7 +776,7 @@ export default function Home() {
                       sk-or-v1-••••••••••••••••••••••••
                     </div>
                     <Button variant="outline" size="sm" onClick={handleUnlockKey} data-testid="button-unlock-key">
-                      <Unlock className="w-3.5 h-3.5 mr-1.5" /> Change
+                      <Unlock className="w-3.5 h-3.5 mr-1.5" /> {t("step1.unlock_button")}
                     </Button>
                   </div>
                 ) : (
@@ -796,16 +808,16 @@ export default function Home() {
                       disabled={!state.apiKey.trim()}
                       data-testid="button-lock-key"
                     >
-                      <Lock className="w-3.5 h-3.5 mr-1.5" /> Lock
+                      <Lock className="w-3.5 h-3.5 mr-1.5" /> {t("step1.lock_button")}
                     </Button>
                   </div>
                 )}
                 <p className="text-xs text-muted-foreground">
-                  Get yours at{" "}
+                  {t("step1.api_key_hint")}{" "}
                   <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                     openrouter.ai/keys
                   </a>
-                  . Never stored — encrypted in your browser session only.
+                  . {t("step1.api_key_privacy")}
                 </p>
               </CardContent>
             </Card>
@@ -815,7 +827,7 @@ export default function Home() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm flex items-center gap-2">
                   <Cpu className="w-4 h-4 text-primary" />
-                  AI Models
+                  {t("step1.models_label")}
                   <Badge variant="secondary" className="ml-auto">
                     {state.selectedModels.length} selected
                   </Badge>
@@ -840,7 +852,7 @@ export default function Home() {
                   ))}
                 </div>
                 <p className="text-xs text-muted-foreground mt-3">
-                  Tip: select 2–3 models to compare perspectives. More models = more cost.
+                  {t("step1.models_hint")}
                 </p>
               </CardContent>
             </Card>
@@ -848,9 +860,9 @@ export default function Home() {
             {/* ---- Feature cards ---- */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {[
-                { icon: "🔍", title: "Multi-model", desc: "Run 8+ AI models simultaneously and compare findings." },
-                { icon: "🔒", title: "100% private", desc: "Your file goes directly to OpenRouter. No server, no logs." },
-                { icon: "⚡", title: "5 dimensions", desc: "Transparency, Balance, Compliance, Financial Risk, Exit Freedom." },
+                { icon: "🔍", title: t("step1.feature_multimodel"), desc: t("step1.feature_multimodel_desc") },
+                { icon: "🔒", title: t("step1.feature_private"), desc: t("step1.feature_private_desc") },
+                { icon: "⚡", title: t("step1.feature_dimensions"), desc: t("step1.feature_dimensions_desc") },
               ].map(f => (
                 <Card key={f.title} className="border-border">
                   <CardContent className="pt-4 pb-4 space-y-1">
@@ -870,7 +882,7 @@ export default function Home() {
               disabled={!state.file || (!state.apiKey.trim() && !isKeyLocked) || state.selectedModels.length === 0}
               data-testid="button-next-step"
             >
-              Configure Objectives <ChevronRight className="w-4 h-4 ml-2" />
+              {t("step1.next_button")} <ChevronRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
         )}
@@ -881,10 +893,8 @@ export default function Home() {
         {state.step === "prompts" && (
           <div className="fade-in-up space-y-6 max-w-3xl mx-auto">
             <div className="text-center space-y-1">
-              <h2 className="text-xl font-bold">Analysis Objectives</h2>
-              <p className="text-sm text-muted-foreground">
-                Toggle which aspects to analyze. Edit objectives, or add your own custom ones.
-              </p>
+              <h2 className="text-xl font-bold">{t("step2.title")}</h2>
+              <p className="text-sm text-muted-foreground">{t("step2.subtitle")}</p>
             </div>
 
             {/* Objectives list grouped by category */}
@@ -913,21 +923,21 @@ export default function Home() {
                             /* ---- Edit mode ---- */
                             <CardContent className="pt-4 pb-4 space-y-3">
                               <Input
-                                placeholder="Objective title"
+                                placeholder={t("step2.prompt_title_placeholder")}
                                 value={editDraft.title}
                                 onChange={e => setEditDraft(d => ({ ...d, title: e.target.value }))}
                                 className="font-medium text-sm"
                                 data-testid={`input-prompt-title-${prompt.id}`}
                               />
                               <Input
-                                placeholder="Short description (shown to users)"
+                                placeholder={t("step2.prompt_desc_placeholder")}
                                 value={editDraft.description}
                                 onChange={e => setEditDraft(d => ({ ...d, description: e.target.value }))}
                                 className="text-sm"
                                 data-testid={`input-prompt-description-${prompt.id}`}
                               />
                               <Textarea
-                                placeholder="The instruction text sent to the AI model..."
+                                placeholder={t("step2.prompt_body_placeholder")}
                                 value={editDraft.prompt}
                                 onChange={e => setEditDraft(d => ({ ...d, prompt: e.target.value }))}
                                 className="text-sm resize-none font-mono"
@@ -936,9 +946,9 @@ export default function Home() {
                               />
                               <div className="flex gap-2">
                                 <Button size="sm" onClick={saveEdit} data-testid={`button-save-prompt-${prompt.id}`}>
-                                  <Check className="w-3.5 h-3.5 mr-1" /> Save
+                                  <Check className="w-3.5 h-3.5 mr-1" /> {t("step2.save_button")}
                                 </Button>
-                                <Button size="sm" variant="ghost" onClick={cancelEdit}>Cancel</Button>
+                                <Button size="sm" variant="ghost" onClick={cancelEdit}>{t("step2.cancel_button")}</Button>
                               </div>
                             </CardContent>
                           ) : (
@@ -964,7 +974,7 @@ export default function Home() {
                                     className="h-7 w-7"
                                     onClick={() => startEdit(prompt)}
                                     data-testid={`button-edit-prompt-${prompt.id}`}
-                                    title="Edit this objective"
+                                    title={t("step2.edit_tooltip")}
                                   >
                                     <Edit2 className="w-3.5 h-3.5" />
                                   </Button>
@@ -975,7 +985,7 @@ export default function Home() {
                                       className="h-7 w-7 text-destructive hover:text-destructive"
                                       onClick={() => deletePrompt(prompt.id)}
                                       data-testid={`button-delete-prompt-${prompt.id}`}
-                                      title="Delete this custom objective"
+                                      title={t("step2.delete_tooltip")}
                                     >
                                       <Trash2 className="w-3.5 h-3.5" />
                                     </Button>
@@ -999,13 +1009,13 @@ export default function Home() {
               data-testid="button-add-custom-prompt"
             >
               <Plus className="w-4 h-4" />
-              Add custom objective
+              {t("step2.add_custom")}
             </button>
 
             {/* Summary bar */}
             <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 flex items-center justify-between text-sm">
               <span className="text-muted-foreground">
-                <span className="font-semibold text-foreground">{enabledPrompts}</span> objective{enabledPrompts !== 1 ? "s" : ""} enabled
+                {enabledPrompts !== 1 ? t("step2.enabled_count_plural", { count: enabledPrompts }) : t("step2.enabled_count", { count: enabledPrompts })}
                 &nbsp;·&nbsp;
                 <span className="font-semibold text-foreground">{state.selectedModels.length}</span> model{state.selectedModels.length !== 1 ? "s" : ""}
               </span>
@@ -1019,7 +1029,7 @@ export default function Home() {
                 onClick={() => setState(s => ({ ...s, step: "setup" }))}
                 data-testid="button-back"
               >
-                <ChevronLeft className="w-4 h-4 mr-1.5" /> Back
+                <ChevronLeft className="w-4 h-4 mr-1.5" /> {t("step2.back_button")}
               </Button>
               <Button
                 className="flex-1"
@@ -1027,7 +1037,7 @@ export default function Home() {
                 disabled={enabledPrompts === 0}
                 data-testid="button-run-analysis"
               >
-                Run Analysis <ChevronRight className="w-4 h-4 ml-2" />
+                {t("step2.run_button")} <ChevronRight className="w-4 h-4 ml-2" />
               </Button>
             </div>
           </div>
@@ -1043,7 +1053,7 @@ export default function Home() {
             {isAnalyzing && (
               <div className="max-w-2xl mx-auto space-y-4">
                 <div className="text-center space-y-1">
-                  <h2 className="text-xl font-bold">Analyzing your contract...</h2>
+                  <h2 className="text-xl font-bold">{t("step3.analyzing")}</h2>
                   <p className="text-sm text-muted-foreground">
                     Running {totalCount} model{totalCount !== 1 ? "s" : ""} in parallel
                   </p>
@@ -1062,7 +1072,7 @@ export default function Home() {
                         <span className="text-xs text-muted-foreground">
                           {r.status === "done"  ? "✓ Done" :
                            r.status === "error" ? "✗ Error" :
-                           "Reading..."}
+                           t("step3.reading")}
                         </span>
                       </CardContent>
                     </Card>
@@ -1077,7 +1087,7 @@ export default function Home() {
                 {/* Results header bar */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div>
-                    <h2 className="text-lg font-bold">Analysis Results</h2>
+                    <h2 className="text-lg font-bold">{t("step3.title")}</h2>
                     <p className="text-xs text-muted-foreground">{state.fileName}</p>
                   </div>
 
@@ -1086,16 +1096,16 @@ export default function Home() {
                     <div className="flex flex-wrap items-center gap-2">
                       {/* PDF */}
                       <Button variant="outline" size="sm" onClick={handleExportPDF} data-testid="button-export-pdf">
-                        <FileDown className="w-3.5 h-3.5 mr-1.5" /> PDF
+                        <FileDown className="w-3.5 h-3.5 mr-1.5" /> {t("step3.download_pdf")}
                       </Button>
                       {/* Markdown */}
                       <Button variant="outline" size="sm" onClick={handleExportMarkdown} data-testid="button-export-md">
-                        <FileDown className="w-3.5 h-3.5 mr-1.5" /> Markdown
+                        <FileDown className="w-3.5 h-3.5 mr-1.5" /> {t("step3.download_md")}
                       </Button>
                       {/* Share */}
                       <Button variant="outline" size="sm" onClick={handleShare} data-testid="button-share">
                         {copied ? <Check className="w-3.5 h-3.5 mr-1.5 text-green-500" /> : <Share2 className="w-3.5 h-3.5 mr-1.5" />}
-                        {copied ? "Copied!" : "Share URL"}
+                        {copied ? t("step3.copied") : t("step3.share_url")}
                       </Button>
                     </div>
                   )}
@@ -1161,7 +1171,7 @@ export default function Home() {
                           <CardContent className="pt-5 flex items-center gap-3">
                             <AlertTriangle className="w-5 h-5 text-destructive flex-shrink-0" />
                             <div>
-                              <p className="font-semibold text-sm">Analysis failed</p>
+                              <p className="font-semibold text-sm">{t("step3.analysis_failed")}</p>
                               <p className="text-xs text-muted-foreground">{result.error}</p>
                             </div>
                           </CardContent>
@@ -1187,7 +1197,7 @@ export default function Home() {
                                 <TrustScoreRing score={result.trustScore} size={120} />
                                 <div>
                                   <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
-                                    Trust Score
+                                    {t("step3.trust_score")}
                                   </p>
                                   {result.jurisdiction && result.jurisdiction !== "Unknown" && (
                                     <p className="text-xs text-muted-foreground mt-1">
@@ -1206,15 +1216,15 @@ export default function Home() {
 
                             <Card className="border-border sm:col-span-2">
                               <CardHeader className="pb-2">
-                                <CardTitle className="text-sm">Summary</CardTitle>
+                                <CardTitle className="text-sm">{t("step3.summary")}</CardTitle>
                               </CardHeader>
                               <CardContent className="space-y-3">
                                 <p className="text-sm leading-relaxed">{result.summary}</p>
                                 <div className="flex gap-4 pt-1">
                                   {[
-                                    { label: "Critical", count: result.flags.filter(f => f.severity === "CRITICAL").length, color: "text-red-500" },
-                                    { label: "Suspect",  count: result.flags.filter(f => f.severity === "SUSPECT").length,  color: "text-orange-500" },
-                                    { label: "Minor",    count: result.flags.filter(f => f.severity === "MINOR").length,    color: "text-yellow-600" },
+                                    { label: t("step3.critical"), count: result.flags.filter(f => f.severity === "CRITICAL").length, color: "text-red-500" },
+                                    { label: t("step3.suspect"),  count: result.flags.filter(f => f.severity === "SUSPECT").length,  color: "text-orange-500" },
+                                    { label: t("step3.minor"),    count: result.flags.filter(f => f.severity === "MINOR").length,    color: "text-yellow-600" },
                                   ].map(s => (
                                     <div key={s.label} className="text-center">
                                       <p className={`text-xl font-bold ${s.color}`}>{s.count}</p>
@@ -1230,7 +1240,7 @@ export default function Home() {
                           {result.dimensions.length > 0 && (
                             <Card className="border-border">
                               <CardHeader className="pb-3">
-                                <CardTitle className="text-sm">5 Dimensions</CardTitle>
+                                <CardTitle className="text-sm">{t("step3.dimensions")}</CardTitle>
                               </CardHeader>
                               <CardContent>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1248,7 +1258,7 @@ export default function Home() {
                               <CardContent className="pt-5 flex items-center gap-3">
                                 <span className="text-2xl">✅</span>
                                 <p className="text-sm font-medium">
-                                  No significant issues found. This contract looks fair!
+                                  {t("step3.no_issues")}
                                 </p>
                               </CardContent>
                             </Card>
@@ -1256,8 +1266,8 @@ export default function Home() {
                             <Card className="border-border">
                               <CardHeader className="pb-3">
                                 <CardTitle className="text-sm flex items-center gap-2">
-                                  Flagged Clauses
-                                  <Badge variant="secondary">{result.flags.length} issues</Badge>
+                                  {t("step3.flagged_clauses")}
+                                  <Badge variant="secondary">{t("step3.issues", { count: result.flags.length })}</Badge>
                                 </CardTitle>
                               </CardHeader>
                               <CardContent className="space-y-3">
@@ -1297,7 +1307,7 @@ export default function Home() {
                   className="w-full sm:w-auto"
                   data-testid="button-analyze-another"
                 >
-                  <RefreshCw className="w-4 h-4 mr-2" /> Analyze Another Contract
+                  <RefreshCw className="w-4 h-4 mr-2" /> {t("step3.back_button")}
                 </Button>
               </>
             )}
@@ -1320,7 +1330,7 @@ export default function Home() {
                 fill="none"
               />
             </svg>
-            <span>clippy v2.0.0 — open source AI contract analyzer</span>
+            <span>clippy v3.0.0 — {t("footer.tagline")}</span>
           </div>
           <div className="flex items-center gap-4">
             <a
@@ -1337,7 +1347,7 @@ export default function Home() {
               rel="noopener noreferrer"
               className="hover:text-foreground transition-colors"
             >
-              Powered by OpenRouter
+              {t("footer.powered_by")}
             </a>
           </div>
         </div>

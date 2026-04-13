@@ -7,6 +7,73 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.0.0] — 2026-04-13
+
+This is a major internationalisation (i18n) release. Clippy now speaks 17 languages — English plus 16 others — with full RTL support for Arabic and Hebrew, automatic locale detection, a beautiful language switcher in the navigation bar, and zero external i18n libraries.
+
+### Added
+
+#### Full i18n System (`client/src/lib/i18n.ts`)
+- **17 languages** — English (default), French, Spanish, Portuguese, German, Dutch, Italian, Chinese (Simplified), Russian, Hindi, Bulgarian, Polish, Danish, Japanese, Korean, Hebrew, Arabic
+- **`I18nProvider`** — React context provider that wraps the entire app. Detects the user's locale on mount, applies RTL direction on the `<html>` element for Arabic and Hebrew, and exposes `setLocale()` for the language switcher.
+- **`useI18n()`** — Hook that returns `{ locale, setLocale, t, isRtl }`. Every component that needs translations calls this hook.
+- **`t(key, vars?)`** — Translation helper with `{{variable}}` interpolation. Falls back to English for any missing key in any locale — no crashes, ever.
+- **`detectLocale()`** — Locale detection pipeline: `localStorage["clippy_locale"]` → `navigator.language` → `"en"`. Preferences persist across sessions.
+- **`SUPPORTED_LOCALES`** — Manifest of all 17 locales with code, native name, flag emoji, HTML lang attribute, and RTL flag.
+- **RTL support** — Arabic (`ar`) and Hebrew (`he`) automatically set `dir="rtl"` on `<html>`. Tailwind's logical-property utilities (`start`/`end`) handle layout mirroring without extra CSS.
+- **`{{variable}}` interpolation** — Keys like `"share.analyzed_on"` accept a `vars` object: `t("share.analyzed_on", { date: "Jan 1" })` → `"Analyzed on Jan 1"`. Used throughout for dynamic counts, filenames, dates.
+- **No external library** — No i18next, no react-intl, no format.js. The entire i18n system is 1634 lines of plain TypeScript with zero runtime dependencies beyond React.
+
+#### Language Switcher (`client/src/components/LanguageSwitcher.tsx`)
+- **Flag grid dropdown** — 4-column grid of flag emojis + native language names. Opens on click, closes on outside-click or Escape.
+- **Active locale highlight** — Current language is highlighted with the primary (yellow) accent color.
+- **Present on all pages** — Visible in both `Home.tsx` (main app) and `ShareView.tsx` (shared report view), so visitors who receive a share link can also switch languages.
+- **`dir="ltr"` forced on container** — The dropdown always renders left-to-right internally, even when the page is in RTL mode, so the 4-column flag grid looks correct in Arabic/Hebrew.
+
+#### Brand & UX Improvements
+- **Logo tagline** — "· your contract analyst" added to the logo in both `Home.tsx` and `ShareView.tsx`, giving the brand a clearer one-line pitch visible on every page.
+- **LanguageSwitcher in ShareView** — Share page visitors can switch languages; all strings including disclaimer, CTA, and footer are translated.
+
+### Changed
+
+- **`Home.tsx`** — All ~60 user-visible strings replaced with `t()` calls. Toast notifications, step placeholders, navigation labels, footer, speech bubbles, and category labels are all translated. `CLIPPY_MESSAGES` dictionary replaced by `CLIPPY_MESSAGE_KEYS` (key-based; resolved at render via `t()`). `setClippy()` now accepts a translation key string instead of a raw message.
+- **`ShareView.tsx`** — Fully rewritten to use `useI18n()`. All strings (header badges, metadata banner, disclaimer, results labels — Trust Score, Summary, 5 Dimensions, Flagged Clauses, Analysis failed, No significant issues found — CTA, footer) are now translated. `LanguageSwitcher` added to the header.
+- **`App.tsx`** — Wrapped with `<I18nProvider>` at the top level so all routes inherit the same locale state.
+- **`package.json`** — Version bumped from `2.0.0` → `3.0.0`.
+- **README.md** — Major update: i18n architecture section, 17-language table, RTL design decisions, `{{variable}}` interpolation examples, logo tagline change, vibe-coding disclaimer.
+- **CHANGELOG.md** — This entry.
+
+### Technical Details
+
+#### Translation Key Groups
+| Group | Examples | Description |
+|-------|---------|-------------|
+| `nav.*` | `nav.brand`, `nav.github`, `nav.version_badge` | Navigation bar strings |
+| `steps.*` | `steps.setup`, `steps.objectives`, `steps.results` | Step indicator labels |
+| `clippy.*` | `clippy.setup`, `clippy.file_loaded` | Speech bubble messages |
+| `step1.*` | `step1.title`, `step1.drop_title`, `step1.api_key_label` | Setup step UI |
+| `step2.*` | `step2.title`, `step2.add_custom`, `step2.run_button` | Prompts step UI |
+| `step3.*` | `step3.trust_score`, `step3.flagged_clauses` | Results dashboard |
+| `share.*` | `share.analyzed_on`, `share.disclaimer`, `share.cta_title` | Share page strings |
+| `footer.*` | `footer.tagline`, `footer.powered_by` | Footer strings |
+| `toast.*` | `toast.pdf_downloaded`, `toast.url_copied` | Toast notifications |
+| `lang.*` | `lang.label`, `lang.select` | Language switcher UI |
+| `cat.*` | `cat.general`, `cat.financial`, `cat.privacy` | Prompt category labels |
+
+#### RTL Implementation
+Arabic and Hebrew locales are detected in `I18nProvider` via `RTL_LOCALES.has(locale)`. A `useEffect` sets `document.documentElement.dir` to `"rtl"` or `"ltr"` as appropriate. Because Tailwind CSS uses logical properties (`ms-*`, `me-*`, `ps-*`, `pe-*`, `start-*`, `end-*`) rather than physical `left`/`right`, most of the layout mirrors automatically. No additional CSS was required.
+
+#### Locale Detection Order
+```
+localStorage["clippy_locale"]  →  navigator.language prefix match  →  "en" fallback
+```
+
+### Dependencies
+
+No new dependencies added. The i18n system is zero-dependency beyond React.
+
+---
+
 ## [2.0.0] — 2026-04-14
 
 This is a major feature release that transforms Clippy from a single-shot contract analyzer into a full-featured contract intelligence platform. The UI has been completely rewritten with a 3-step wizard flow, a modular prompt library, client-side encryption, PDF/Markdown export, and shareable result URLs.
@@ -176,6 +243,7 @@ This version establishes the full core product: multi-model AI contract analysis
 
 ---
 
+[3.0.0]: https://github.com/paulfxyz/clippy/releases/tag/v3.0.0
 [2.0.0]: https://github.com/paulfxyz/clippy/releases/tag/v2.0.0
 [1.0.0]: https://github.com/paulfxyz/clippy/releases/tag/v1.0.0
-[Unreleased]: https://github.com/paulfxyz/clippy/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/paulfxyz/clippy/compare/v3.0.0...HEAD

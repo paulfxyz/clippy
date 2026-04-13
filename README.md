@@ -14,7 +14,7 @@
 ╚═══════════════════════════════════════════════════════════════╝
 ```
 
-[![Version](https://img.shields.io/badge/version-2.0.0-F5D000?style=flat-square&labelColor=1a1a2e)](https://github.com/paulfxyz/clippy/releases/tag/v2.0.0)
+[![Version](https://img.shields.io/badge/version-3.0.0-F5D000?style=flat-square&labelColor=1a1a2e)](https://github.com/paulfxyz/clippy/releases/tag/v3.0.0)
 [![License: MIT](https://img.shields.io/badge/license-MIT-000000?style=flat-square)](https://github.com/paulfxyz/clippy/blob/main/LICENSE)
 [![Built with React](https://img.shields.io/badge/React-18-61dafb?style=flat-square&logo=react&logoColor=white&labelColor=20232a)](https://reactjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
@@ -33,9 +33,7 @@ Multi-model. Zero storage. No server. Just truth.
 
 ## What is Clippy?
 
-Clippy is an **open-source alternative to [small-print.ai](https://small-print.ai/)** — a tool that lets you upload any contract (PDF, DOCX, TXT, Markdown) and have multiple AI models simultaneously analyze it for risky, abusive, or deceptive clauses.
-
-The key difference: **Clippy runs entirely in your browser.** Your contract text is sent directly from your browser to [OpenRouter](https://openrouter.ai), using your own API key. No file ever touches a third-party server. No data is stored. No account required.
+Clippy lets you upload any contract — PDF, DOCX, TXT, or Markdown — and have multiple AI models simultaneously analyze it for risky, abusive, or deceptive clauses. It runs entirely in your browser: your contract text is sent directly from your browser to [OpenRouter](https://openrouter.ai) using your own API key. No file ever touches a third-party server. No data is stored. No account required.
 
 ### Why it exists
 
@@ -44,6 +42,69 @@ Legal contracts are designed to be long, dense, and deliberately confusing. Lawy
 ### The mascot
 
 Clippy is named after [Microsoft's Office Assistant](https://en.wikipedia.org/wiki/Office_Assistant) — the animated paperclip introduced in Microsoft Office 97. Love it or hate it, Clippy was trying to help. So is this one. The design pays homage to the original: golden paperclip body, expressive eyes, speech bubble. The same energy, a very different mission.
+
+---
+
+## What's New in v3.0.0
+
+Version 3.0.0 brings full internationalisation (i18n) to Clippy. The entire UI — every label, button, toast, speech bubble, and disclaimer — is now translated into 17 languages, with full RTL layout support for Arabic and Hebrew. No external i18n library is used: the system is a purpose-built, zero-dependency implementation in plain TypeScript.
+
+### 17 Languages
+
+| Language | Code | Flag | RTL? |
+|----------|------|------|------|
+| English | `en` | 🇬🇧 | — |
+| French | `fr` | 🇫🇷 | — |
+| Spanish | `es` | 🇪🇸 | — |
+| Portuguese | `pt` | 🇵🇹 | — |
+| German | `de` | 🇩🇪 | — |
+| Dutch | `nl` | 🇳🇱 | — |
+| Italian | `it` | 🇮🇹 | — |
+| Chinese (Simplified) | `zh` | 🇨🇳 | — |
+| Russian | `ru` | 🇷🇺 | — |
+| Hindi | `hi` | 🇮🇳 | — |
+| Bulgarian | `bg` | 🇧🇬 | — |
+| Polish | `pl` | 🇵🇱 | — |
+| Danish | `da` | 🇩🇰 | — |
+| Japanese | `ja` | 🇯🇵 | — |
+| Korean | `ko` | 🇰🇷 | — |
+| Hebrew | `he` | 🇮🇱 | ✅ |
+| Arabic | `ar` | 🇸🇦 | ✅ |
+
+### The i18n Architecture
+
+All translation logic lives in a single file: `client/src/lib/i18n.ts` (1634 lines). Here's how it works:
+
+**Translation dictionaries** — Each locale is a flat TypeScript object (`Record<string, string>`) keyed by dot-separated strings like `"step1.title"`, `"clippy.setup"`, or `"toast.pdf_downloaded"`. English is the canonical source; all other locales are its translations.
+
+**`t(key, vars?)` helper** — The core translation function. Takes a key and an optional variable map, returns the translated string for the current locale. Falls back to English for any missing key — no crashes, ever. Supports `{{variable}}` interpolation:
+
+```ts
+t("share.analyzed_on", { date: "April 13, 2026" })
+// → "Analyzed on April 13, 2026"  (in English)
+// → "Analysé le 13 avril 2026"    (in French)
+```
+
+**`I18nProvider`** — A React context provider that wraps the entire app. On mount, it runs `detectLocale()` to pick the user's language, then applies RTL direction on `<html>` if needed. Exposes `setLocale()` so the language switcher can change the active language.
+
+**`detectLocale()`** — Locale detection in this priority order:
+1. `localStorage["clippy_locale"]` — user's previous choice persists across sessions
+2. `navigator.language` — browser's language setting (matched to supported locales by prefix)
+3. `"en"` — English as the final fallback
+
+**`useI18n()` hook** — Any component calls this to get `{ t, locale, setLocale, isRtl }`. No prop drilling.
+
+### Language Switcher
+
+A globe icon in the navigation bar opens a 4-column flag grid dropdown with native language names. The active language is highlighted in yellow. Present on both the main app and the share view page. The dropdown is always rendered LTR internally (so the grid looks correct even when the page is in RTL mode).
+
+### RTL Support
+
+Arabic and Hebrew set `dir="rtl"` on `document.documentElement` via a `useEffect` in `I18nProvider`. Because Tailwind CSS uses logical properties internally (`ms-*`/`me-*`, `ps-*`/`pe-*`, `start-*`/`end-*`), most layout elements mirror automatically. No extra CSS was required. The language switcher dropdown forces `dir="ltr"` on its own container so the 4-column grid stays readable in RTL mode.
+
+### Logo Tagline
+
+The nav logo now reads **clippy · your contract analyst** — a one-line pitch that makes the product's purpose immediately clear to first-time visitors. Visible on both the main app and share view pages.
 
 ---
 
@@ -645,6 +706,24 @@ Fork it. Hack it. Make it better. That's the point.
 - DOCX parsing: [mammoth.js](https://github.com/mwilliamson/mammoth.js) by Mike Williamson
 - PDF export: [jsPDF](https://github.com/parallax/jsPDF)
 - UI: [React](https://react.dev) + [Vite](https://vitejs.dev) + [Tailwind CSS](https://tailwindcss.com) + [shadcn/ui](https://ui.shadcn.com)
+
+---
+
+## 🤙 A Note on Vibe Coding
+
+> This project is **100% vibe coding**.
+>
+> I am not a software engineer. I have no CS degree, no MSc, would not pass a LeetCode interview, and I'm not pretending otherwise. I'm a French entrepreneur — a former hacker turned product person — who has always had a healthy obsession with technology and a very good working relationship with AI tools like Claude and Perplexity Computer.
+>
+> Every line of TypeScript in this repository was written by an AI. Every architecture decision was a conversation. Every bug fix was describing what was broken and letting the model figure out why. The encryption model, the prompt library, the share URL design, the jsPDF export pipeline — all of it emerged from iteration, not from a textbook.
+>
+> **What I brought:** product taste, legal instinct (this is a contract analyser after all), debugging patience, context management, and the conviction that "AI should read the small print so you don't have to."
+>
+> **What I didn't bring:** knowledge of AES-GCM internals, TypeScript conditional types, Vite chunk splitting, or how `SubtleCrypto` handles key derivation across browser contexts. I learned those things *during* the build, not before it.
+>
+> The barrier between *"I have an idea"* and *"the thing exists"* has collapsed. Clippy is proof of that.
+>
+> Vibe coding is not a replacement for engineering depth. It is a way for people with domain expertise, product instinct, and taste to build things that previously required a team. I think that's worth celebrating — and worth being honest about.
 
 ---
 
