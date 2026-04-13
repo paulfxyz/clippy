@@ -7,6 +7,97 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0] — 2026-04-14
+
+This is a major feature release that transforms Clippy from a single-shot contract analyzer into a full-featured contract intelligence platform. The UI has been completely rewritten with a 3-step wizard flow, a modular prompt library, client-side encryption, PDF/Markdown export, and shareable result URLs.
+
+### Added
+
+#### 3-Step Wizard Flow
+- **New Step 1 "Setup"** — File upload + API key entry (with AES-GCM encryption) + model selection, all in one clean step
+- **New Step 2 "Objectives"** — Full-screen prompt library editor; replace the v1 single textarea with a rich toggle/edit/add interface
+- **New Step 3 "Results"** — Live parallel analysis + complete results dashboard (unchanged from v1 in features; enhanced with export and share)
+- **Step progress indicator** — Visual 3-step progress bar at the top of the wizard showing current position
+- **Step navigation** — Back button on Step 2 returns to Step 1; "New Analysis" header button resets to Setup
+
+#### Modular Prompt Library (`client/src/lib/prompts.ts`)
+- **10 curated analysis objectives** across 5 categories: General (3), Financial (2), Privacy (2), Employment (2), IP (1)
+- **Toggle objectives on/off** — Switch component per objective; General objectives enabled by default, others opt-in
+- **Edit objectives inline** — Any prompt title, description, or instruction text can be edited directly in Step 2
+- **Add custom objectives** — "Add custom objective" button creates a new blank prompt in the Custom category
+- **Delete custom objectives** — User-created prompts can be deleted (built-in prompts cannot)
+- **Category display** — Prompts grouped by category with color-coded category badges
+- **Prompt assembly** — `assemblePromptInstructions(prompts[])` concatenates enabled prompts into a formatted instruction block for the API
+- **`createCustomPrompt()`** utility — generates a new blank AnalysisPrompt with a collision-resistant ID
+
+#### AES-GCM API Key Encryption (`client/src/lib/encryption.ts`)
+- **`encryptKey(plaintext)`** — Encrypts the API key using AES-GCM 256-bit via `window.crypto.subtle`; generates a random 12-byte IV per encryption; returns a base64 blob containing `[IV | ciphertext | auth tag]`
+- **`decryptKey(encrypted)`** — Decrypts the base64 blob back to the raw key just-in-time before each API call
+- **`maskKey(key)`** — Returns a partially-masked display string (first 12 chars + dots) for UI display
+- **Lock/Unlock UI** — "Lock" button encrypts the key and replaces the raw input with a masked locked display; "Change" button clears and unlocks for re-entry
+- **Session-scoped key** — The AES CryptoKey is generated once on first use, lives in the JS heap, is never exported or serialized, and is wiped on tab close
+
+#### PDF & Markdown Export (`client/src/lib/export.ts`)
+- **`downloadAsPDF(context, fileName?)`** — Generates a multi-page A4 PDF report using jsPDF. Includes: cover header with contract metadata, per-model sections with trust score badge, summary, flag counts, dimension progress bars, and flagged clauses with severity color coding and verbatim quotes. Automatic page breaks for long results.
+- **`downloadAsMarkdown(context, fileName?)`** — Generates a GitHub-compatible `.md` report with headers, a metadata table, per-model sections, dimension score tables (with ASCII bar charts), and flagged clauses as blockquotes. Built using native Blob URL — zero external dependencies.
+- **Export buttons in Results** — "PDF" and "Markdown" download buttons appear in the results toolbar when all models complete
+- Both exports are 100% client-side; no server roundtrip
+
+#### Shareable Result URLs (`client/src/lib/share.ts`)
+- **`encodeSharePayload(payload)`** — Serializes a SharePayload to base64 via `JSON.stringify → encodeURIComponent → btoa`
+- **`decodeSharePayload(encoded)`** — Decodes a share URL fragment back to SharePayload; returns `null` on any failure (corrupted URL, truncated link, missing fields)
+- **`buildShareUrl(payload)`** — Constructs the full `https://clippy.legal/#/share/BASE64` URL
+- **"Share URL" button** — Appears in Results toolbar when all models complete; encodes results, generates URL, copies to clipboard, shows toast confirmation
+- **Share URL display field** — Inline read-only input field showing the generated URL with a copy button
+
+#### ShareView Page (`client/src/pages/ShareView.tsx`)
+- **New `/share/:payload` route** — Registered in App.tsx; renders read-only results for shared links
+- **Automatic payload decoding** — `useMemo(() => decodeSharePayload(params.payload))` on mount
+- **Full read-only results dashboard** — Trust score ring, summary, flag counts, dimension bars, flagged clauses — identical visually to Home.tsx results
+- **Report metadata banner** — Shows filename, analysis timestamp, enabled objectives, model count, and Clippy version
+- **Privacy disclaimer** — Explains that the contract was analyzed in the sharer's browser and this is not legal advice
+- **"Try Clippy Free" CTA** — Prominent card at the bottom encouraging the viewer to analyze their own contract
+- **Error state** — If the payload cannot be decoded, shows Clippy mascot with "Invalid Share Link" message and a link back to the main app
+
+#### Schema Updates (`shared/schema.ts`)
+- **`AnalysisPrompt` type** — New type for the prompt library: `{ id, title, description, prompt, category, enabled, isDefault, isCustom }`
+- **`AppStep` type** — `"setup" | "prompts" | "results"` (replaces v1's `"upload" | "config" | "analyzing" | "results"`)
+- **`AppState` type** — Updated with `prompts: AnalysisPrompt[]`, `apiKeyEncrypted: string`, `fileName: string`, and `step: AppStep`
+- **`SharePayload` type** — New type for URL-encoded shared results: `{ version, fileName, analyzedAt, prompts (titles), results }`
+- **`ModelResult.durationMs`** — New optional field: wall-clock time for the API call in milliseconds
+
+#### OpenRouter Updates (`client/src/lib/openrouter.ts`)
+- **`prompts: AnalysisPrompt[]` parameter** — Replaces the v1 `customPrompt?: string` parameter. All enabled prompts are assembled via `assemblePromptInstructions()` and prepended to the user message.
+- **`durationMs` in return value** — Wall-clock time from request start to parsed response, added to the result object
+
+#### App.tsx
+- **`/share/:payload` route** — Added `<Route path="/share/:payload" component={ShareView} />` to the router
+- **Thorough JSDoc** — Full file-level documentation with routing architecture notes
+
+### Changed
+
+- **Home.tsx — complete rewrite** — The main page is now a full 3-step wizard. Previous `"upload"`, `"config"`, and `"analyzing"` steps are reorganized into `"setup"`, `"prompts"`, and `"results"`. The results dashboard itself is unchanged in structure but enhanced with export/share buttons.
+- **`analyzeWithModel()` signature** — Breaking change: `customPrompt?: string` → `prompts: AnalysisPrompt[]`. Code calling this function directly must be updated.
+- **API key handling** — Raw API key is no longer persisted in React state after locking. The encrypted blob is stored in `apiKeyEncrypted`; raw key is cleared from `apiKey`.
+- **README.md** — Completely rewritten and expanded with v2 architecture diagrams, prompt library documentation, share URL design, encryption model explanation, and updated roadmap.
+- **CHANGELOG.md** — This entry.
+
+### Fixed
+
+- TypeScript error in `encryption.ts`: `String.fromCharCode(...Uint8Array)` replaced with `String.fromCharCode(...Array.from(Uint8Array))` to avoid `--downlevelIteration` requirement with typed array spread
+- GitHub URL in footer and header corrected from `paulfleury` to `paulfxyz` (the actual GitHub account)
+
+### Removed
+
+- `customPrompt` local state from Home.tsx — replaced by the full prompt library in Step 2
+- `"config"` and `"analyzing"` step values from `AppStep` — replaced by `"setup"` and `"results"` (loading state is now shown as part of the results step)
+
+### Dependencies
+
+No new dependencies added — all required packages (`jspdf`, `html2canvas`, `mammoth`, `pdfjs-dist`) were already present from v1. html2canvas is installed but not used in v2 (jsPDF text API is used instead).
+
+---
+
 ## [1.0.0] — 2026-04-14
 
 ### The initial public release of Clippy.
@@ -85,22 +176,6 @@ This version establishes the full core product: multi-model AI contract analysis
 
 ---
 
-## [Unreleased]
-
-### Planned for v1.1.0
-- Dark mode toggle in header
-- Keyboard shortcut to trigger analysis (⌘↵ / Ctrl+↵)
-- Improved mobile layout for results dashboard
-- Model cost estimator shown during model selection
-
-### Planned for v1.2.0
-- Export results as formatted PDF report
-- Printable view
-
-### Planned for v1.3.0
-- Side-by-side diff view between two model results
-
----
-
+[2.0.0]: https://github.com/paulfxyz/clippy/releases/tag/v2.0.0
 [1.0.0]: https://github.com/paulfxyz/clippy/releases/tag/v1.0.0
-[Unreleased]: https://github.com/paulfxyz/clippy/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/paulfxyz/clippy/compare/v2.0.0...HEAD

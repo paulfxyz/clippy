@@ -1,0 +1,577 @@
+/**
+ * @file export.ts
+ * @description Export utilities for Clippy v2.0.0 — PDF and Markdown download.
+ *
+ * OVERVIEW
+ * --------
+ * After analysis, users can download the results in two formats:
+ *   - PDF: a formatted report with all model results, scores, flags, and dimensions
+ *   - Markdown: a structured .md file suitable for sharing via Git or email
+ *
+ * DESIGN DECISIONS
+ * ----------------
+ *
+ * 1. jsPDF vs html2canvas
+ *    We use jsPDF's built-in text/table API rather than html2canvas screenshot
+ *    because:
+ *    a) Screenshots capture screen resolution artifacts (CSS shadows, pixel offsets)
+ *    b) jsPDF text is searchable, copy-pasteable, and accessible
+ *    c) Smaller file size (typically 50–200KB vs 1–5MB for screenshots)
+ *    d) Works offline — no browser paint cycle needed
+ *    Trade-off: we lose the exact visual appearance of the UI. This is acceptable
+ *    for a report export — content > aesthetics.
+ *
+ * 2. Markdown via Blob URL
+ *    No library needed — we build the Markdown string directly and create a
+ *    temporary Blob URL for download. The URL is revoked immediately after
+ *    the browser starts the download to prevent memory leaks.
+ *
+ * 3. All exports are purely client-side
+ *    No server roundtrip. The file is constructed entirely in the JS heap
+ *    and pushed to the user via a synthetic <a> click. This is consistent
+ *    with Clippy's zero-backend architecture.
+ *
+ * DEPENDENCIES
+ * ------------
+ * - jspdf ^4.x (already in package.json)
+ * - No html2canvas (not needed — text-based PDF)
+ */
+
+import jsPDF from "jspdf";
+import type { ModelResult } from "@shared/schema";
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+/**
+ * The minimum information needed by the export functions.
+ * fileName is shown in the report header; analyzedAt is the timestamp.
+ */
+export interface ExportContext {
+  /** Original filename of the uploaded contract. */
+  fileName: string;
+  /** ISO timestamp of when the analysis was run. */
+  analyzedAt: string;
+  /** List of enabled prompt titles (shown in the report as "Objectives"). */
+  promptTitles: string[];
+  /** Per-model results to include in the export. */
+  results: ModelResult[];
+}
+
+// ---------------------------------------------------------------------------
+// PDF export
+// ---------------------------------------------------------------------------
+
+/**
+ * Generates a PDF report of the Clippy analysis results and triggers a download.
+ *
+ * Report structure:
+ *   - Cover header with filename, timestamp, and analysis objectives
+ *   - Per-model section (one per result):
+ *       - Trust score + jurisdiction
+ *       - Summary paragraph
+ *       - Flag counts (CRITICAL / SUSPECT / MINOR)
+ *       - 5 dimension scores
+ *       - Flagged clauses list (title, severity, description, quote)
+ *   - Footer on every page with clippy.legal attribution
+ *
+ * @param context - Export context (file name, timestamp, results)
+ * @param downloadName - Filename for the downloaded PDF (without extension)
+ */
+export function downloadAsPDF(context: ExportContext, downloadName?: string): void {
+  // A4 portrait, jsPDF default units = mm
+  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+
+  // Page geometry constants
+  const PAGE_W = 210;     // A4 width in mm
+  const MARGIN = 14;      // left/right margin
+  const CONTENT_W = PAGE_W - MARGIN * 2;  // usable content width
+  const PAGE_H = 297;     // A4 height in mm
+  const FOOTER_H = 8;     // reserved space for the footer
+  const TOP_MARGIN = 14;  // top margin for content pages
+
+  // Current Y position cursor — advances as we add content
+  let y = TOP_MARGIN;
+
+  // ---------------------------------------------------------------------------
+  // Helper: add a new page and reset the cursor
+  // The footer is added at the bottom of every page.
+  // ---------------------------------------------------------------------------
+  const addPage = () => {
+    addFooter();
+    doc.addPage();
+    y = TOP_MARGIN;
+  };
+
+  // ---------------------------------------------------------------------------
+  // Helper: check if we need a page break before rendering `neededMm` of content
+  // ---------------------------------------------------------------------------
+  const checkPageBreak = (neededMm: number) => {
+    if (y + neededMm > PAGE_H - FOOTER_H - 4) addPage();
+  };
+
+  // ---------------------------------------------------------------------------
+  // Helper: render footer on the current page
+  // ---------------------------------------------------------------------------
+  const addFooter = () => {
+    const pageNum = doc.getNumberOfPages();
+    doc.setFontSize(7);
+    doc.setTextColor(150, 140, 120);
+    doc.text(
+      `Generated by Clippy — clippy.legal  |  Page ${pageNum}`,
+      MARGIN,
+      PAGE_H - 6
+    );
+    doc.text(
+      new Date(context.analyzedAt).toLocaleString(),
+      PAGE_W - MARGIN,
+      PAGE_H - 6,
+      { align: "right" }
+    );
+  };
+
+  // ---------------------------------------------------------------------------
+  // Helper: render a horizontal rule
+  // ---------------------------------------------------------------------------
+  const hr = (color = [220, 210, 190] as [number, number, number]) => {
+    doc.setDrawColor(...color);
+    doc.setLineWidth(0.25);
+    doc.line(MARGIN, y, PAGE_W - MARGIN, y);
+    y += 3;
+  };
+
+  // ---------------------------------------------------------------------------
+  // Page 1: Cover / Header
+  // ---------------------------------------------------------------------------
+
+  // Clippy logo (yellow paperclip ASCII approximation in the PDF)
+  doc.setFillColor(245, 208, 0); // Clippy yellow
+  doc.roundedRect(MARGIN, y, 12, 18, 3, 3, "F");
+  doc.setFillColor(26, 26, 46);  // navy
+  doc.circle(MARGIN + 6, y + 8, 2, "F"); // left eye
+  doc.circle(MARGIN + 9, y + 8, 2, "F"); // right eye
+
+  // Title block
+  doc.setFontSize(22);
+  doc.setTextColor(26, 26, 46);
+  doc.setFont("helvetica", "bold");
+  doc.text("Clippy — Contract Analysis Report", MARGIN + 16, y + 8);
+
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(100, 95, 80);
+  doc.text("clippy.legal — open-source AI contract analyzer", MARGIN + 16, y + 14);
+  y += 26;
+
+  hr();
+
+  // Contract file info
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(26, 26, 46);
+  doc.text("Contract:", MARGIN, y);
+  doc.setFont("helvetica", "normal");
+  doc.text(context.fileName, MARGIN + 22, y);
+  y += 6;
+
+  doc.setFont("helvetica", "bold");
+  doc.text("Analyzed:", MARGIN, y);
+  doc.setFont("helvetica", "normal");
+  doc.text(new Date(context.analyzedAt).toLocaleString(), MARGIN + 22, y);
+  y += 6;
+
+  doc.setFont("helvetica", "bold");
+  doc.text("Models:", MARGIN, y);
+  doc.setFont("helvetica", "normal");
+  const modelNames = context.results.map(r => r.modelName).join(", ");
+  const modelLines = doc.splitTextToSize(modelNames, CONTENT_W - 22);
+  doc.text(modelLines, MARGIN + 22, y);
+  y += modelLines.length * 5 + 2;
+
+  // Analysis objectives
+  if (context.promptTitles.length > 0) {
+    doc.setFont("helvetica", "bold");
+    doc.text("Objectives:", MARGIN, y);
+    doc.setFont("helvetica", "normal");
+    const objText = context.promptTitles.join(", ");
+    const objLines = doc.splitTextToSize(objText, CONTENT_W - 22);
+    doc.text(objLines, MARGIN + 22, y);
+    y += objLines.length * 5 + 2;
+  }
+
+  y += 4;
+  hr();
+  y += 4;
+
+  // ---------------------------------------------------------------------------
+  // Per-model sections
+  // ---------------------------------------------------------------------------
+
+  for (const result of context.results) {
+    checkPageBreak(30);
+
+    // Model section header
+    doc.setFillColor(248, 244, 232); // warm cream
+    doc.roundedRect(MARGIN, y - 1, CONTENT_W, 10, 2, 2, "F");
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(26, 26, 46);
+    doc.text(result.modelName, MARGIN + 3, y + 6);
+
+    // Trust score badge (top right)
+    const scoreColor = result.trustScore >= 75 ? [34, 197, 94] :
+                       result.trustScore >= 50 ? [234, 179, 8] :
+                       result.trustScore >= 30 ? [249, 115, 22] :
+                                                 [239, 68, 68] as [number,number,number];
+    doc.setFillColor(...(scoreColor as [number,number,number]));
+    doc.roundedRect(PAGE_W - MARGIN - 28, y, 26, 8, 2, 2, "F");
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(255, 255, 255);
+    doc.text(`Score: ${result.trustScore}/100`, PAGE_W - MARGIN - 26, y + 5.5);
+    y += 14;
+
+    // Status: skip rendering detail for failed models
+    if (result.status === "error") {
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "italic");
+      doc.setTextColor(200, 60, 60);
+      doc.text(`Analysis failed: ${result.error || "Unknown error"}`, MARGIN, y);
+      y += 8;
+      hr();
+      continue;
+    }
+
+    // Jurisdiction
+    if (result.jurisdiction && result.jurisdiction !== "Unknown") {
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(100, 95, 80);
+      doc.text(`Jurisdiction: ${result.jurisdiction}`, MARGIN, y);
+      y += 5;
+    }
+
+    // Duration
+    if (result.durationMs) {
+      doc.setFontSize(8);
+      doc.setTextColor(150, 140, 120);
+      doc.text(`Analysis time: ${(result.durationMs / 1000).toFixed(1)}s`, PAGE_W - MARGIN, y - 5, { align: "right" });
+    }
+
+    // Summary
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(26, 26, 46);
+    doc.text("Summary", MARGIN, y);
+    y += 5;
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(50, 45, 35);
+    const summaryLines = doc.splitTextToSize(result.summary, CONTENT_W);
+    checkPageBreak(summaryLines.length * 4 + 4);
+    doc.text(summaryLines, MARGIN, y);
+    y += summaryLines.length * 4 + 6;
+
+    // Flag counts row
+    checkPageBreak(12);
+    const critCount = result.flags.filter(f => f.severity === "CRITICAL").length;
+    const suspCount = result.flags.filter(f => f.severity === "SUSPECT").length;
+    const minorCount = result.flags.filter(f => f.severity === "MINOR").length;
+
+    const cells = [
+      { label: "CRITICAL", count: critCount, fill: [239, 68, 68] as [number,number,number] },
+      { label: "SUSPECT",  count: suspCount, fill: [249, 115, 22] as [number,number,number] },
+      { label: "MINOR",    count: minorCount, fill: [234, 179, 8] as [number,number,number] },
+    ];
+    const cellW = 28;
+    let cx = MARGIN;
+    for (const cell of cells) {
+      doc.setFillColor(...cell.fill);
+      doc.roundedRect(cx, y, cellW, 8, 1.5, 1.5, "F");
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(255, 255, 255);
+      doc.text(`${cell.count} ${cell.label}`, cx + cellW / 2, y + 5.5, { align: "center" });
+      cx += cellW + 3;
+    }
+    y += 12;
+
+    // Dimensions
+    if (result.dimensions.length > 0) {
+      checkPageBreak(8 + result.dimensions.length * 7);
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(26, 26, 46);
+      doc.text("Dimensions", MARGIN, y);
+      y += 5;
+      for (const dim of result.dimensions) {
+        checkPageBreak(9);
+        // Label + score
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(50, 45, 35);
+        doc.text(dim.name, MARGIN, y + 3);
+        doc.setFont("helvetica", "bold");
+        const dColor = dim.score >= 70 ? [34, 197, 94] :
+                       dim.score >= 45 ? [234, 179, 8] : [239, 68, 68];
+        doc.setTextColor(...(dColor as [number,number,number]));
+        doc.text(`${dim.score}/100`, MARGIN + 40, y + 3);
+        // Progress bar background
+        doc.setFillColor(230, 225, 210);
+        doc.roundedRect(MARGIN + 55, y, CONTENT_W - 55, 4, 1, 1, "F");
+        // Progress bar fill
+        doc.setFillColor(...(dColor as [number,number,number]));
+        doc.roundedRect(MARGIN + 55, y, (CONTENT_W - 55) * (dim.score / 100), 4, 1, 1, "F");
+        y += 7;
+      }
+      y += 2;
+    }
+
+    // Flags
+    if (result.flags.length > 0) {
+      checkPageBreak(12);
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(26, 26, 46);
+      doc.text(`Flagged Clauses (${result.flags.length})`, MARGIN, y);
+      y += 5;
+
+      // Sort by severity
+      const sorted = [...result.flags].sort((a, b) => {
+        const order = { CRITICAL: 0, SUSPECT: 1, MINOR: 2 };
+        return order[a.severity] - order[b.severity];
+      });
+
+      for (const flag of sorted) {
+        // Estimate height needed for this flag
+        const descLines = doc.splitTextToSize(flag.description, CONTENT_W - 6);
+        const quoteLines = flag.quote ? doc.splitTextToSize(`"${flag.quote}"`, CONTENT_W - 12) : [];
+        const flagHeight = 7 + descLines.length * 4 + (quoteLines.length ? quoteLines.length * 3.5 + 2 : 0) + 3;
+        checkPageBreak(flagHeight);
+
+        // Flag box background
+        const bgColor: [number,number,number] = flag.severity === "CRITICAL" ? [253, 242, 242] :
+                         flag.severity === "SUSPECT"  ? [255, 247, 237] :
+                                                         [254, 252, 232];
+        doc.setFillColor(...bgColor);
+        doc.roundedRect(MARGIN, y, CONTENT_W, flagHeight, 1.5, 1.5, "F");
+
+        // Severity badge
+        const badgeColor: [number,number,number] = flag.severity === "CRITICAL" ? [239, 68, 68] :
+                            flag.severity === "SUSPECT"  ? [249, 115, 22] :
+                                                            [234, 179, 8];
+        doc.setFillColor(...badgeColor);
+        doc.roundedRect(MARGIN + 3, y + 2, 18, 4.5, 1, 1, "F");
+        doc.setFontSize(6.5);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(255, 255, 255);
+        doc.text(flag.severity, MARGIN + 12, y + 5.2, { align: "center" });
+
+        // Flag title
+        doc.setFontSize(8.5);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(26, 26, 46);
+        doc.text(flag.title, MARGIN + 25, y + 5.2);
+
+        // Description
+        doc.setFontSize(7.5);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(50, 45, 35);
+        doc.text(descLines, MARGIN + 3, y + 10);
+        let flagY = y + 10 + descLines.length * 4;
+
+        // Quote
+        if (quoteLines.length > 0) {
+          doc.setFontSize(7);
+          doc.setFont("helvetica", "italic");
+          doc.setTextColor(100, 95, 80);
+          doc.text(quoteLines, MARGIN + 8, flagY + 2);
+          flagY += quoteLines.length * 3.5 + 2;
+        }
+
+        y += flagHeight + 2;
+      }
+    } else {
+      checkPageBreak(10);
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "italic");
+      doc.setTextColor(34, 197, 94);
+      doc.text("✓ No significant issues found — this contract appears fair.", MARGIN, y);
+      y += 8;
+    }
+
+    y += 4;
+    hr();
+    y += 4;
+  }
+
+  // Final footer
+  addFooter();
+
+  // Save the PDF — triggers browser download dialog
+  const safeName = (downloadName || context.fileName.replace(/\.[^.]+$/, ""))
+    .replace(/[^a-zA-Z0-9_\-. ]/g, "_")
+    .slice(0, 80);
+  doc.save(`${safeName}_clippy_report.pdf`);
+}
+
+// ---------------------------------------------------------------------------
+// Markdown export
+// ---------------------------------------------------------------------------
+
+/**
+ * Generates a Markdown report of the Clippy analysis results and triggers a download.
+ *
+ * The output is GitHub-compatible Markdown: headers, tables, blockquotes,
+ * and code blocks. Each model gets its own section with all flags and
+ * dimensions formatted as a Markdown table.
+ *
+ * The file is created as a Blob in memory and downloaded via a synthetic
+ * <a> click. The Blob URL is revoked immediately after the click to prevent
+ * memory leaks.
+ *
+ * @param context - Export context (file name, timestamp, results)
+ * @param downloadName - Filename for the downloaded Markdown file (without extension)
+ */
+export function downloadAsMarkdown(context: ExportContext, downloadName?: string): void {
+  const lines: string[] = [];
+  const date = new Date(context.analyzedAt).toLocaleString();
+
+  // ---------------------------------------------------------------------------
+  // Document header
+  // ---------------------------------------------------------------------------
+  lines.push("# 📎 Clippy — Contract Analysis Report");
+  lines.push("");
+  lines.push(`> Generated by [Clippy](https://clippy.legal) — open-source AI contract analyzer`);
+  lines.push("");
+  lines.push(`| Field | Value |`);
+  lines.push(`| --- | --- |`);
+  lines.push(`| **Contract** | \`${context.fileName}\` |`);
+  lines.push(`| **Analyzed** | ${date} |`);
+  lines.push(`| **Models** | ${context.results.map(r => r.modelName).join(", ")} |`);
+  if (context.promptTitles.length > 0) {
+    lines.push(`| **Objectives** | ${context.promptTitles.join(", ")} |`);
+  }
+  lines.push("");
+  lines.push("---");
+  lines.push("");
+
+  // ---------------------------------------------------------------------------
+  // Per-model sections
+  // ---------------------------------------------------------------------------
+  for (const result of context.results) {
+    lines.push(`## ${result.modelName}`);
+    lines.push("");
+
+    if (result.status === "error") {
+      lines.push(`> ❌ **Analysis failed:** ${result.error || "Unknown error"}`);
+      lines.push("");
+      lines.push("---");
+      lines.push("");
+      continue;
+    }
+
+    // Trust score headline
+    const scoreEmoji = result.trustScore >= 75 ? "🟢" :
+                       result.trustScore >= 50 ? "🟡" :
+                       result.trustScore >= 30 ? "🟠" : "🔴";
+    lines.push(`### ${scoreEmoji} Trust Score: **${result.trustScore}/100**`);
+    lines.push("");
+
+    if (result.jurisdiction && result.jurisdiction !== "Unknown") {
+      lines.push(`📍 Jurisdiction: ${result.jurisdiction}`);
+      lines.push("");
+    }
+
+    if (result.durationMs) {
+      lines.push(`⏱ Analysis time: ${(result.durationMs / 1000).toFixed(1)}s`);
+      lines.push("");
+    }
+
+    // Summary
+    lines.push("### Summary");
+    lines.push("");
+    lines.push(result.summary);
+    lines.push("");
+
+    // Flag counts
+    const critCount = result.flags.filter(f => f.severity === "CRITICAL").length;
+    const suspCount = result.flags.filter(f => f.severity === "SUSPECT").length;
+    const minorCount = result.flags.filter(f => f.severity === "MINOR").length;
+    lines.push(`🔴 **${critCount} CRITICAL** &nbsp; 🟠 **${suspCount} SUSPECT** &nbsp; 🟡 **${minorCount} MINOR**`);
+    lines.push("");
+
+    // Dimensions table
+    if (result.dimensions.length > 0) {
+      lines.push("### Dimensions");
+      lines.push("");
+      lines.push("| Dimension | Score | Assessment | Note |");
+      lines.push("| --- | --- | --- | --- |");
+      for (const dim of result.dimensions) {
+        const bar = "█".repeat(Math.round(dim.score / 10)) + "░".repeat(10 - Math.round(dim.score / 10));
+        lines.push(`| ${dim.name} | **${dim.score}/100** \`${bar}\` | ${dim.label} | ${dim.note} |`);
+      }
+      lines.push("");
+    }
+
+    // Flagged clauses
+    if (result.flags.length === 0) {
+      lines.push("### ✅ No Issues Found");
+      lines.push("");
+      lines.push("No significant problematic clauses were identified. This contract appears fair.");
+      lines.push("");
+    } else {
+      lines.push("### Flagged Clauses");
+      lines.push("");
+
+      const sorted = [...result.flags].sort((a, b) => {
+        const order = { CRITICAL: 0, SUSPECT: 1, MINOR: 2 };
+        return order[a.severity] - order[b.severity];
+      });
+
+      for (const flag of sorted) {
+        const emoji = flag.severity === "CRITICAL" ? "🔴" :
+                      flag.severity === "SUSPECT"  ? "🟠" : "🟡";
+        lines.push(`#### ${emoji} ${flag.severity}: ${flag.title}`);
+        lines.push("");
+        lines.push(flag.description);
+        if (flag.quote) {
+          lines.push("");
+          lines.push(`> *"${flag.quote}"*`);
+        }
+        lines.push("");
+      }
+    }
+
+    lines.push("---");
+    lines.push("");
+  }
+
+  // ---------------------------------------------------------------------------
+  // Footer
+  // ---------------------------------------------------------------------------
+  lines.push("*This report was generated by [Clippy](https://clippy.legal) — an open-source AI contract analyzer.*");
+  lines.push("*Results are AI-generated and should not be construed as legal advice.*");
+  lines.push("*[View on GitHub](https://github.com/paulfxyz/clippy)*");
+
+  // Build and trigger download
+  const md = lines.join("\n");
+  const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${
+    (downloadName || context.fileName.replace(/\.[^.]+$/, ""))
+      .replace(/[^a-zA-Z0-9_\-. ]/g, "_")
+      .slice(0, 80)
+  }_clippy_report.md`;
+
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  // Revoke the object URL to free memory
+  // We delay slightly to ensure the browser has started the download
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
