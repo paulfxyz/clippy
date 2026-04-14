@@ -23,6 +23,8 @@
 [![Status](https://img.shields.io/badge/status-live-22c55e?style=flat-square)](https://clippy.legal)
 [![i18n](https://img.shields.io/badge/i18n-17%20languages-F5D000?style=flat-square)](https://clippy.legal)
 
+<img src="https://clippy.legal/img/logo.png" alt="Clippy — your contract analyst" width="360" />
+
 **Open-source, browser-only AI contract analyzer. Multi-model. Zero storage. No server. Just truth.**
 
 [Live App](https://clippy.legal) · [GitHub](https://github.com/paulfxyz/clippy) · [Report Bug](https://github.com/paulfxyz/clippy/issues) · [Request Feature](https://github.com/paulfxyz/clippy/issues)
@@ -36,6 +38,23 @@
 Clippy lets you upload any contract — PDF, DOCX, TXT, or Markdown — and have multiple AI models simultaneously analyze it for risky, abusive, or deceptive clauses. It runs entirely in your browser: your contract text is sent directly from your browser to [OpenRouter](https://openrouter.ai) using your own API key. No file ever touches a third-party server. No data is stored. No account required.
 
 You choose which AI models to run. You choose which analysis objectives matter (GDPR compliance? non-compete enforceability? hidden fees?). The models run in parallel. Results appear live. You can download a PDF or Markdown report, or generate a shareable URL that encodes the full results for a colleague to review.
+
+## Screenshots
+
+<div align="center">
+
+<img src="https://clippy.legal/img/screenshot-step1.png" alt="Step 1 — Upload your contract and configure models" width="800" />
+<p><em>Step 1 — Upload your contract (PDF, DOCX, TXT), paste your OpenRouter key, select AI models</em></p>
+
+<img src="https://clippy.legal/img/screenshot-step2.png" alt="Step 2 — Choose analysis objectives" width="800" />
+<p><em>Step 2 — Toggle analysis objectives: GDPR, non-compete, IP assignment, financial risk, and more</em></p>
+
+<img src="https://clippy.legal/img/screenshot-step3.png" alt="Step 3 — Results dashboard with trust score and flags" width="800" />
+<p><em>Step 3 — Trust score, dimension breakdown, and annotated clause flags with severity ratings</em></p>
+
+</div>
+
+---
 
 ### Why it exists
 
