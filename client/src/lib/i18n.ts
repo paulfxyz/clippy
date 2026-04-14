@@ -131,7 +131,7 @@ const en: TranslationDict = {
   // ---- Navigation ----------------------------------------------------------
   "nav.brand":                      "clippy",
   "nav.github":                     "GitHub",
-  "nav.version_badge": "v3.2.4",
+  "nav.version_badge": "v3.2.5",
   "nav.shared_badge":               "shared report",
 
   // ---- Step indicator ------------------------------------------------------
@@ -282,7 +282,7 @@ const en: TranslationDict = {
 const fr: TranslationDict = {
   "nav.brand": "clippy",
   "nav.github": "GitHub",
-  "nav.version_badge": "v3.2.4",
+  "nav.version_badge": "v3.2.5",
   "nav.shared_badge": "rapport partagé",
   "steps.setup": "Configuration",
   "steps.objectives": "Objectifs",
@@ -413,7 +413,7 @@ const fr: TranslationDict = {
 const es: TranslationDict = {
   "nav.brand": "clippy",
   "nav.github": "GitHub",
-  "nav.version_badge": "v3.2.4",
+  "nav.version_badge": "v3.2.5",
   "nav.shared_badge": "informe compartido",
   "steps.setup": "Configuración",
   "steps.objectives": "Objetivos",
@@ -544,7 +544,7 @@ const es: TranslationDict = {
 const pt: TranslationDict = {
   "nav.brand": "clippy",
   "nav.github": "GitHub",
-  "nav.version_badge": "v3.2.4",
+  "nav.version_badge": "v3.2.5",
   "nav.shared_badge": "relatório partilhado",
   "steps.setup": "Configuração",
   "steps.objectives": "Objetivos",
@@ -675,7 +675,7 @@ const pt: TranslationDict = {
 const de: TranslationDict = {
   "nav.brand": "clippy",
   "nav.github": "GitHub",
-  "nav.version_badge": "v3.2.4",
+  "nav.version_badge": "v3.2.5",
   "nav.shared_badge": "geteilter Bericht",
   "steps.setup": "Einrichtung",
   "steps.objectives": "Ziele",
@@ -804,7 +804,7 @@ const de: TranslationDict = {
 // Dutch
 // ---------------------------------------------------------------------------
 const nl: TranslationDict = {
-  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.4", "nav.shared_badge": "gedeeld rapport",
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.5", "nav.shared_badge": "gedeeld rapport",
   "steps.setup": "Instelling", "steps.objectives": "Doelen", "steps.results": "Resultaten",
   "clippy.setup": "Het lijkt erop dat je een contract gaat tekenen. Wil je dat ik de vervelende clausules controleer?",
   "clippy.prompts": "Geweldig! Kies nu wat ik moet zoeken. Je kunt doelen bewerken of je eigen toevoegen!",
@@ -878,7 +878,7 @@ const nl: TranslationDict = {
 // Italian
 // ---------------------------------------------------------------------------
 const it: TranslationDict = {
-  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.4", "nav.shared_badge": "report condiviso",
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.5", "nav.shared_badge": "report condiviso",
   "steps.setup": "Configurazione", "steps.objectives": "Obiettivi", "steps.results": "Risultati",
   "clippy.setup": "Sembra che tu stia per firmare un contratto. Vuoi che controlli le clausole abusive?",
   "clippy.prompts": "Ottimo! Ora scegli cosa cercare. Puoi modificare o aggiungere i tuoi obiettivi!",
@@ -953,7 +953,7 @@ const it: TranslationDict = {
 // Chinese (Simplified)
 // ---------------------------------------------------------------------------
 const zh: TranslationDict = {
-  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.4", "nav.shared_badge": "共享报告",
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.5", "nav.shared_badge": "共享报告",
   "steps.setup": "设置", "steps.objectives": "目标", "steps.results": "结果",
   "clippy.setup": "看起来您要签署合同。需要我帮您检查不公平条款吗？",
   "clippy.prompts": "太棒了！现在选择我应该寻找什么。您可以编辑或添加自己的目标！",
@@ -1028,7 +1028,7 @@ const zh: TranslationDict = {
 // Russian
 // ---------------------------------------------------------------------------
 const ru: TranslationDict = {
-  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.4", "nav.shared_badge": "общий отчёт",
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.5", "nav.shared_badge": "общий отчёт",
   "steps.setup": "Настройка", "steps.objectives": "Цели", "steps.results": "Результаты",
   "clippy.setup": "Похоже, вы собираетесь подписать договор. Хотите, чтобы я проверил неудобные пункты?",
   "clippy.prompts": "Отлично! Теперь выберите, что я должен искать. Вы можете редактировать или добавлять свои цели!",
@@ -1103,7 +1103,7 @@ const ru: TranslationDict = {
 // Hindi
 // ---------------------------------------------------------------------------
 const hi: TranslationDict = {
-  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.4", "nav.shared_badge": "साझा रिपोर्ट",
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.5", "nav.shared_badge": "साझा रिपोर्ट",
   "steps.setup": "सेटअप", "steps.objectives": "उद्देश्य", "steps.results": "परिणाम",
   "clippy.setup": "लगता है आप एक अनुबंध पर हस्ताक्षर करने वाले हैं। क्या मैं हानिकारक खंडों की जांच करूं?",
   "clippy.prompts": "बढ़िया! अब चुनें कि मुझे क्या ढूंढना चाहिए। आप अपने उद्देश्य संपादित या जोड़ सकते हैं!",
@@ -1178,7 +1178,7 @@ const hi: TranslationDict = {
 // Bulgarian
 // ---------------------------------------------------------------------------
 const bg: TranslationDict = {
-  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.4", "nav.shared_badge": "споделен отчет",
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.5", "nav.shared_badge": "споделен отчет",
   "steps.setup": "Настройка", "steps.objectives": "Цели", "steps.results": "Резултати",
   "clippy.setup": "Изглежда, че ще подписвате договор. Искате ли да проверя клаузите?",
   "clippy.prompts": "Чудесно! Изберете какво да търся. Можете да редактирате или добавяте свои цели!",
@@ -1253,7 +1253,7 @@ const bg: TranslationDict = {
 // Polish
 // ---------------------------------------------------------------------------
 const pl: TranslationDict = {
-  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.4", "nav.shared_badge": "udostępniony raport",
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.5", "nav.shared_badge": "udostępniony raport",
   "steps.setup": "Konfiguracja", "steps.objectives": "Cele", "steps.results": "Wyniki",
   "clippy.setup": "Wygląda na to, że zamierzasz podpisać umowę. Chcesz, żebym sprawdził kłopotliwe klauzule?",
   "clippy.prompts": "Świetnie! Teraz wybierz, czego szukać. Możesz edytować lub dodawać własne cele!",
@@ -1328,7 +1328,7 @@ const pl: TranslationDict = {
 // Danish
 // ---------------------------------------------------------------------------
 const da: TranslationDict = {
-  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.4", "nav.shared_badge": "delt rapport",
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.5", "nav.shared_badge": "delt rapport",
   "steps.setup": "Opsætning", "steps.objectives": "Mål", "steps.results": "Resultater",
   "clippy.setup": "Det ser ud til, at du er ved at underskrive en kontrakt. Vil du have hjælp til at tjekke de grimme klausuler?",
   "clippy.prompts": "Fantastisk! Vælg nu, hvad jeg skal kigge efter. Du kan redigere eller tilføje dine egne mål!",
@@ -1403,7 +1403,7 @@ const da: TranslationDict = {
 // Japanese
 // ---------------------------------------------------------------------------
 const ja: TranslationDict = {
-  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.4", "nav.shared_badge": "共有レポート",
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.5", "nav.shared_badge": "共有レポート",
   "steps.setup": "設定", "steps.objectives": "目標", "steps.results": "結果",
   "clippy.setup": "契約書に署名しようとしているようですね。不公平な条項を確認しましょうか？",
   "clippy.prompts": "素晴らしい！何を調べるか選んでください。目標を編集したり、独自のものを追加できます！",
@@ -1478,7 +1478,7 @@ const ja: TranslationDict = {
 // Korean
 // ---------------------------------------------------------------------------
 const ko: TranslationDict = {
-  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.4", "nav.shared_badge": "공유 보고서",
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.5", "nav.shared_badge": "공유 보고서",
   "steps.setup": "설정", "steps.objectives": "목표", "steps.results": "결과",
   "clippy.setup": "계약서에 서명하려는 것 같군요. 불공정한 조항을 확인해 드릴까요?",
   "clippy.prompts": "훌륭해요! 이제 무엇을 찾을지 선택하세요. 목표를 편집하거나 직접 추가할 수 있어요!",
@@ -1553,7 +1553,7 @@ const ko: TranslationDict = {
 // Hebrew (RTL)
 // ---------------------------------------------------------------------------
 const he: TranslationDict = {
-  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.4", "nav.shared_badge": "דוח משותף",
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.5", "nav.shared_badge": "דוח משותף",
   "steps.setup": "הגדרה", "steps.objectives": "מטרות", "steps.results": "תוצאות",
   "clippy.setup": "נראה שאתה עומד לחתום על חוזה. רוצה שאבדוק סעיפים בעייתיים?",
   "clippy.prompts": "מצוין! עכשיו בחר מה לחפש. אתה יכול לערוך או להוסיף מטרות משלך!",
@@ -1628,7 +1628,7 @@ const he: TranslationDict = {
 // Arabic (RTL)
 // ---------------------------------------------------------------------------
 const ar: TranslationDict = {
-  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.4", "nav.shared_badge": "تقرير مشترك",
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.5", "nav.shared_badge": "تقرير مشترك",
   "steps.setup": "الإعداد", "steps.objectives": "الأهداف", "steps.results": "النتائج",
   "clippy.setup": "يبدو أنك ستوقع على عقد. هل تريدني أن أفحص البنود الضارة؟",
   "clippy.prompts": "رائع! اختر الآن ما يجب أن أبحث عنه. يمكنك تعديل أهدافك الخاصة أو إضافتها!",
@@ -1703,7 +1703,7 @@ const ar: TranslationDict = {
 // Turkish
 // ---------------------------------------------------------------------------
 const tr: TranslationDict = {
-  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.4", "nav.shared_badge": "paylaşılan rapor",
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.5", "nav.shared_badge": "paylaşılan rapor",
   "steps.setup": "Kurulum", "steps.objectives": "Hedefler", "steps.results": "Sonuçlar",
   "clippy.setup": "Bir sözleşme imzalamak üzere görünüyorsunuz. Sorunlu maddeleri kontrol etmeme izin verir misiniz?",
   "clippy.prompts": "Harika! Şimdi ne aramam gerektiğini seçin. Hedefleri düzenleyebilir veya yenilerini ekleyebilirsiniz!",
@@ -1783,7 +1783,7 @@ const tr: TranslationDict = {
 // Swedish
 // ---------------------------------------------------------------------------
 const sv: TranslationDict = {
-  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.4", "nav.shared_badge": "delad rapport",
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.5", "nav.shared_badge": "delad rapport",
   "steps.setup": "Inställning", "steps.objectives": "Mål", "steps.results": "Resultat",
   "clippy.setup": "Det ser ut som att du ska skriva under ett avtal. Vill du att jag granskar de knepiga klausulerna?",
   "clippy.prompts": "Bra! Välj nu vad jag ska leta efter. Du kan redigera eller lägga till egna mål!",
@@ -1863,7 +1863,7 @@ const sv: TranslationDict = {
 // Indonesian
 // ---------------------------------------------------------------------------
 const id: TranslationDict = {
-  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.4", "nav.shared_badge": "laporan dibagikan",
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.5", "nav.shared_badge": "laporan dibagikan",
   "steps.setup": "Persiapan", "steps.objectives": "Tujuan", "steps.results": "Hasil",
   "clippy.setup": "Sepertinya Anda akan menandatangani kontrak. Mau saya bantu periksa klausul-klausul yang bermasalah?",
   "clippy.prompts": "Bagus! Sekarang pilih apa yang harus saya cari. Anda bisa mengedit atau menambah tujuan sendiri!",

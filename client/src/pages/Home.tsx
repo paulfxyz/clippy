@@ -402,10 +402,19 @@ export default function Home() {
     setTimeout(() => setClippyTalking(false), 2000);
   };
 
-  // Update Clippy's message key whenever the step changes
+  // Update Clippy's message key whenever the step changes.
+  // On the "results" step we show "analyzing" while work is in progress,
+  // then switch to the "results" key once all models have finished.
   useEffect(() => {
-    setClippy(CLIPPY_MESSAGE_KEYS[state.step] || CLIPPY_MESSAGE_KEYS.idle);
-  }, [state.step]);
+    if (state.step === "results") {
+      // isAnalyzing drives the distinction:
+      //   true  → still working → "clippy.analyzing"
+      //   false → all done     → "clippy.results"
+      setClippy(isAnalyzing ? "clippy.analyzing" : "clippy.results");
+    } else {
+      setClippy(CLIPPY_MESSAGE_KEYS[state.step] || CLIPPY_MESSAGE_KEYS.idle);
+    }
+  }, [state.step, isAnalyzing]);
 
   // ---------------------------------------------------------------------------
   // Step 1: File handling
@@ -1473,7 +1482,7 @@ export default function Home() {
                 fill="none"
               />
             </svg>
-            <span>clippy v3.2.4 — {t("footer.tagline")}</span>
+            <span>clippy v3.2.5 — {t("footer.tagline")}</span>
           </div>
           <div className="flex items-center gap-4">
             <a

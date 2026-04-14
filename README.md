@@ -14,7 +14,7 @@
 ╚═══════════════════════════════════════════════════════════════╝
 ```
 
-[![Version](https://img.shields.io/badge/version-3.2.4-F5D000?style=flat-square&labelColor=1a1a2e)](https://github.com/paulfxyz/clippy/releases/tag/v3.2.4)
+[![Version](https://img.shields.io/badge/version-3.2.5-F5D000?style=flat-square&labelColor=1a1a2e)](https://github.com/paulfxyz/clippy/releases/tag/v3.2.5)
 [![License: MIT](https://img.shields.io/badge/license-MIT-000000?style=flat-square)](https://github.com/paulfxyz/clippy/blob/main/LICENSE)
 [![Built with React](https://img.shields.io/badge/React-18-61dafb?style=flat-square&logo=react&logoColor=white&labelColor=20232a)](https://reactjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
@@ -206,7 +206,7 @@ https://clippy.legal?lang=id   → Bahasa Indonesia
 
 ## Supported Models
 
-Current model list (v3.2.4), via [OpenRouter](https://openrouter.ai):
+Current model list (v3.2.5), via [OpenRouter](https://openrouter.ai):
 
 | Model | Provider | Default | JSON Mode | Notes |
 |-------|----------|---------|-----------|-------|
@@ -672,7 +672,7 @@ Calibrated against typical outputs from Claude and GPT-4.1 during development. M
 
 ## War Stories — Every Bug That Shaped This Project
 
-These are the real problems encountered between v1.0.0 and v3.2.4. Each one taught something worth documenting.
+These are the real problems encountered between v1.0.0 and v3.2.5. Each one taught something worth documenting.
 
 ### 1. The MIME Type from Hell
 
@@ -937,7 +937,8 @@ Prices change. Check [openrouter.ai/models](https://openrouter.ai/models) for cu
 - [x] v3.2.1 — `?lang=` URL param, accurate file error messages, `response_format` fix, 90s timeout
 - [x] v3.2.2 — claude-3.7-sonnet default, 120s timeout, no-cache `index.html`
 - [x] v3.2.3 — Full code audit, improved JSDoc, comprehensive README rewrite
-- [x] v3.2.4 — 20 languages (added Turkish 🇹🇷, Swedish 🇸🇪, Indonesian 🇮🇩)
+- [x] v3.2.4 — 20 languages (added Turkish 🇹🇷, Swedish 🇸🇪, Indonesian 🇮🇩), README mega-rewrite with screenshots
+- [x] v3.2.5 — Clippy shows "analyzing" message while working, switches to results message when done
 
 ### Planned
 - [ ] Side-by-side diff view between model results

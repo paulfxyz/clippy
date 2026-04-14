@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.2.5] — 2026-04-14
+
+### Fixed
+- Clippy's speech bubble now correctly shows the **"analyzing"** message while models are working, then switches to the **"results"** message only once all analysis is complete — the previous behaviour showed the final message prematurely before any results had loaded
+- Fix is purely logic-driven: `useEffect` now depends on both `state.step` and `isAnalyzing`, giving Clippy two distinct states on the results screen
+- No i18n changes required — all 20 locales already had both `clippy.analyzing` and `clippy.results` keys
+
+---
+
 ## [3.2.4] — 2026-04-14
 
 ### Added
@@ -214,9 +223,10 @@ This version establishes the full core product: multi-model AI contract analysis
 
 ---
 
+[3.2.5]: https://github.com/paulfxyz/clippy/releases/tag/v3.2.5
 [3.2.4]: https://github.com/paulfxyz/clippy/releases/tag/v3.2.4
 [3.2.3]: https://github.com/paulfxyz/clippy/releases/tag/v3.2.3
 [3.2.2]: https://github.com/paulfxyz/clippy/releases/tag/v3.2.2
 [2.0.0]: https://github.com/paulfxyz/clippy/releases/tag/v2.0.0
 [1.0.0]: https://github.com/paulfxyz/clippy/releases/tag/v1.0.0
-[Unreleased]: https://github.com/paulfxyz/clippy/compare/v3.2.4...HEAD
+[Unreleased]: https://github.com/paulfxyz/clippy/compare/v3.2.5...HEAD
