@@ -504,7 +504,8 @@ export default function Home() {
           state.fileText,
           modelId,
           rawKey,
-          state.prompts  // pass full array; openrouter.ts filters to enabled
+          state.prompts,  // pass full array; openrouter.ts filters to enabled
+          locale           // active UI locale — model will respond in this language
         );
         setState(s => ({
           ...s,

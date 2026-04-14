@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.0.2] — 2026-04-14
+
+Locale-aware analysis output. When Clippy's UI is set to any non-English language, AI models now respond entirely in that language — all human-readable fields in the JSON output (summary, flag titles, flag descriptions, dimension labels and notes) are written in the active locale. Contract quotes remain verbatim in the original document language. JSON field names remain in English for structural consistency.
+
+### Added
+
+#### Locale-Aware AI Output (`client/src/lib/openrouter.ts`)
+- `LOCALE_LANGUAGE_NAMES` — maps all 17 supported locale codes to their full English language names for use in model instructions
+- `buildSystemPrompt(locale)` — dynamically builds the system prompt; for non-English locales, prepends a `LANGUAGE INSTRUCTION` directive at the top of the system prompt (highest attention weight position) directing the model to write all text fields in the active language
+- `analyzeWithModel()` now accepts a `locale` parameter (default `"en"`); passed from `Home.tsx` via `useI18n()`
+
+#### Locale Language Reminder (`client/src/lib/prompts.ts`)
+- `assemblePromptInstructions(prompts, locale)` — accepts locale param and appends a `REMINDER` line to the user message for non-English locales (belt-and-suspenders alongside the system prompt directive)
+- `LOCALE_LANGUAGE_NAMES` re-exported from `openrouter.ts` and imported in `prompts.ts`
+
+#### Home.tsx
+- `handleAnalyze()` now passes `locale` (from `useI18n()`) to `analyzeWithModel()`
+
+### Changed
+- File header versions updated to v3.0.2 in `openrouter.ts` and `prompts.ts`
+
+---
+
 ## [3.0.1] — 2026-04-14
 
 A quality and depth patch. Deeply improved analysis prompts that cite specific laws and legal concepts, a richer system prompt with better severity calibration, hardened error handling, improved code comments throughout, and a massively expanded README covering EU/US/UK/FR consumer law, GDPR, arbitration jurisprudence, non-compete law, and IP assignment rules.
@@ -331,4 +354,5 @@ This version establishes the full core product: multi-model AI contract analysis
 [3.0.0]: https://github.com/paulfxyz/clippy/releases/tag/v3.0.0
 [2.0.0]: https://github.com/paulfxyz/clippy/releases/tag/v2.0.0
 [1.0.0]: https://github.com/paulfxyz/clippy/releases/tag/v1.0.0
-[Unreleased]: https://github.com/paulfxyz/clippy/compare/v3.0.1...HEAD
+[Unreleased]: https://github.com/paulfxyz/clippy/compare/v3.0.2...HEAD
+[3.0.2]: https://github.com/paulfxyz/clippy/compare/v3.0.1...v3.0.2

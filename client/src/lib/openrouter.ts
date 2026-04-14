@@ -1,6 +1,6 @@
 /**
  * @file openrouter.ts
- * @description OpenRouter API client for Clippy v3.0.1.
+ * @description OpenRouter API client for Clippy v3.0.2.
  *
  * OpenRouter (https://openrouter.ai) is a unified API gateway that routes
  * requests to 100+ AI models from different providers (Anthropic, OpenAI,
@@ -28,6 +28,18 @@
  * - More descriptive HTTP error messages for common OpenRouter error codes
  *   (401 bad key, 402 no credits, 429 rate limit, 503 model unavailable)
  *
+ * WHAT CHANGED IN v3.0.2
+ * -----------------------
+ * - analyzeWithModel() now accepts a `locale` parameter.
+ *   When a non-English locale is active, a LANGUAGE INSTRUCTION line is
+ *   prepended to the system prompt directing the model to produce all
+ *   analysis text (summary, flag titles/descriptions, dimension labels/notes)
+ *   in that language, while keeping JSON keys and quoted contract excerpts
+ *   unchanged.
+ * - LOCALE_LANGUAGE_NAMES maps every supported Clippy locale to the full
+ *   English language name used in the model instruction.
+ * - buildSystemPrompt(locale) dynamically composes the final system prompt.
+ *
  * CORS STRATEGY
  * -------------
  * All API calls are made directly from the user's browser to OpenRouter's API.
@@ -47,7 +59,39 @@
  */
 
 import type { AnalysisPrompt, ClauseFlag, Dimension, ModelResult } from "@shared/schema";
+import type { Locale } from "@/lib/i18n";
 import { assemblePromptInstructions } from "@/lib/prompts";
+
+// ---------------------------------------------------------------------------
+// Locale → language name mapping
+// ---------------------------------------------------------------------------
+
+/**
+ * Maps every supported Clippy locale code to the full English language name
+ * used in the model's language instruction.
+ *
+ * We use English names (not native names) because LLMs respond more reliably
+ * to English language names in system prompts.
+ */
+export const LOCALE_LANGUAGE_NAMES: Record<Locale, string> = {
+  en: "English",
+  fr: "French",
+  es: "Spanish",
+  pt: "Portuguese",
+  de: "German",
+  nl: "Dutch",
+  it: "Italian",
+  zh: "Chinese (Simplified)",
+  ru: "Russian",
+  hi: "Hindi",
+  bg: "Bulgarian",
+  pl: "Polish",
+  da: "Danish",
+  ja: "Japanese",
+  ko: "Korean",
+  he: "Hebrew",
+  ar: "Arabic",
+};
 
 // ---------------------------------------------------------------------------
 // Model registry
@@ -194,7 +238,12 @@ export const AVAILABLE_MODELS = [
  *    to the USER message (not the system message). This preserves JSON format
  *    compliance while layering additional analysis instructions.
  */
-const SYSTEM_PROMPT = `You are Clippy, an expert contract analysis AI with deep knowledge of consumer protection law, employment law, data privacy regulation, and intellectual property law across multiple jurisdictions (EU, US, UK, France, Germany, and others).
+/**
+ * Base system prompt — language-neutral.
+ * A LANGUAGE INSTRUCTION line is prepended at runtime by buildSystemPrompt()
+ * when the active locale is not English.
+ */
+const SYSTEM_PROMPT_BASE = `You are Clippy, an expert contract analysis AI with deep knowledge of consumer protection law, employment law, data privacy regulation, and intellectual property law across multiple jurisdictions (EU, US, UK, France, Germany, and others).
 
 Your job is to analyse contracts and identify clauses that may be problematic, unfair, abusive, or legally questionable — particularly clauses that disadvantage the party who did not draft the contract (typically the consumer, employee, or smaller business partner).
 
@@ -294,7 +343,35 @@ GENERAL INSTRUCTIONS
 - Return at least 1 flag and at most 20 flags per analysis. If the contract is genuinely fair, flag only MINOR issues.
 - Do not hallucinate clause quotes — only quote text that actually appears in the contract.
 - trustScore should reflect the overall assessment: 70-100 = broadly fair; 50-69 = concerning; 30-49 = risky; 0-29 = abusive.
-- Return ONLY valid JSON. No markdown fences, no explanation, no trailing text.`;
+- Return ONLY valid JSON. No markdown fences, no explanation, no trailing text.
+- IMPORTANT: All human-readable text fields (summary, flag titles, flag descriptions, dimension labels, dimension notes) must be written in the language specified by the LANGUAGE INSTRUCTION at the top of this prompt, if one is present. Contract quotes in the "quote" field must always be verbatim from the original document (keep the original language). JSON keys must always be in English.`;
+
+/**
+ * Builds the locale-aware system prompt.
+ *
+ * For English (or when locale is undefined), returns the base prompt as-is.
+ * For all other locales, prepends a LANGUAGE INSTRUCTION directive so the
+ * model writes all human-readable output fields in the user's language.
+ *
+ * Placement at the very top of the system prompt maximises the instruction's
+ * attention weight in transformer-based models.
+ *
+ * @param locale - The active Clippy locale, or undefined for English.
+ * @returns Fully assembled system prompt string.
+ */
+function buildSystemPrompt(locale?: Locale): string {
+  if (!locale || locale === "en") return SYSTEM_PROMPT_BASE;
+  const languageName = LOCALE_LANGUAGE_NAMES[locale] ?? "English";
+  const instruction = [
+    `LANGUAGE INSTRUCTION: All human-readable text fields in your JSON output`,
+    `("summary", flag "title", flag "description", dimension "label", dimension "note")`,
+    `MUST be written in ${languageName}.`,
+    `JSON field names (keys) must remain in English.`,
+    `The "quote" field must always contain the verbatim original text from the contract`,
+    `(do not translate quoted contract text).`,
+  ].join(" ");
+  return `${instruction}\n\n${SYSTEM_PROMPT_BASE}`;
+}
 
 // ---------------------------------------------------------------------------
 // Main analysis function
@@ -331,6 +408,7 @@ GENERAL INSTRUCTIONS
  * @param modelId - OpenRouter model ID (e.g. "anthropic/claude-3.5-sonnet")
  * @param apiKey - User's OpenRouter API key (decrypted at call time, never stored)
  * @param prompts - Full prompts array from AppState; only enabled ones are sent
+ * @param locale - Active UI locale; directs the model to respond in that language (default: "en")
  * @returns Parsed analysis result (caller adds modelId/modelName/status)
  * @throws Error with a human-readable message if the API call or JSON parsing fails
  */
@@ -338,18 +416,25 @@ export async function analyzeWithModel(
   contractText: string,
   modelId: string,
   apiKey: string,
-  prompts: AnalysisPrompt[] = []
+  prompts: AnalysisPrompt[] = [],
+  locale: Locale = "en"
 ): Promise<Omit<ModelResult, "modelId" | "modelName" | "status">> {
 
   // Assemble user-selected prompt objectives into a formatted instruction block.
   // If no prompts are enabled, additionalInstructions is an empty string.
-  const additionalInstructions = assemblePromptInstructions(prompts);
+  // Pass locale so the preamble text mirrors the UI language.
+  const additionalInstructions = assemblePromptInstructions(prompts, locale);
 
   // Build the user message. Additional objectives go first (higher model
   // attention weight), followed by the contract text.
   const userPrompt = additionalInstructions
     ? `${additionalInstructions}\n\nPlease analyze this contract:\n\n${contractText}`
     : `Please analyze this contract:\n\n${contractText}`;
+
+  // Build the locale-aware system prompt. For non-English locales this
+  // prepends a LANGUAGE INSTRUCTION directing the model to respond in the
+  // user's language. See buildSystemPrompt() for details.
+  const systemPrompt = buildSystemPrompt(locale);
 
   // Record start time for duration measurement (wall-clock, not CPU time)
   const startTime = Date.now();
@@ -371,7 +456,7 @@ export async function analyzeWithModel(
     body: JSON.stringify({
       model: modelId,
       messages: [
-        { role: "system", content: SYSTEM_PROMPT },
+        { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
       ],
       // Very low temperature for deterministic legal analysis.
@@ -380,7 +465,7 @@ export async function analyzeWithModel(
       // JSON mode: instructs OpenRouter to request structured output from
       // models that support it (primarily OpenAI-compatible models).
       // For other models, the "Return ONLY valid JSON" instruction in
-      // SYSTEM_PROMPT acts as the fallback enforcement mechanism.
+      // SYSTEM_PROMPT_BASE (via buildSystemPrompt) acts as the fallback enforcement mechanism.
       response_format: { type: "json_object" },
     }),
   });

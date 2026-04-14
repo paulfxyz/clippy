@@ -1,6 +1,6 @@
 /**
  * @file prompts.ts
- * @description Curated library of analysis objectives for Clippy v3.0.1.
+ * @description Curated library of analysis objectives for Clippy v3.0.2.
  *
  * OVERVIEW
  * --------
@@ -21,6 +21,13 @@
  *   - More precise instruction language about exactly what to look for
  *   - Jurisdiction-aware analysis guidance (EU vs. US vs. UK vs. FR nuances)
  *   - Explicit severity-tagging guidance tied to legal thresholds
+ *
+ * WHAT'S NEW IN v3.0.2
+ * --------------------
+ * - assemblePromptInstructions() now accepts an optional `locale` parameter.
+ *   When set, it appends a reminder to the instruction block asking the model
+ *   to ensure all output is written in that language (belt-and-suspenders
+ *   alongside the system-prompt LANGUAGE INSTRUCTION in openrouter.ts).
  *
  * PROMPT DESIGN PRINCIPLES
  * ------------------------
@@ -51,6 +58,8 @@
  */
 
 import type { AnalysisPrompt } from "@shared/schema";
+import type { Locale } from "@/lib/i18n";
+import { LOCALE_LANGUAGE_NAMES } from "@/lib/openrouter";
 
 // ---------------------------------------------------------------------------
 // Default prompt library
@@ -564,7 +573,21 @@ FLAG as SUSPECT:
  * @param prompts - All prompts in the current session state.
  * @returns A formatted instruction string, or empty string if nothing is enabled.
  */
-export function assemblePromptInstructions(prompts: AnalysisPrompt[]): string {
+/**
+ * Assembles enabled prompts into a single formatted instruction block to
+ * prepend to the contract text in the user message.
+ *
+ * v3.0.2: Accepts an optional `locale` parameter. When the locale is not
+ * English, a language reminder line is appended to the block as a
+ * belt-and-suspenders reinforcement of the LANGUAGE INSTRUCTION already
+ * present in the system prompt.
+ *
+ * @param prompts - Full prompts array; only enabled ones are included.
+ * @param locale  - Active UI locale (default "en"). Used to reinforce the
+ *                  output-language directive in the assembled instructions.
+ * @returns Formatted instruction string, or empty string if nothing enabled.
+ */
+export function assemblePromptInstructions(prompts: AnalysisPrompt[], locale: Locale = "en"): string {
   const enabled = prompts.filter(p => p.enabled);
   if (enabled.length === 0) return "";
 
@@ -572,13 +595,26 @@ export function assemblePromptInstructions(prompts: AnalysisPrompt[]): string {
     `### ${p.title}\n${p.prompt}`
   );
 
-  return [
+  const lines = [
     "In addition to the general analysis, pay special attention to the following specific objectives.",
     "For each objective, look for clauses that implicate the legal standards described.",
     "Your JSON output (flags, dimensions, trustScore) must reflect findings from ALL objectives below:",
     "",
     ...sections,
-  ].join("\n\n");
+  ];
+
+  // Belt-and-suspenders language reminder for non-English locales.
+  // The primary language instruction is in the system prompt; this reinforces
+  // it within the user message where some models pay higher attention.
+  if (locale !== "en") {
+    const languageName = LOCALE_LANGUAGE_NAMES[locale] ?? "English";
+    lines.push(
+      "",
+      `REMINDER: All text fields in your JSON response (summary, flag titles, flag descriptions, dimension labels, dimension notes) MUST be written in ${languageName}.`
+    );
+  }
+
+  return lines.join("\n\n");
 }
 
 // ---------------------------------------------------------------------------
