@@ -7,6 +7,90 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.0.1] — 2026-04-14
+
+A quality and depth patch. Deeply improved analysis prompts that cite specific laws and legal concepts, a richer system prompt with better severity calibration, hardened error handling, improved code comments throughout, and a massively expanded README covering EU/US/UK/FR consumer law, GDPR, arbitration jurisprudence, non-compete law, and IP assignment rules.
+
+### Added
+
+#### Legally Grounded Analysis Prompts (`client/src/lib/prompts.ts`)
+- **`general-red-flags`** — Now cites EU Directive 93/13/EEC (significant imbalance test, Annex grey list), UK CRA 2015 ss.62-65, US unconscionability doctrine, and French Code de la consommation Art. L.212-1 and Décret 2009-302 "black list"
+- **`general-termination`** — Now cites French Loi Châtel (Art. L.215-1), EU consumer auto-renewal rules, GDPR Art. 17 (data erasure on termination), and specific criteria for what constitutes a disproportionate termination penalty
+- **`general-governing-law`** — Now cites EU Rome I Regulation Art. 6 (choice of law cannot strip mandatory consumer protections), Brussels I Recast Art. 17-19, FAA (9 U.S.C.), AT&T Mobility v. Concepcion (563 U.S. 333, 2011), American Express v. Italian Colors (2013), UK CRA 2015 s.91, and the 2022 Ending Forced Arbitration Act
+- **`financial-pricing`** — Now cites EU Directive 93/13/EEC Annex item (l) (unilateral price changes), French "black list" (Décret 2009-302), EU Late Payments Directive 2011/7/EU
+- **`financial-liability`** — Now cites UK UCTA 1977 s.11 (reasonableness test), UK CRA 2015 s.65 (death/personal injury), EU Directive 93/13/EEC Annex items (a)/(b), French Code civil Art. 1231-3
+- **`privacy-gdpr`** — Now provides a detailed breakdown of all relevant GDPR Articles: Art. 5 (principles), Art. 6 (lawful basis with all 6 bases listed), Art. 7 (consent conditions), Art. 13 (all mandatory transparency elements), Art. 17 (erasure), Art. 20 (portability), Art. 28 (DPA requirements), Arts. 44-49 (international transfers, SCCs, post-Schrems II), Art. 25 (data protection by design)
+- **`privacy-monitoring`** — Now cites US ECPA (18 U.S.C. § 2510), EU GDPR Art. 6(1)(f) for monitoring, Article 29 Working Party Opinion 2/2017, GDPR Art. 9 for biometric data
+- **`employment-noncompete`** — Now provides a jurisdiction table: California (§ 16600, near-total ban, no blue-pencilling), Minnesota (§ 181.988, banned since 2023), North Dakota, Florida, New York, UK (Mason v. Provident Clothing [1913]), France (Cass. Soc. 10 juillet 2002, mandatory compensation), Germany (HGB §§ 74-75, 50% salary minimum), FTC 2024 rule
+- **`employment-ip-assignment`** — Now cites US 17 U.S.C. § 101 (work made for hire), California Labor Code § 2870 (personal-time carve-out), UK Patents Act 1977 s.39 and CDPA 1988 s.11, French Code de la Propriété Intellectuelle (inalienable moral rights), and covers Delaware/Illinois/Minnesota/NC/Washington equivalent protections
+- **`ip-licensing`** — Now covers irrevocable/royalty-free/sublicensable licence analysis, AI training data consent under GDPR, grant-back clause antitrust concerns, freelance work-made-for-hire under 17 U.S.C. § 101, FOSS copyleft compliance (GPL, LGPL, AGPL)
+- **`assemblePromptInstructions()`** — Enhanced preamble that explicitly instructs the model to reflect all objectives in the JSON output (flags, dimensions, trustScore)
+
+#### Improved System Prompt (`client/src/lib/openrouter.ts`)
+- **Legal framework section** — SYSTEM_PROMPT now opens with an explicit list of applicable legal standards (EU Directive 93/13/EEC, GDPR, Rome I, FAA, AT&T v. Concepcion, UK CRA 2015, French consumer law)
+- **Richer severity calibration** — CRITICAL/SUSPECT/MINOR definitions now include 6-7 concrete legal examples each, anchored to specific laws
+- **Better JSON schema documentation** — Each field in the JSON schema now has a clear description of expected values and format
+- **Dimension notes** — Each of the 5 dimensions now has a descriptive `label` guidance (`Excellent|Good|Fair|Poor|Opaque` for Transparency, etc.)
+- **Instruction to detect jurisdiction** — Model is now explicitly instructed to identify governing law from contract content
+- **Hardened instructions** — Added: minimum/maximum flag counts, instruction not to hallucinate quotes, trustScore range guidance
+
+#### Hardened Error Handling (`client/src/lib/openrouter.ts`)
+- **HTTP 401** → "Invalid API key — please check your OpenRouter key and try again"
+- **HTTP 402** → "Insufficient OpenRouter credits — top up your account at openrouter.ai"
+- **HTTP 403** → "Access denied — your API key may not have permission to use this model"
+- **HTTP 429** → "Rate limit reached — please wait a moment before trying again"
+- **HTTP 502/503** → "Model temporarily unavailable — try a different model or retry in a moment"
+- **Three-layer JSON parsing fallback**: (1) direct parse; (2) strip Markdown code fences; (3) extract first `{...}` JSON object from mixed-content response
+
+#### Improved File Parser (`client/src/lib/fileParser.ts`)
+- **File size limit** — Files above 10MB are rejected with a clear error message before any parsing begins
+- **Scanned PDF detection** — If all PDF pages combined yield fewer than 100 characters, a descriptive error explains that the PDF is likely image-only (scanned) with no text layer
+- **Password-protected PDF error** — `PasswordException` from pdfjs-dist is now caught and surfaced as a clear user-facing message with remediation advice
+- **Empty DOCX detection** — `mammoth.extractRawText()` result is now validated; empty results surface a clear error
+- **Empty TXT/MD detection** — `File.text()` result is validated; empty files surface a clear error
+- **DOCX error handling** — `mammoth.extractRawText()` is now wrapped in try/catch with user-friendly error message
+
+#### Legal Disclaimer in Exports (`client/src/lib/export.ts`)
+- **PDF footer** — Every page now includes a legal disclaimer: "AI-generated analysis. Not legal advice. Consult a qualified lawyer before acting on any finding."
+- **Markdown footer** — Enhanced footer with explicit disclaimer: "Results are AI-generated and do not constitute legal advice."
+- **PDF cover** — Subtitle updated to include tagline: "clippy.legal — open-source AI contract analyzer · your contract analyst"
+
+#### Share URL Robustness (`client/src/lib/share.ts`)
+- **Enhanced structural validation** — `decodeSharePayload()` now also validates that each result in the array has a `modelId` field
+- **Improved JSDoc** — All functions now have detailed comments explaining encoding steps, Unicode handling, and failure modes
+
+#### README.md — Major Expansion
+- **New section: "The Legal Context — Why Contract Clauses Matter"** — 2,000+ words covering:
+  - EU Directive 93/13/EEC (text, CJEU cases: Océano Grupo, Aziz, RWE Vertrieb)
+  - GDPR article-by-article table (Arts. 5-7, 13, 17, 20, 25, 28, 44-49) with enforcement cases (CNIL/Google, DPC/WhatsApp, Schrems II)
+  - US law: unconscionability doctrine, FAA, AT&T v. Concepcion, American Express v. Italian Colors, Viking River Cruises, ECPA
+  - Non-compete enforceability by jurisdiction (CA, MN, ND, FL, NY, UK, FR)
+  - UK CRA 2015 and UCTA 1977
+  - French Loi Châtel, Loi Hamon, Code de la consommation
+  - Arbitration clause analysis (EU vs. US vs. UK positions)
+  - IP assignment (UK, US, France) including California Labor Code § 2870
+  - Liability caps and indemnification structure analysis
+  - Governing law and forum selection (Rome I, Brussels I Recast)
+  - The "small print" problem (cognitive overload, information asymmetry)
+  - Limitations of AI contract analysis and threat model
+- **Legal References section** — 10 direct links to official legal texts (EUR-Lex, US Code, California Legislature, etc.)
+- **Version badge** updated to v3.0.1
+- **Roadmap** updated to reflect completed milestones
+- **v3.0.1 "What's New"** section added
+
+### Changed
+
+- `package.json` — Version bumped from `3.0.0` → `3.0.1`
+- `CHANGELOG.md` — This entry
+- `README.md` — Version badge updated to v3.0.1; major content expansion
+
+### Fixed
+
+- JSON parsing in `analyzeWithModel()` now has a third fallback (regex extraction of first `{...}` block) to handle models that prepend preamble text before the JSON
+- Error message for `decodeSharePayload()` failures is now more specific in documentation (though the function itself returns null silently as designed)
+
+---
+
 ## [3.0.0] — 2026-04-13
 
 This is a major internationalisation (i18n) release. Clippy now speaks 17 languages — English plus 16 others — with full RTL support for Arabic and Hebrew, automatic locale detection, a beautiful language switcher in the navigation bar, and zero external i18n libraries.
@@ -243,7 +327,8 @@ This version establishes the full core product: multi-model AI contract analysis
 
 ---
 
+[3.0.1]: https://github.com/paulfxyz/clippy/releases/tag/v3.0.1
 [3.0.0]: https://github.com/paulfxyz/clippy/releases/tag/v3.0.0
 [2.0.0]: https://github.com/paulfxyz/clippy/releases/tag/v2.0.0
 [1.0.0]: https://github.com/paulfxyz/clippy/releases/tag/v1.0.0
-[Unreleased]: https://github.com/paulfxyz/clippy/compare/v3.0.0...HEAD
+[Unreleased]: https://github.com/paulfxyz/clippy/compare/v3.0.1...HEAD
