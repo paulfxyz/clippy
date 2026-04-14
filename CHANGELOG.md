@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.0.3] — 2026-04-14
+
+### Fixed
+- Logo image: removed stray "dot ·" text, re-centered tagline to "your contract analyst"
+- README: updated logo illustration with cache-busted URL
+
+### Added
+- "See Demo" button in hero with 3-step screenshot slideshow modal (keyboard nav, backdrop dismiss)
+
+---
+
 ## [3.0.2] — 2026-04-14
 
 Locale-aware analysis output. When Clippy's UI is set to any non-English language, AI models now respond entirely in that language — all human-readable fields in the JSON output (summary, flag titles, flag descriptions, dimension labels and notes) are written in the active locale. Contract quotes remain verbatim in the original document language. JSON field names remain in English for structural consistency.
