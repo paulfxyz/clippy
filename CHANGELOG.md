@@ -7,11 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [3.0.3] — 2026-04-14
+## [3.1.0] — 2026-04-14
 
 ### Fixed
 - Logo image: removed stray "dot ·" text, re-centered tagline to "your contract analyst"
 - README: updated logo illustration with cache-busted URL
+- `locale is not defined` crash during analysis — destructure `locale` from `useI18n()`
 
 ### Added
 - "See Demo" button in hero with 3-step screenshot slideshow modal (keyboard nav, backdrop dismiss)

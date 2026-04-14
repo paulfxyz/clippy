@@ -344,7 +344,7 @@ function DemoModal({ onClose }: { onClose: () => void }) {
  */
 export default function Home() {
   // i18n context — provides t() for all UI strings and locale-aware Clippy messages
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
 
   // ---------------------------------------------------------------------------
   // State
