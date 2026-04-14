@@ -14,7 +14,7 @@
 ╚═══════════════════════════════════════════════════════════════╝
 ```
 
-[![Version](https://img.shields.io/badge/version-3.0.2-F5D000?style=flat-square&labelColor=1a1a2e)](https://github.com/paulfxyz/clippy/releases/tag/v3.0.2)
+[![Version](https://img.shields.io/badge/version-3.0.3-F5D000?style=flat-square&labelColor=1a1a2e)](https://github.com/paulfxyz/clippy/releases/tag/v3.0.3)
 [![License: MIT](https://img.shields.io/badge/license-MIT-000000?style=flat-square)](https://github.com/paulfxyz/clippy/blob/main/LICENSE)
 [![Built with React](https://img.shields.io/badge/React-18-61dafb?style=flat-square&logo=react&logoColor=white&labelColor=20232a)](https://reactjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
@@ -64,7 +64,7 @@ Clippy is named after [Microsoft's Office Assistant](https://en.wikipedia.org/wi
 
 ---
 
-## What's New in v3.0.2
+## What's New in v3.0.3
 
 **Locale-aware analysis output.** When you use Clippy in French, Spanish, German, Japanese, Arabic, or any of the 17 supported languages, the AI models now respond entirely in that language — flag titles, descriptions, summaries, and dimension notes are all localised. Contract quotes remain verbatim in their original language. A `LANGUAGE INSTRUCTION` directive is dynamically prepended to the system prompt, with a belt-and-suspenders reminder in the user message.
 
@@ -597,7 +597,7 @@ Prepended to contract text in user message → OpenRouter API
 
 ```
 SharePayload (JSON)
-    ├── version: "3.0.2"
+    ├── version: "3.0.3"
     ├── fileName: "contract.pdf"
     ├── analyzedAt: "2026-04-14T..."
     ├── prompts: ["Unfair & Abusive Clauses", ...]
@@ -851,7 +851,7 @@ Running all 8 models on a 5,000-word contract costs roughly **$0.10–0.15** tot
 - [x] v2.0.0 — 3-step wizard, modular prompt library, AES-GCM encryption, PDF/MD export, share URLs
 - [x] v3.0.0 — Full i18n (17 languages), RTL support, logo tagline
 - [x] v3.0.1 — Legally grounded prompts, improved system prompt, hardened code, expanded README
-- [x] v3.0.2 — Locale-aware AI output: analysis results in the active UI language
+- [x] v3.0.3 — Locale-aware AI output: analysis results in the active UI language
 
 ### Planned
 - [ ] **v3.1.0** — Side-by-side diff view between model results
