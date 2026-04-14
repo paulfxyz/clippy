@@ -175,11 +175,12 @@ async function extractFromPDF(file: File): Promise<string> {
   // This saves ~800KB from the initial bundle for non-PDF users.
   const { getDocument, GlobalWorkerOptions } = await import("pdfjs-dist");
 
-  // Point pdf.js at the CDN worker.
-  // Version must match the installed pdfjs-dist npm package version.
-  // Check package.json for the exact version if updating this URL.
-  GlobalWorkerOptions.workerSrc =
-    `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.9.155/pdf.worker.min.js`;
+  // Use the worker bundled with pdfjs-dist — avoids CDN version mismatch.
+  // pdfjs-dist v5 ships the worker as an ES module; Vite handles the URL at build time.
+  GlobalWorkerOptions.workerSrc = new URL(
+    "pdfjs-dist/build/pdf.worker.min.mjs",
+    import.meta.url
+  ).toString();
 
   // Convert File to ArrayBuffer — required by pdf.js
   const arrayBuffer = await file.arrayBuffer();
