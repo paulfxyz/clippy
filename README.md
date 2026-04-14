@@ -23,7 +23,7 @@
 [![Status](https://img.shields.io/badge/status-live-22c55e?style=flat-square)](https://clippy.legal)
 [![i18n](https://img.shields.io/badge/i18n-17%20languages-F5D000?style=flat-square)](https://clippy.legal)
 
-![Clippy — your contract analyst](https://clippy.legal/img/logo.png)
+![Clippy — your contract analyst](https://clippy.legal/img/logo.jpg)
 
 **Open-source, browser-only AI contract analyzer. Multi-model. Zero storage. No server. Just truth.**
 
@@ -41,13 +41,13 @@ You choose which AI models to run. You choose which analysis objectives matter (
 
 ## Screenshots
 
-![Step 1 — Upload your contract and configure models](https://clippy.legal/img/screenshot-step1.png)
+![Step 1 — Upload your contract and configure models](https://clippy.legal/img/screenshot-step1.jpg)
 *Step 1 — Upload your contract (PDF, DOCX, TXT), paste your OpenRouter key, select AI models*
 
-![Step 2 — Choose analysis objectives](https://clippy.legal/img/screenshot-step2.png)
+![Step 2 — Choose analysis objectives](https://clippy.legal/img/screenshot-step2.jpg)
 *Step 2 — Toggle analysis objectives: GDPR, non-compete, IP assignment, financial risk, and more*
 
-![Step 3 — Results dashboard with trust score and flags](https://clippy.legal/img/screenshot-step3.png)
+![Step 3 — Results dashboard with trust score and flags](https://clippy.legal/img/screenshot-step3.jpg)
 *Step 3 — Trust score, dimension breakdown, and annotated clause flags with severity ratings*
 
 ---
