@@ -4,7 +4,8 @@
 
 | Version | Supported |
 |---------|-----------|
-| 1.0.x | ✅ Active |
+| 3.2.x | ✅ Active |
+| < 3.2.x | ❌ No longer maintained |
 
 ## Attack Surface
 

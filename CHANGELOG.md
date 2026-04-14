@@ -7,12 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-# Changelog
+## [3.2.3] — 2026-04-14
 
-All notable changes to Clippy will be documented in this file.
+### Changed
+- Full source code audit: improved JSDoc and inline comments across all lib files and components
+- `schema.ts` header updated to remove stale v2.0.0 reference; added clarifying note that `SharePayload.version` is the payload format version (intentionally frozen)
+- `Home.tsx` header expanded with key architecture decisions and AbortController timeout rationale
+- `export.ts` header cleaned up (removed stale v3.0.1 changelog section)
+- `LanguageSwitcher.tsx` header version reference removed (version-agnostic)
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+### Documentation
+- README fully rewritten for 3.2.3 with complete stack documentation, war stories, lessons learned, and deployment notes
+- CHANGELOG duplicate header removed; version link table corrected
+- SECURITY.md supported version table updated to 3.2.x
 
 ---
 
@@ -194,9 +201,8 @@ This version establishes the full core product: multi-model AI contract analysis
 
 ---
 
-[3.2.2]: https://github.com/paulfxyz/clippy/releases/tag/v3.2.2
+[3.2.3]: https://github.com/paulfxyz/clippy/releases/tag/v3.2.3
 [3.2.2]: https://github.com/paulfxyz/clippy/releases/tag/v3.2.2
 [2.0.0]: https://github.com/paulfxyz/clippy/releases/tag/v2.0.0
 [1.0.0]: https://github.com/paulfxyz/clippy/releases/tag/v1.0.0
-[Unreleased]: https://github.com/paulfxyz/clippy/compare/v3.2.2...HEAD
-[3.2.2]: https://github.com/paulfxyz/clippy/compare/v3.2.2...v3.2.2
+[Unreleased]: https://github.com/paulfxyz/clippy/compare/v3.2.3...HEAD

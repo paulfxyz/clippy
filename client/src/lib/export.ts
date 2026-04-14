@@ -1,21 +1,12 @@
 /**
  * @file export.ts
- * @description Export utilities for Clippy v3.0.1 — PDF and Markdown download.
+ * @description Export utilities for Clippy — PDF and Markdown download.
  *
  * OVERVIEW
  * --------
  * After analysis, users can download the results in two formats:
  *   - PDF: a formatted report with all model results, scores, flags, and dimensions
  *   - Markdown: a structured .md file suitable for sharing via Git or email
- *
- * WHAT'S NEW IN v3.0.1
- * --------------------
- * - PDF export now includes a legal disclaimer footer on every page:
- *   "Clippy results are AI-generated and do not constitute legal advice.
- *   Consult a qualified lawyer before acting on any finding."
- * - PDF footer updated from plain attribution to the expanded disclaimer
- * - Markdown footer likewise updated with the legal disclaimer
- * - Additional JSDoc comments throughout
  *
  * DESIGN DECISIONS
  * ----------------

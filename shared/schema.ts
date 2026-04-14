@@ -1,10 +1,19 @@
 /**
- * @file schema.ts — Clippy v2.0.0 shared types
+ * @file schema.ts — Clippy shared types
  *
- * v2 introduces:
- *   - AnalysisPrompt: named, editable analysis objectives
+ * These types are shared between the client (React app) and any future server
+ * or tooling. They define the complete data model for Clippy's 3-step wizard.
+ *
+ * NOTE: `SharePayload.version` is pinned to "2.0.0" — this is the payload
+ * FORMAT version, not the application version. It is intentionally frozen;
+ * changing it would break all existing share links. Bump it only if the
+ * SharePayload shape makes a breaking change.
+ *
+ * Key types:
+ *   - AnalysisPrompt: named, editable analysis objectives (v2+)
  *   - AppState: 3-step state machine (setup → prompts → results)
  *   - SharePayload: the compressed blob stored in the URL hash for sharing
+ *   - ModelResult: per-model analysis output including flags and dimensions
  */
 
 // ---------------------------------------------------------------------------

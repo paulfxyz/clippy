@@ -1,6 +1,6 @@
 /**
  * @file LanguageSwitcher.tsx
- * @description Language selector component for Clippy v3.0.0.
+ * @description Language selector component for Clippy.
  *
  * OVERVIEW
  * --------

@@ -1,6 +1,6 @@
 /**
  * @file Home.tsx
- * @description Main application page for Clippy v2.0.0.
+ * @description Main application page for Clippy.
  *
  * OVERVIEW
  * --------
@@ -13,10 +13,10 @@
  *
  * STATE MANAGEMENT
  * ----------------
- * All application state lives in a single `useState<AppState>` hook using the
- * AppState type from schema.ts. The design avoids splitting state into many
- * useState calls because the wizard steps are deeply interdependent — a single
- * state object makes resets, navigation, and state inspection straightforward.
+ * All application state lives in a single `useState<AppState>` hook. The design
+ * avoids splitting into many useState calls because the wizard steps are deeply
+ * interdependent — a single state object makes resets, navigation, and
+ * state inspection straightforward.
  *
  * Sub-components defined in this file (co-located for simplicity):
  *   - StepIndicator:  The 3-step progress bar at the top
@@ -24,14 +24,19 @@
  *   - ModelChip:      Toggleable model selection button
  *   - DimensionBar:   Score bar for each dimension (Transparency, Balance, etc.)
  *
- * V2 NEW FEATURES
- * ---------------
- * - AES-GCM API key encryption (client-side, session-scoped, via encryption.ts)
- * - Modular prompt library with per-prompt toggle/edit in Step 2
- * - Custom prompt creation (user-defined objectives)
- * - Export to PDF or Markdown (via export.ts)
- * - Share URL generation (via share.ts) — results encoded in URL hash
- * - durationMs shown per model in the results dashboard
+ * KEY ARCHITECTURE DECISIONS
+ * --------------------------
+ * 1. No global state library (no Redux/Zustand) — single useState + useCallback
+ *    is sufficient for this wizard’s linear flow.
+ * 2. AES-GCM API key encryption (client-side, session-scoped, via encryption.ts)
+ *    — raw key is held in state only briefly; encrypted blob lives in state thereafter
+ * 3. Modular prompt library (Step 2) — prompts are toggle/edit/add-able; the user
+ *    builds their exact analysis objective before hitting Analyze
+ * 4. Export to PDF or Markdown (via export.ts) — jsPDF text API, not html2canvas
+ * 5. Share URL generation (via share.ts) — results encoded as base64 in URL hash;
+ *    no server required for sharing
+ * 6. AbortController on every model fetch — 120s timeout prevents silent hangs
+ *    (learned the hard way: claude-sonnet-4.6 would silently hang for 5+ minutes)
  *
  * PRIVACY MODEL
  * -------------
@@ -1468,7 +1473,7 @@ export default function Home() {
                 fill="none"
               />
             </svg>
-            <span>clippy v3.2.2 — {t("footer.tagline")}</span>
+            <span>clippy v3.2.3 — {t("footer.tagline")}</span>
           </div>
           <div className="flex items-center gap-4">
             <a

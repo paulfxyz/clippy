@@ -9,14 +9,14 @@ Thanks for your interest in contributing. Clippy is a small, focused open-source
 ### High-value contributions
 - **Adding new OpenRouter models** — 5 minutes of work, immediate value for all users
 - **Improving the system prompt** — better flagging accuracy, more dimensions, contract-type specializations
-- **Translations** — UI text is currently English-only
+- **Translations** — UI ships in 17 languages; adding more or improving existing translations is very welcome
 - **Accessibility** — keyboard navigation, screen reader support, ARIA labels
 - **Testing with unusual contracts** — non-English contracts, unusual formats, edge cases
 
 ### Medium-effort contributions
 - **Dark mode toggle** — CSS variables are already defined, just needs a button and a `useEffect` to toggle the `dark` class
-- **Export to PDF** — generate a formatted PDF report from the results dashboard
 - **New output dimensions** — additional scoring dimensions (e.g. "Data Privacy", "Intellectual Property")
+- **Password-protected PDF support** — pdf.js supports decryption with a user-supplied password; exposing this in the UI would help encrypted contracts
 
 ### Welcome but complex
 - **Optional backend** — persistent analysis history, saved sessions
