@@ -173,6 +173,23 @@ export const AVAILABLE_MODELS = [
 ];
 
 // ---------------------------------------------------------------------------
+// JSON mode support map
+// ---------------------------------------------------------------------------
+
+/**
+ * Models that natively support response_format: { type: "json_object" }.
+ * Sending this parameter to unsupported models (Anthropic, Gemini, Mistral,
+ * Llama, DeepSeek) causes API errors or silent failures. Those models rely
+ * purely on the prompt instruction to return valid JSON.
+ */
+const JSON_MODE_MODELS = new Set([
+  "openai/gpt-4.1",
+  "openai/gpt-4.1-mini",
+  "openai/gpt-4o",
+  "openai/gpt-4o-mini",
+]);
+
+// ---------------------------------------------------------------------------
 // System prompt
 // ---------------------------------------------------------------------------
 
@@ -439,36 +456,51 @@ export async function analyzeWithModel(
   // Record start time for duration measurement (wall-clock, not CPU time)
   const startTime = Date.now();
 
+  // 90-second timeout — some models (DeepSeek R1, Llama) can be slow;
+  // without a timeout the request hangs indefinitely and the card stays
+  // stuck in "Reading" state forever.
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 90_000);
+
+  // Only send response_format: json_object to models that support it.
+  // Sending it to Anthropic, Gemini, Mistral, Llama or DeepSeek causes
+  // API errors (400 / "unsupported parameter") or silent failures.
+  const bodyPayload: Record<string, unknown> = {
+    model: modelId,
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt },
+    ],
+    temperature: 0.1,
+  };
+  if (JSON_MODE_MODELS.has(modelId)) {
+    bodyPayload.response_format = { type: "json_object" };
+  }
+
   // Make the API call directly from the browser.
   // OpenRouter's CORS policy allows browser-to-API calls from any origin.
   // The user's own API key is used — Clippy itself pays nothing.
-  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      // Bearer token auth — the user's own key, charged to the user's OpenRouter account
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      // OpenRouter uses these headers to attribute usage to the app in their dashboard.
-      // They're informational only — they don't affect routing, billing, or model access.
-      "HTTP-Referer": "https://clippy.legal",
-      "X-Title": "Clippy Contract Analyzer",
-    },
-    body: JSON.stringify({
-      model: modelId,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      // Very low temperature for deterministic legal analysis.
-      // Higher values produce more "creative" but less consistent flagging.
-      temperature: 0.1,
-      // JSON mode: instructs OpenRouter to request structured output from
-      // models that support it (primarily OpenAI-compatible models).
-      // For other models, the "Return ONLY valid JSON" instruction in
-      // SYSTEM_PROMPT_BASE (via buildSystemPrompt) acts as the fallback enforcement mechanism.
-      response_format: { type: "json_object" },
-    }),
-  });
+  let response: Response;
+  try {
+    response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      signal: controller.signal,
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://clippy.legal",
+        "X-Title": "Clippy Contract Analyzer",
+      },
+      body: JSON.stringify(bodyPayload),
+    });
+  } catch (fetchErr: any) {
+    clearTimeout(timeoutId);
+    if (fetchErr?.name === "AbortError") {
+      throw new Error("Request timed out after 90 seconds — the model may be overloaded. Try again or select a different model.");
+    }
+    throw new Error(`Network error: ${fetchErr?.message || "unknown"}`);
+  }
+  clearTimeout(timeoutId);
 
   // Capture wall-clock duration immediately after the response arrives
   const durationMs = Date.now() - startTime;

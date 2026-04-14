@@ -14,7 +14,7 @@
 ╚═══════════════════════════════════════════════════════════════╝
 ```
 
-[![Version](https://img.shields.io/badge/version-3.2.0-F5D000?style=flat-square&labelColor=1a1a2e)](https://github.com/paulfxyz/clippy/releases/tag/v3.2.0)
+[![Version](https://img.shields.io/badge/version-3.2.1-F5D000?style=flat-square&labelColor=1a1a2e)](https://github.com/paulfxyz/clippy/releases/tag/v3.2.1)
 [![License: MIT](https://img.shields.io/badge/license-MIT-000000?style=flat-square)](https://github.com/paulfxyz/clippy/blob/main/LICENSE)
 [![Built with React](https://img.shields.io/badge/React-18-61dafb?style=flat-square&logo=react&logoColor=white&labelColor=20232a)](https://reactjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
@@ -64,12 +64,12 @@ Clippy is named after [Microsoft's Office Assistant](https://en.wikipedia.org/wi
 
 ---
 
-## What's New in v3.2.0
+## What's New in v3.2.1
 
 **Locale-aware analysis output.** When you use Clippy in French, Spanish, German, Japanese, Arabic, or any of the 17 supported languages, the AI models now respond entirely in that language — flag titles, descriptions, summaries, and dimension notes are all localised. Contract quotes remain verbatim in their original language. A `LANGUAGE INSTRUCTION` directive is dynamically prepended to the system prompt, with a belt-and-suspenders reminder in the user message.
 
 
-Version 3.2.0 is a quality patch focused on depth: deeply improved analysis prompts that cite specific laws and legal concepts, a richer system prompt with better severity calibration, hardened error handling, improved code comments throughout, and a massively expanded README.
+Version 3.2.1 is a quality patch focused on depth: deeply improved analysis prompts that cite specific laws and legal concepts, a richer system prompt with better severity calibration, hardened error handling, improved code comments throughout, and a massively expanded README.
 
 - **Legally grounded prompts** — each of the 10 analysis objectives now cites specific EU Directives, GDPR Articles, US case law (e.g. *AT&T Mobility v. Concepcion*), UK Acts, and French consumer law statutes
 - **Improved SYSTEM_PROMPT** — richer severity definitions with legal examples, cleaner JSON schema guidance, better instruction architecture
@@ -81,9 +81,9 @@ Version 3.2.0 is a quality patch focused on depth: deeply improved analysis prom
 
 ---
 
-## What's New in v3.2.0
+## What's New in v3.2.1
 
-Version 3.2.0 brings full internationalisation (i18n) to Clippy. The entire UI — every label, button, toast, speech bubble, and disclaimer — is now translated into 17 languages, with full RTL layout support for Arabic and Hebrew. No external i18n library is used: the system is a purpose-built, zero-dependency implementation in plain TypeScript.
+Version 3.2.1 brings full internationalisation (i18n) to Clippy. The entire UI — every label, button, toast, speech bubble, and disclaimer — is now translated into 17 languages, with full RTL layout support for Arabic and Hebrew. No external i18n library is used: the system is a purpose-built, zero-dependency implementation in plain TypeScript.
 
 ### 17 Languages
 
@@ -416,11 +416,11 @@ Clippy is honest about what it can and cannot do.
 - **Share URLs** — Base64-encoded results in URL hash fragment, rendered by ShareView page
 - **Duration tracking** — Wall-clock API call time per model, shown in results
 
-### New in v3.2.0
+### New in v3.2.1
 - **Full i18n** — 17 languages, RTL support, locale detection, language switcher
 - **Logo tagline** — "your contract analyst" on every page
 
-### New in v3.2.0
+### New in v3.2.1
 - **Legally grounded prompts** — All 10 prompts cite specific statutes and case law
 - **Improved system prompt** — Richer severity calibration with legal examples
 - **Hardened error handling** — More informative API error messages
@@ -597,7 +597,7 @@ Prepended to contract text in user message → OpenRouter API
 
 ```
 SharePayload (JSON)
-    ├── version: "3.2.0"
+    ├── version: "3.2.1"
     ├── fileName: "contract.pdf"
     ├── analyzedAt: "2026-04-14T..."
     ├── prompts: ["Unfair & Abusive Clauses", ...]
@@ -849,13 +849,13 @@ Running all 8 models on a 5,000-word contract costs roughly **$0.10–0.15** tot
 ### Done
 - [x] v1.0.0 — Multi-model AI analysis, trust score, 5 dimensions, severity flags
 - [x] v2.0.0 — 3-step wizard, modular prompt library, AES-GCM encryption, PDF/MD export, share URLs
-- [x] v3.2.0 — Full i18n (17 languages), RTL support, logo tagline
-- [x] v3.2.0 — Legally grounded prompts, improved system prompt, hardened code, expanded README
-- [x] v3.2.0 — Locale-aware AI output: analysis results in the active UI language
+- [x] v3.2.1 — Full i18n (17 languages), RTL support, logo tagline
+- [x] v3.2.1 — Legally grounded prompts, improved system prompt, hardened code, expanded README
+- [x] v3.2.1 — Locale-aware AI output: analysis results in the active UI language
 
 ### Planned
-- [ ] **v3.2.0** — Side-by-side diff view between model results
-- [ ] **v3.2.0** — Clause-by-clause highlighting (map flagged clauses back to source text)
+- [ ] **v3.2.1** — Side-by-side diff view between model results
+- [ ] **v3.2.1** — Clause-by-clause highlighting (map flagged clauses back to source text)
 - [ ] **v3.3.0** — Template prompt sets (SaaS ToS, employment, real estate, NDA)
 - [ ] **v4.0.0** — Optional self-hosted backend with persistent analysis history
 

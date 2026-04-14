@@ -357,7 +357,7 @@ export default function Home() {
     fileName:        "",
     apiKey:          "",
     apiKeyEncrypted: "",
-    selectedModels:  ["anthropic/claude-3.5-sonnet", "openai/gpt-4o"],
+    selectedModels:  ["anthropic/claude-sonnet-4.6", "openai/gpt-4.1"],
     prompts:         DEFAULT_PROMPTS,
     results:         [],
     step:            "setup",
@@ -1450,7 +1450,7 @@ export default function Home() {
                 fill="none"
               />
             </svg>
-            <span>clippy v3.2.0 — {t("footer.tagline")}</span>
+            <span>clippy v3.2.1 — {t("footer.tagline")}</span>
           </div>
           <div className="flex items-center gap-4">
             <a

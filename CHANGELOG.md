@@ -7,15 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [3.2.0] — 2026-04-14
+## [3.2.1] — 2026-04-14
 
 ### Fixed
-- PDF upload broken in all languages — pdf.js worker (.mjs) served without correct MIME type on SiteGround nginx; fixed with blob URL strategy (fetch worker, re-wrap as `text/javascript` blob) + `.htaccess` fallback
-- Model IDs updated to current OpenRouter endpoints: `claude-sonnet-4.6`, `claude-3.5-haiku`, `gpt-4.1`, `gpt-4.1-mini`, `gemini-2.5-pro`, `mistral-large-2512`, `llama-3.3-70b-instruct`
-- Browser password manager popup on API key paste — suppressed with `autoComplete="off"`, `data-lpignore`, `data-1p-ignore`, `data-form-type` attributes
-
-### Changed
-- Version bumped to 3.2.0 everywhere (package.json, i18n all 17 locales, README, CHANGELOG, INSTALL, CONTRIBUTING, SECURITY, footer)
+- Default pre-selected models were stale (`claude-3.5-sonnet` / `gpt-4o`) — updated to `claude-sonnet-4.6` / `gpt-4.1`
+- `response_format: { type: "json_object" }` was sent to all models; Anthropic, Gemini, Mistral, Llama and DeepSeek don't support it and were returning errors or silently failing — now only sent to OpenAI-compatible models
+- No request timeout — models could hang indefinitely, leaving cards stuck on "Reading"; added 90-second `AbortController` timeout with a user-friendly error message
 
 ---
 
@@ -188,9 +185,9 @@ This version establishes the full core product: multi-model AI contract analysis
 
 ---
 
-[3.2.0]: https://github.com/paulfxyz/clippy/releases/tag/v3.2.0
-[3.2.0]: https://github.com/paulfxyz/clippy/releases/tag/v3.2.0
+[3.2.1]: https://github.com/paulfxyz/clippy/releases/tag/v3.2.1
+[3.2.1]: https://github.com/paulfxyz/clippy/releases/tag/v3.2.1
 [2.0.0]: https://github.com/paulfxyz/clippy/releases/tag/v2.0.0
 [1.0.0]: https://github.com/paulfxyz/clippy/releases/tag/v1.0.0
-[Unreleased]: https://github.com/paulfxyz/clippy/compare/v3.2.0...HEAD
-[3.2.0]: https://github.com/paulfxyz/clippy/compare/v3.2.0...v3.2.0
+[Unreleased]: https://github.com/paulfxyz/clippy/compare/v3.2.1...HEAD
+[3.2.1]: https://github.com/paulfxyz/clippy/compare/v3.2.1...v3.2.1
