@@ -1445,7 +1445,7 @@ export default function Home() {
                 fill="none"
               />
             </svg>
-            <span>clippy v3.0.0 — {t("footer.tagline")}</span>
+            <span>clippy v3.1.0 — {t("footer.tagline")}</span>
           </div>
           <div className="flex items-center gap-4">
             <a
