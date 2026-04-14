@@ -23,7 +23,7 @@
 [![Status](https://img.shields.io/badge/status-live-22c55e?style=flat-square)](https://clippy.legal)
 [![i18n](https://img.shields.io/badge/i18n-17%20languages-F5D000?style=flat-square)](https://clippy.legal)
 
-![Clippy — your contract analyst](https://clippy.legal/img/logo.jpg)
+![Clippy — your contract analyst](https://clippy.legal/img/logo.jpg?v=2)
 
 **Open-source, browser-only AI contract analyzer. Multi-model. Zero storage. No server. Just truth.**
 
