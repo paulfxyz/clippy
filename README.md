@@ -66,60 +66,18 @@ Clippy is named after [Microsoft's Office Assistant](https://en.wikipedia.org/wi
 
 ## What's New in v3.2.2
 
-**Locale-aware analysis output.** When you use Clippy in French, Spanish, German, Japanese, Arabic, or any of the 17 supported languages, the AI models now respond entirely in that language — flag titles, descriptions, summaries, and dimension notes are all localised. Contract quotes remain verbatim in their original language. A `LANGUAGE INSTRUCTION` directive is dynamically prepended to the system prompt, with a belt-and-suspenders reminder in the user message.
-
-
-Version 3.2.2 is a quality patch focused on depth: deeply improved analysis prompts that cite specific laws and legal concepts, a richer system prompt with better severity calibration, hardened error handling, improved code comments throughout, and a massively expanded README.
-
-- **Legally grounded prompts** — each of the 10 analysis objectives now cites specific EU Directives, GDPR Articles, US case law (e.g. *AT&T Mobility v. Concepcion*), UK Acts, and French consumer law statutes
-- **Improved SYSTEM_PROMPT** — richer severity definitions with legal examples, cleaner JSON schema guidance, better instruction architecture
-- **Hardened `openrouter.ts`** — additional JSON parsing fallbacks, more informative error messages for 401/402/429/503
-- **Improved `fileParser.ts`** — file size limit check (10MB), explicit scanned-PDF detection, better error messages for password-protected files
-- **Legal disclaimer footer** in PDF export
-- **JSDoc comments** improved across all `lib/` files
-- README: full legal theory context, EU/US/UK/FR jurisprudence, threat model, contract law background
-
----
-
-## What's New in v3.2.2
-
-Version 3.2.2 brings full internationalisation (i18n) to Clippy. The entire UI — every label, button, toast, speech bubble, and disclaimer — is now translated into 17 languages, with full RTL layout support for Arabic and Hebrew. No external i18n library is used: the system is a purpose-built, zero-dependency implementation in plain TypeScript.
-
-### 17 Languages
-
-| Language | Code | Flag | RTL? |
-|----------|------|------|------|
-| English | `en` | 🇬🇧 | — |
-| French | `fr` | 🇫🇷 | — |
-| Spanish | `es` | 🇪🇸 | — |
-| Portuguese | `pt` | 🇵🇹 | — |
-| German | `de` | 🇩🇪 | — |
-| Dutch | `nl` | 🇳🇱 | — |
-| Italian | `it` | 🇮🇹 | — |
-| Chinese (Simplified) | `zh` | 🇨🇳 | — |
-| Russian | `ru` | 🇷🇺 | — |
-| Hindi | `hi` | 🇮🇳 | — |
-| Bulgarian | `bg` | 🇧🇬 | — |
-| Polish | `pl` | 🇵🇱 | — |
-| Danish | `da` | 🇩🇰 | — |
-| Japanese | `ja` | 🇯🇵 | — |
-| Korean | `ko` | 🇰🇷 | — |
-| Hebrew | `he` | 🇮🇱 | ✅ |
-| Arabic | `ar` | 🇸🇦 | ✅ |
-
-### The i18n Architecture
-
-All translation logic lives in a single file: `client/src/lib/i18n.ts`. Here's how it works:
-
-**Translation dictionaries** — Each locale is a flat TypeScript object (`Record<string, string>`) keyed by dot-separated strings like `"step1.title"`, `"clippy.setup"`, or `"toast.pdf_downloaded"`. English is the canonical source; all other locales are its translations.
-
-**`t(key, vars?)` helper** — The core translation function. Takes a key and an optional variable map, returns the translated string for the current locale. Falls back to English for any missing key — no crashes, ever.
-
-**`I18nProvider`** — A React context provider wrapping the entire app. Detects locale on mount, applies RTL direction on `<html>` if needed.
-
-**`detectLocale()`** — Priority order: localStorage → navigator.language → `"en"` fallback.
-
----
+- **PDF upload fixed** — pdf.js worker MIME type issue on SiteGround nginx resolved via blob URL strategy + `.htaccess`
+- **Models updated** — all 8 model IDs refreshed to current OpenRouter endpoints (claude-3.7-sonnet, gpt-4.1, gemini-2.5-pro, etc.)
+- **`?lang=` URL parameter** now respected on fresh page load (was previously ignored)
+- **File error messages** — accurate Clippy bubbles for scanned PDFs, oversized files, and password-protected PDFs
+- **90→120s request timeout** — prevents cards from hanging forever on slow models
+- **`response_format: json_object`** only sent to models that support it (was breaking Anthropic, Gemini, Mistral, Llama, DeepSeek)
+- **No-cache headers** on `index.html` — browsers always pick up new JS after a deploy
+- **Demo modal** — "See Demo" button in hero opens a 3-step slideshow (translated in all 17 languages)
+- **Full i18n** — 17 languages, RTL support (Arabic, Hebrew), locale detection from URL / localStorage / browser
+- **Locale-aware AI output** — analysis results delivered in the active UI language
+- **Legally grounded prompts** — all 10 prompts cite specific EU Directives, GDPR Articles, US case law, UK Acts
+- **Scanned PDF detection**, **10MB file size limit**, **password-protected PDF error**
 
 ## What's New in v2.0.0
 
@@ -419,14 +377,18 @@ Clippy is honest about what it can and cannot do.
 ### New in v3.2.2
 - **Full i18n** — 17 languages, RTL support, locale detection, language switcher
 - **Logo tagline** — "your contract analyst" on every page
-
-### New in v3.2.2
 - **Legally grounded prompts** — All 10 prompts cite specific statutes and case law
 - **Improved system prompt** — Richer severity calibration with legal examples
 - **Hardened error handling** — More informative API error messages
 - **File size validation** — 10MB limit check with clear user message
 - **Scanned PDF detection** — Warning when extracted text is suspiciously short
 - **Legal disclaimer in PDF export** footer
+- **PDF worker fix** — blob URL strategy bypasses server MIME type issues
+- **`?lang=` URL param** respected on fresh load
+- **Demo modal** — hero slideshow with keyboard nav
+- **No-cache `index.html`** — instant updates after deploys
+- **120s request timeout** — no more stuck "Reading" cards
+- **Model IDs** — all updated to current OpenRouter endpoints
 
 ### Privacy & Architecture
 - **Zero backend** — The Express server included in this repo is a thin dev scaffold. The core app is 100% static
@@ -447,16 +409,16 @@ Clippy is honest about what it can and cannot do.
 
 ## Supported Models (via OpenRouter)
 
-| Model | Provider | Context | Best for |
-|-------|----------|---------|---------|
-| Claude 3.5 Sonnet | Anthropic | 200k | Nuanced legal reasoning; best at identifying indirect and implied risks |
-| Claude 3 Haiku | Anthropic | 200k | Fast, affordable first-pass analysis |
-| GPT-4o | OpenAI | 128k | Reliable JSON output; strong at financial risk clauses |
-| GPT-4o Mini | OpenAI | 128k | Cost-effective second opinion |
-| Gemini Pro 1.5 | Google | 1M | Very long contracts — handles 200+ page documents |
-| Mistral Large | Mistral AI | 128k | EU legal context; particularly strong on GDPR, French law |
-| Llama 3.1 70B | Meta | 128k | Open-source; useful for comparison against closed-source models |
-| DeepSeek R1 | DeepSeek | 64k | Multi-step legal logic chains; inconsistency detection |
+| Model | ID | Provider | Best for |
+|-------|-----|----------|---------|
+| Claude 3.7 Sonnet | `anthropic/claude-3.7-sonnet` | Anthropic | Nuanced legal reasoning; best at identifying indirect and implied risks |
+| Claude 3.5 Haiku | `anthropic/claude-3.5-haiku` | Anthropic | Fast, affordable first-pass analysis |
+| GPT-4.1 | `openai/gpt-4.1` | OpenAI | Reliable JSON output; strong at financial risk clauses |
+| GPT-4.1 Mini | `openai/gpt-4.1-mini` | OpenAI | Cost-effective second opinion |
+| Gemini 2.5 Pro | `google/gemini-2.5-pro` | Google | 1M token context — best for very long contracts (50+ pages) |
+| Mistral Large 2512 | `mistralai/mistral-large-2512` | Mistral AI | EU legal context; particularly strong on GDPR, French law |
+| Llama 3.3 70B | `meta-llama/llama-3.3-70b-instruct` | Meta | Open-source; useful for comparison against closed-source models |
+| DeepSeek R1 | `deepseek/deepseek-r1` | DeepSeek | Chain-of-thought reasoning; inconsistency detection |
 
 All models are accessed through [OpenRouter](https://openrouter.ai). You can add any model by editing `AVAILABLE_MODELS` in `client/src/lib/openrouter.ts`.
 
@@ -849,13 +811,15 @@ Running all 8 models on a 5,000-word contract costs roughly **$0.10–0.15** tot
 ### Done
 - [x] v1.0.0 — Multi-model AI analysis, trust score, 5 dimensions, severity flags
 - [x] v2.0.0 — 3-step wizard, modular prompt library, AES-GCM encryption, PDF/MD export, share URLs
-- [x] v3.2.2 — Full i18n (17 languages), RTL support, logo tagline
-- [x] v3.2.2 — Legally grounded prompts, improved system prompt, hardened code, expanded README
-- [x] v3.2.2 — Locale-aware AI output: analysis results in the active UI language
+- [x] v3.0.0 — Full i18n (17 languages), RTL support, logo tagline, locale-aware AI output
+- [x] v3.1.0 — See Demo modal, version badge everywhere, README illustration
+- [x] v3.2.0 — PDF upload fix, updated model IDs, password manager suppression
+- [x] v3.2.1 — `?lang=` URL param, accurate file error messages, `response_format` fix, 90s timeout
+- [x] v3.2.2 — claude-3.7-sonnet swap, 120s timeout, no-cache `index.html`, cache headers
 
 ### Planned
-- [ ] **v3.2.2** — Side-by-side diff view between model results
-- [ ] **v3.2.2** — Clause-by-clause highlighting (map flagged clauses back to source text)
+- [ ] **v3.3.0** — Side-by-side diff view between model results
+- [ ] **v3.3.0** — Clause-by-clause highlighting (map flagged clauses back to source text)
 - [ ] **v3.3.0** — Template prompt sets (SaaS ToS, employment, real estate, NDA)
 - [ ] **v4.0.0** — Optional self-hosted backend with persistent analysis history
 
