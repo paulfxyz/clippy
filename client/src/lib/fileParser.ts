@@ -175,12 +175,38 @@ async function extractFromPDF(file: File): Promise<string> {
   // This saves ~800KB from the initial bundle for non-PDF users.
   const { getDocument, GlobalWorkerOptions } = await import("pdfjs-dist");
 
-  // Use the worker bundled with pdfjs-dist — avoids CDN version mismatch.
-  // pdfjs-dist v5 ships the worker as an ES module; Vite handles the URL at build time.
-  GlobalWorkerOptions.workerSrc = new URL(
+  // WORKER STRATEGY — blob URL approach
+  // ─────────────────────────────────────────────────────────────────────────
+  // pdfjs-dist v5 ships only .mjs worker files. When deployed on SiteGround
+  // (nginx), .mjs files may be served as `application/octet-stream` instead
+  // of `text/javascript`, causing browsers to refuse loading them as workers.
+  //
+  // Fix: fetch the worker script as text, wrap it in a Blob with the correct
+  // MIME type ("text/javascript"), and pass a blob: URL to GlobalWorkerOptions.
+  // This bypasses the server's MIME type entirely — the browser gets the script
+  // content inline, with the MIME type we set, and loads it happily as a worker.
+  //
+  // Fallback: if the fetch fails (offline, CSP, etc.), we fall back to the
+  // CDN version with a pinned version matching the installed pdfjs-dist.
+  // ─────────────────────────────────────────────────────────────────────────
+  const workerUrl = new URL(
     "pdfjs-dist/build/pdf.worker.min.mjs",
     import.meta.url
   ).toString();
+
+  try {
+    const workerResponse = await fetch(workerUrl);
+    if (!workerResponse.ok) throw new Error(`Worker fetch failed: ${workerResponse.status}`);
+    const workerText = await workerResponse.text();
+    const workerBlob = new Blob([workerText], { type: "text/javascript" });
+    const blobUrl = URL.createObjectURL(workerBlob);
+    GlobalWorkerOptions.workerSrc = blobUrl;
+  } catch {
+    // Fallback: unpkg CDN with pinned version matching installed pdfjs-dist
+    // (cdnjs only has up to 5.4.x; unpkg always has the exact version)
+    GlobalWorkerOptions.workerSrc =
+      `https://unpkg.com/pdfjs-dist@5.6.205/build/pdf.worker.min.mjs`;
+  }
 
   // Convert File to ArrayBuffer — required by pdf.js
   const arrayBuffer = await file.arrayBuffer();

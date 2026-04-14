@@ -907,6 +907,10 @@ export default function Home() {
                         className="pr-10 font-mono text-sm"
                         data-testid="input-api-key"
                         onKeyDown={e => e.key === "Enter" && handleLockKey()}
+                        autoComplete="off"
+                        data-1p-ignore
+                        data-lpignore="true"
+                        data-form-type="other"
                       />
                       <button
                         type="button"
@@ -1446,7 +1450,7 @@ export default function Home() {
                 fill="none"
               />
             </svg>
-            <span>clippy v3.1.0 — {t("footer.tagline")}</span>
+            <span>clippy v3.2.0 — {t("footer.tagline")}</span>
           </div>
           <div className="flex items-center gap-4">
             <a

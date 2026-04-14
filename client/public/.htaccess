@@ -1,0 +1,5 @@
+# Fix MIME type for ES module worker files (.mjs)
+# Required for pdf.js v5 worker (pdf.worker.min.mjs) to load in browsers.
+# Browsers refuse to execute scripts served with wrong MIME type.
+# SiteGround supports Apache .htaccess directives via mod_mime.
+AddType text/javascript .mjs
