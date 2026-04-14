@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.2.4] — 2026-04-14
+
+### Added
+- **Turkish** (`tr` 🇹🇷) — Türkçe — full translation, 85M+ speakers
+- **Swedish** (`sv` 🇸🇪) — Svenska — full translation, Nordic coverage
+- **Indonesian** (`id` 🇮🇩) — Indonesia — full translation, 270M population
+- i18n language grid now covers **20 languages**
+
+### Documentation
+- README comprehensively rewritten: restored demo screenshots, added full TOC with anchor navigation, deep legal-context section (EU/US/UK/French law), 9 documented war stories with root causes and lessons, full tech stack rationale, architecture diagrams, "Vibe Coding and Human Leadership" section
+
+---
+
 ## [3.2.3] — 2026-04-14
 
 ### Changed
@@ -201,8 +214,9 @@ This version establishes the full core product: multi-model AI contract analysis
 
 ---
 
+[3.2.4]: https://github.com/paulfxyz/clippy/releases/tag/v3.2.4
 [3.2.3]: https://github.com/paulfxyz/clippy/releases/tag/v3.2.3
 [3.2.2]: https://github.com/paulfxyz/clippy/releases/tag/v3.2.2
 [2.0.0]: https://github.com/paulfxyz/clippy/releases/tag/v2.0.0
 [1.0.0]: https://github.com/paulfxyz/clippy/releases/tag/v1.0.0
-[Unreleased]: https://github.com/paulfxyz/clippy/compare/v3.2.3...HEAD
+[Unreleased]: https://github.com/paulfxyz/clippy/compare/v3.2.4...HEAD
