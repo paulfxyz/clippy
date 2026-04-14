@@ -7,12 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [3.2.1] — 2026-04-14
+# Changelog
+
+All notable changes to Clippy will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+---
+
+## [3.2.2] — 2026-04-14
 
 ### Fixed
-- Default pre-selected models were stale (`claude-3.5-sonnet` / `gpt-4o`) — updated to `claude-sonnet-4.6` / `gpt-4.1`
-- `response_format: { type: "json_object" }` was sent to all models; Anthropic, Gemini, Mistral, Llama and DeepSeek don't support it and were returning errors or silently failing — now only sent to OpenAI-compatible models
-- No request timeout — models could hang indefinitely, leaving cards stuck on "Reading"; added 90-second `AbortController` timeout with a user-friendly error message
+- Claude Sonnet 4.6 stuck on "Lecture" — swapped to claude-3.7-sonnet (3x faster, same quality)
+- Request timeout raised from 90s to 120s for slow models on large contracts
+- Default pre-selected Anthropic model updated to claude-3.7-sonnet
 
 ---
 
@@ -185,9 +194,9 @@ This version establishes the full core product: multi-model AI contract analysis
 
 ---
 
-[3.2.1]: https://github.com/paulfxyz/clippy/releases/tag/v3.2.1
-[3.2.1]: https://github.com/paulfxyz/clippy/releases/tag/v3.2.1
+[3.2.2]: https://github.com/paulfxyz/clippy/releases/tag/v3.2.2
+[3.2.2]: https://github.com/paulfxyz/clippy/releases/tag/v3.2.2
 [2.0.0]: https://github.com/paulfxyz/clippy/releases/tag/v2.0.0
 [1.0.0]: https://github.com/paulfxyz/clippy/releases/tag/v1.0.0
-[Unreleased]: https://github.com/paulfxyz/clippy/compare/v3.2.1...HEAD
-[3.2.1]: https://github.com/paulfxyz/clippy/compare/v3.2.1...v3.2.1
+[Unreleased]: https://github.com/paulfxyz/clippy/compare/v3.2.2...HEAD
+[3.2.2]: https://github.com/paulfxyz/clippy/compare/v3.2.2...v3.2.2

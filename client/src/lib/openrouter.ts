@@ -115,8 +115,8 @@ export const LOCALE_LANGUAGE_NAMES: Record<Locale, string> = {
  */
 export const AVAILABLE_MODELS = [
   {
-    id: "anthropic/claude-sonnet-4.6",
-    name: "Claude Sonnet 4.6",
+    id: "anthropic/claude-3.7-sonnet",
+    name: "Claude 3.7 Sonnet",
     provider: "Anthropic",
     description: "Best for nuanced legal reasoning — strongest at identifying indirect risks, implied obligations, and implicitly one-sided language across complex multi-party agreements",
     icon: "A",
@@ -460,7 +460,7 @@ export async function analyzeWithModel(
   // without a timeout the request hangs indefinitely and the card stays
   // stuck in "Reading" state forever.
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 90_000);
+  const timeoutId = setTimeout(() => controller.abort(), 120_000);
 
   // Only send response_format: json_object to models that support it.
   // Sending it to Anthropic, Gemini, Mistral, Llama or DeepSeek causes
