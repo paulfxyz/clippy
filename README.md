@@ -418,7 +418,7 @@ Clippy is honest about what it can and cannot do.
 
 ### New in v3.0.0
 - **Full i18n** — 17 languages, RTL support, locale detection, language switcher
-- **Logo tagline** — "· your contract analyst" on every page
+- **Logo tagline** — "your contract analyst" on every page
 
 ### New in v3.0.1
 - **Legally grounded prompts** — All 10 prompts cite specific statutes and case law
