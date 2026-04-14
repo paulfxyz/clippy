@@ -426,8 +426,26 @@ export default function Home() {
         fileName: file.name,
       }));
       setClippy("clippy.file_loaded");
-    } catch {
-      setClippy("clippy.file_error");
+    } catch (err: any) {
+      const msg: string = err?.message || "";
+      // Show the specific error in a toast so users know exactly what went wrong
+      // (scanned PDF, password-protected, too large, etc.) while the Clippy
+      // bubble shows the appropriate contextual message.
+      if (msg.toLowerCase().includes("password")) {
+        setClippy("clippy.file_error");
+      } else if (msg.toLowerCase().includes("scanned") || msg.toLowerCase().includes("little text")) {
+        setClippy("clippy.file_scanned");
+      } else if (msg.toLowerCase().includes("too large")) {
+        setClippy("clippy.file_too_large");
+      } else {
+        setClippy("clippy.file_error");
+      }
+      // Always show the actual technical reason in a toast
+      toast({
+        title: t("toast.file_read_error"),
+        description: msg || t("toast.file_read_error_desc"),
+        variant: "destructive",
+      });
     }
   }, []);
 

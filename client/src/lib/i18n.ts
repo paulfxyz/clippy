@@ -144,6 +144,10 @@ const en: TranslationDict = {
   "clippy.wrong_format":            "Hmm, I can only read PDF, DOCX, TXT, or MD files. Try one of those!",
   "clippy.file_loaded":             "Nice! I can see \"{{filename}}\". Now let's configure your analysis.",
   "clippy.file_error":              "Oops, I had trouble reading that file. Make sure it's not password-protected!",
+  "toast.file_read_error_desc": "The file could not be parsed. Try a different format or paste the text directly.",
+  "toast.file_read_error": "Could not read file",
+  "clippy.file_too_large": "That file is too large! Please upload a contract under 10 MB.",
+  "clippy.file_scanned": "This PDF looks scanned (image-only) — I can't extract text from images. Try a text-based PDF or paste the content directly.",
   "clippy.key_locked":              "API key locked. It's encrypted in memory — only used when running analysis.",
   "clippy.need_file":               "Please upload a contract file first!",
   "clippy.need_key":                "Psst — I need your OpenRouter API key to work my magic!",
@@ -287,6 +291,10 @@ const fr: TranslationDict = {
   "clippy.wrong_format": "Hmm, je ne peux lire que des fichiers PDF, DOCX, TXT ou MD. Essayez l'un de ceux-là !",
   "clippy.file_loaded": "Super ! Je vois «\u00a0{{filename}}\u00a0». Configurons maintenant votre analyse.",
   "clippy.file_error": "Oups, j'ai eu du mal à lire ce fichier. Assurez-vous qu'il n'est pas protégé par un mot de passe !",
+  "clippy.file_scanned": "Ce PDF semble être scanné (image uniquement) — je ne peux pas extraire le texte des images. Essayez un PDF textuel ou collez le contenu directement.",
+  "clippy.file_too_large": "Ce fichier est trop volumineux ! Veuillez télécharger un contrat de moins de 10 Mo.",
+  "toast.file_read_error": "Impossible de lire le fichier",
+  "toast.file_read_error_desc": "Le fichier n'a pas pu être analysé. Essayez un autre format ou collez le texte directement.",
   "clippy.key_locked": "Clé API verrouillée. Elle est chiffrée en mémoire — utilisée uniquement lors de l'analyse.",
   "clippy.need_file": "Veuillez d'abord télécharger un fichier de contrat !",
   "clippy.need_key": "Psst — j'ai besoin de votre clé API OpenRouter pour travailler !",
@@ -414,6 +422,10 @@ const es: TranslationDict = {
   "clippy.wrong_format": "Hmm, solo puedo leer archivos PDF, DOCX, TXT o MD. ¡Prueba con uno de esos!",
   "clippy.file_loaded": "¡Perfecto! Veo «{{filename}}». Ahora configuremos tu análisis.",
   "clippy.file_error": "Vaya, tuve problemas para leer ese archivo. ¡Asegúrate de que no esté protegido con contraseña!",
+  "clippy.file_scanned": "Este PDF parece estar escaneado (solo imagen) — no puedo extraer texto de imágenes. Prueba un PDF basado en texto o pega el contenido directamente.",
+  "clippy.file_too_large": "¡Ese archivo es demasiado grande! Sube un contrato de menos de 10 MB.",
+  "toast.file_read_error": "No se pudo leer el archivo",
+  "toast.file_read_error_desc": "El archivo no pudo procesarse. Intenta con otro formato o pega el texto directamente.",
   "clippy.key_locked": "Clave API bloqueada. Está cifrada en memoria — solo se usa al ejecutar el análisis.",
   "clippy.need_file": "¡Por favor, sube primero un archivo de contrato!",
   "clippy.need_key": "Psst — ¡necesito tu clave API de OpenRouter para trabajar!",
@@ -541,6 +553,10 @@ const pt: TranslationDict = {
   "clippy.wrong_format": "Hmm, só consigo ler ficheiros PDF, DOCX, TXT ou MD. Experimente um desses!",
   "clippy.file_loaded": "Óptimo! Vejo «{{filename}}». Agora vamos configurar a sua análise.",
   "clippy.file_error": "Ups, tive dificuldade em ler esse ficheiro. Certifique-se de que não está protegido por palavra-passe!",
+  "clippy.file_scanned": "Este PDF parece ser digitalizado (apenas imagem) — não consigo extrair texto de imagens. Tente um PDF baseado em texto ou cole o conteúdo diretamente.",
+  "clippy.file_too_large": "Esse arquivo é muito grande! Faça upload de um contrato com menos de 10 MB.",
+  "toast.file_read_error": "Não foi possível ler o arquivo",
+  "toast.file_read_error_desc": "O arquivo não pôde ser analisado. Tente outro formato ou cole o texto diretamente.",
   "clippy.key_locked": "Chave API bloqueada. Está cifrada em memória — usada apenas ao executar a análise.",
   "clippy.need_file": "Por favor, carregue primeiro um ficheiro de contrato!",
   "clippy.need_key": "Psst — preciso da sua chave API OpenRouter para trabalhar!",
@@ -668,6 +684,10 @@ const de: TranslationDict = {
   "clippy.wrong_format": "Hmm, ich kann nur PDF-, DOCX-, TXT- oder MD-Dateien lesen. Versuche eine davon!",
   "clippy.file_loaded": "Super! Ich sehe «{{filename}}». Lass uns jetzt deine Analyse konfigurieren.",
   "clippy.file_error": "Hoppla, ich hatte Probleme beim Lesen dieser Datei. Stell sicher, dass sie nicht passwortgeschützt ist!",
+  "clippy.file_scanned": "Diese PDF scheint gescannt zu sein (nur Bild) — ich kann keinen Text aus Bildern extrahieren. Versuche eine textbasierte PDF oder füge den Inhalt direkt ein.",
+  "clippy.file_too_large": "Diese Datei ist zu groß! Bitte lade einen Vertrag unter 10 MB hoch.",
+  "toast.file_read_error": "Datei konnte nicht gelesen werden",
+  "toast.file_read_error_desc": "Die Datei konnte nicht verarbeitet werden. Versuche ein anderes Format oder füge den Text direkt ein.",
   "clippy.key_locked": "API-Schlüssel gesperrt. Er ist im Speicher verschlüsselt — wird nur bei der Analyse verwendet.",
   "clippy.need_file": "Bitte lade zuerst eine Vertragsdatei hoch!",
   "clippy.need_key": "Psst — ich brauche deinen OpenRouter-API-Schlüssel, um zu arbeiten!",
@@ -790,6 +810,10 @@ const nl: TranslationDict = {
   "clippy.wrong_format": "Hmm, ik kan alleen PDF-, DOCX-, TXT- of MD-bestanden lezen. Probeer een van die!",
   "clippy.file_loaded": "Mooi! Ik zie «{{filename}}». Laten we nu je analyse configureren.",
   "clippy.file_error": "Oeps, ik had moeite met het lezen van dat bestand. Zorg ervoor dat het niet met een wachtwoord is beveiligd!",
+  "clippy.file_scanned": "Deze PDF lijkt gescand (alleen afbeelding) — ik kan geen tekst uit afbeeldingen halen. Probeer een tekstgebaseerde PDF of plak de inhoud direct.",
+  "clippy.file_too_large": "Dat bestand is te groot! Upload een contract van minder dan 10 MB.",
+  "toast.file_read_error": "Bestand kon niet worden gelezen",
+  "toast.file_read_error_desc": "Het bestand kon niet worden verwerkt. Probeer een ander formaat of plak de tekst direct.",
   "clippy.key_locked": "API-sleutel vergrendeld. In geheugen versleuteld — alleen gebruikt bij analyse.",
   "clippy.need_file": "Upload eerst een contractbestand!", "clippy.need_key": "Psst — ik heb je OpenRouter API-sleutel nodig om te werken!",
   "clippy.need_model": "Kies minstens één model voor analyse!", "clippy.key_missing": "API-sleutel ontbreekt. Ga terug en voer hem in.",
@@ -860,6 +884,10 @@ const it: TranslationDict = {
   "clippy.wrong_format": "Hmm, posso leggere solo file PDF, DOCX, TXT o MD. Prova con uno di quelli!",
   "clippy.file_loaded": "Ottimo! Vedo «{{filename}}». Ora configuriamo la tua analisi.",
   "clippy.file_error": "Ops, ho avuto problemi a leggere quel file. Assicurati che non sia protetto da password!",
+  "clippy.file_scanned": "Questo PDF sembra scansionato (solo immagine) — non posso estrarre testo dalle immagini. Prova un PDF basato su testo o incolla il contenuto direttamente.",
+  "clippy.file_too_large": "Il file è troppo grande! Carica un contratto inferiore a 10 MB.",
+  "toast.file_read_error": "Impossibile leggere il file",
+  "toast.file_read_error_desc": "Il file non ha potuto essere elaborato. Prova un altro formato o incolla il testo direttamente.",
   "clippy.key_locked": "Chiave API bloccata. È cifrata in memoria — usata solo durante l'analisi.",
   "clippy.need_file": "Per favore, carica prima un file contratto!", "clippy.need_key": "Psst — ho bisogno della tua chiave API OpenRouter per lavorare!",
   "clippy.need_model": "Scegli almeno un modello per l'analisi!", "clippy.key_missing": "Chiave API mancante. Torna indietro e inseriscila.",
@@ -931,6 +959,10 @@ const zh: TranslationDict = {
   "clippy.wrong_format": "嗯，我只能读取PDF、DOCX、TXT或MD文件。请尝试其中一种！",
   "clippy.file_loaded": "很好！我看到了「{{filename}}」。现在让我们配置您的分析。",
   "clippy.file_error": "哎呀，我在读取该文件时遇到了问题。请确保它没有密码保护！",
+  "clippy.file_scanned": "此 PDF 似乎是扫描件（仅图像）——我无法从图像中提取文本。请尝试基于文本的 PDF 或直接粘贴内容。",
+  "clippy.file_too_large": "文件太大！请上传小于 10 MB 的合同。",
+  "toast.file_read_error": "无法读取文件",
+  "toast.file_read_error_desc": "文件无法解析。请尝试其他格式或直接粘贴文本。",
   "clippy.key_locked": "API密钥已锁定。在内存中加密——仅在运行分析时使用。",
   "clippy.need_file": "请先上传合同文件！", "clippy.need_key": "嘿——我需要您的OpenRouter API密钥才能工作！",
   "clippy.need_model": "请至少选择一个模型进行分析！", "clippy.key_missing": "API密钥缺失。请返回并输入它。",
@@ -1002,6 +1034,10 @@ const ru: TranslationDict = {
   "clippy.wrong_format": "Хм, я умею читать только PDF, DOCX, TXT или MD. Попробуйте один из этих форматов!",
   "clippy.file_loaded": "Отлично! Я вижу «{{filename}}». Теперь настроим анализ.",
   "clippy.file_error": "Упс, не удалось прочитать файл. Убедитесь, что он не защищён паролем!",
+  "clippy.file_scanned": "Этот PDF похоже отсканирован (только изображение) — я не могу извлечь текст из изображений. Попробуйте PDF с текстовым слоем или вставьте содержимое напрямую.",
+  "clippy.file_too_large": "Файл слишком большой! Загрузите контракт размером менее 10 МБ.",
+  "toast.file_read_error": "Не удалось прочитать файл",
+  "toast.file_read_error_desc": "Файл не удалось обработать. Попробуйте другой формат или вставьте текст напрямую.",
   "clippy.key_locked": "API-ключ заблокирован. Зашифрован в памяти — используется только при анализе.",
   "clippy.need_file": "Пожалуйста, сначала загрузите файл договора!", "clippy.need_key": "Psst — мне нужен ваш API-ключ OpenRouter!",
   "clippy.need_model": "Выберите хотя бы одну модель для анализа!", "clippy.key_missing": "API-ключ отсутствует. Пожалуйста, вернитесь и введите его.",
@@ -1073,6 +1109,10 @@ const hi: TranslationDict = {
   "clippy.wrong_format": "हम्म, मैं केवल PDF, DOCX, TXT या MD फ़ाइलें पढ़ सकता हूं।",
   "clippy.file_loaded": "बढ़िया! मैं «{{filename}}» देख सकता हूं। अब विश्लेषण कॉन्फ़िगर करें।",
   "clippy.file_error": "ओह, उस फ़ाइल को पढ़ने में समस्या हुई। सुनिश्चित करें कि यह पासवर्ड से सुरक्षित नहीं है!",
+  "clippy.file_scanned": "यह PDF स्कैन की गई (केवल छवि) लगती है — मैं छवियों से टेक्स्ट नहीं निकाल सकता। कृपया टेक्स्ट-आधारित PDF आज़माएँ या सामग्री सीधे पेस्ट करें।",
+  "clippy.file_too_large": "वह फ़ाइल बहुत बड़ी है! कृपया 10 MB से कम का अनुबंध अपलोड करें।",
+  "toast.file_read_error": "फ़ाइल नहीं पढ़ी जा सकी",
+  "toast.file_read_error_desc": "फ़ाइल को पार्स नहीं किया जा सका। कोई अन्य फ़ॉर्मेट आज़माएँ या सीधे टेक्स्ट पेस्ट करें।",
   "clippy.key_locked": "API कुंजी लॉक है। मेमोरी में एन्क्रिप्टेड — केवल विश्लेषण के दौरान उपयोग।",
   "clippy.need_file": "पहले अनुबंध फ़ाइल अपलोड करें!", "clippy.need_key": "मुझे आपकी OpenRouter API कुंजी चाहिए!",
   "clippy.need_model": "विश्लेषण के लिए कम से कम एक मॉडल चुनें!", "clippy.key_missing": "API कुंजी गायब है। वापस जाकर दर्ज करें।",
@@ -1144,6 +1184,10 @@ const bg: TranslationDict = {
   "clippy.wrong_format": "Хм, мога да чета само PDF, DOCX, TXT или MD файлове.",
   "clippy.file_loaded": "Чудесно! Виждам «{{filename}}». Нека конфигурираме анализа.",
   "clippy.file_error": "Ох, имах проблем с четенето на файла. Уверете се, че не е защитен с парола!",
+  "clippy.file_scanned": "Този PDF изглежда сканиран (само изображение) — не мога да извлека текст от изображения. Опитайте PDF с текстов слой или поставете съдържанието директно.",
+  "clippy.file_too_large": "Файлът е твърде голям! Моля качете договор под 10 MB.",
+  "toast.file_read_error": "Файлът не можа да бъде прочетен",
+  "toast.file_read_error_desc": "Файлът не можа да бъде обработен. Опитайте друг формат или поставете текста директно.",
   "clippy.key_locked": "API ключът е заключен. Шифрован в паметта — използван само при анализ.",
   "clippy.need_file": "Моля, качете файл на договора!", "clippy.need_key": "Нуждая се от вашия OpenRouter API ключ!",
   "clippy.need_model": "Изберете поне един модел!", "clippy.key_missing": "Липсва API ключ. Върнете се и го въведете.",
@@ -1215,6 +1259,10 @@ const pl: TranslationDict = {
   "clippy.wrong_format": "Hmm, mogę czytać tylko pliki PDF, DOCX, TXT lub MD.",
   "clippy.file_loaded": "Świetnie! Widzę «{{filename}}». Teraz skonfigurujmy analizę.",
   "clippy.file_error": "Ups, miałem problem z odczytaniem tego pliku. Upewnij się, że nie jest chroniony hasłem!",
+  "clippy.file_scanned": "Ten PDF wydaje się być zeskanowany (tylko obraz) — nie mogę wyodrębnić tekstu z obrazów. Spróbuj PDF oparty na tekście lub wklej treść bezpośrednio.",
+  "clippy.file_too_large": "Ten plik jest za duży! Prześlij umowę poniżej 10 MB.",
+  "toast.file_read_error": "Nie można odczytać pliku",
+  "toast.file_read_error_desc": "Plik nie mógł zostać przetworzony. Spróbuj innego formatu lub wklej tekst bezpośrednio.",
   "clippy.key_locked": "Klucz API zablokowany. Zaszyfrowany w pamięci — używany tylko podczas analizy.",
   "clippy.need_file": "Najpierw prześlij plik umowy!", "clippy.need_key": "Potrzebuję Twojego klucza API OpenRouter!",
   "clippy.need_model": "Wybierz co najmniej jeden model do analizy!", "clippy.key_missing": "Brak klucza API. Wróć i wprowadź go.",
@@ -1286,6 +1334,10 @@ const da: TranslationDict = {
   "clippy.wrong_format": "Hmm, jeg kan kun læse PDF-, DOCX-, TXT- eller MD-filer.",
   "clippy.file_loaded": "Fint! Jeg kan se «{{filename}}». Lad os konfigurere din analyse.",
   "clippy.file_error": "Ups, jeg havde problemer med at læse den fil. Sørg for, at den ikke er adgangskodebeskyttet!",
+  "clippy.file_scanned": "Denne PDF ser ud til at være scannet (kun billede) — jeg kan ikke udtrække tekst fra billeder. Prøv en tekstbaseret PDF eller indsæt indholdet direkte.",
+  "clippy.file_too_large": "Den fil er for stor! Upload en kontrakt på under 10 MB.",
+  "toast.file_read_error": "Kunne ikke læse filen",
+  "toast.file_read_error_desc": "Filen kunne ikke behandles. Prøv et andet format eller indsæt teksten direkte.",
   "clippy.key_locked": "API-nøgle låst. Krypteret i hukommelsen — bruges kun under analyse.",
   "clippy.need_file": "Upload venligst en kontraktfil først!", "clippy.need_key": "Jeg har brug for din OpenRouter API-nøgle!",
   "clippy.need_model": "Vælg mindst én model til analyse!", "clippy.key_missing": "API-nøgle mangler. Gå tilbage og indtast den.",
@@ -1357,6 +1409,10 @@ const ja: TranslationDict = {
   "clippy.wrong_format": "PDF、DOCX、TXT、またはMDファイルのみ対応しています。",
   "clippy.file_loaded": "「{{filename}}」が表示されています。分析を設定しましょう。",
   "clippy.file_error": "そのファイルの読み込みに問題がありました。パスワード保護されていないか確認してください。",
+  "clippy.file_scanned": "このPDFはスキャンされたもの（画像のみ）のようです — 画像からテキストを抽出できません。テキストベースのPDFを試すか、内容を直接貼り付けてください。",
+  "clippy.file_too_large": "そのファイルは大きすぎます！10MB未満の契約書をアップロードしてください。",
+  "toast.file_read_error": "ファイルを読み込めませんでした",
+  "toast.file_read_error_desc": "ファイルを解析できませんでした。別の形式を試すか、テキストを直接貼り付けてください。",
   "clippy.key_locked": "APIキーがロックされています。メモリ内で暗号化 — 分析時のみ使用。",
   "clippy.need_file": "最初に契約書ファイルをアップロードしてください！", "clippy.need_key": "OpenRouter APIキーが必要です！",
   "clippy.need_model": "分析に使用するモデルを少なくとも1つ選択してください！", "clippy.key_missing": "APIキーがありません。戻って入力してください。",
@@ -1428,6 +1484,10 @@ const ko: TranslationDict = {
   "clippy.wrong_format": "PDF, DOCX, TXT 또는 MD 파일만 읽을 수 있어요.",
   "clippy.file_loaded": "좋아요! «{{filename}}»을 볼 수 있어요. 이제 분석을 설정해요.",
   "clippy.file_error": "이런, 파일 읽기에 문제가 있었어요. 암호로 보호되지 않았는지 확인해 주세요!",
+  "clippy.file_scanned": "이 PDF는 스캔된 것(이미지만)으로 보입니다 — 이미지에서 텍스트를 추출할 수 없어요. 텍스트 기반 PDF를 사용하거나 내용을 직접 붙여넣어 주세요.",
+  "clippy.file_too_large": "파일이 너무 큽니다! 10MB 미만의 계약서를 업로드해 주세요.",
+  "toast.file_read_error": "파일을 읽을 수 없습니다",
+  "toast.file_read_error_desc": "파일을 처리할 수 없었습니다. 다른 형식을 시도하거나 텍스트를 직접 붙여넣어 주세요.",
   "clippy.key_locked": "API 키가 잠겼어요. 메모리에 암호화 — 분석 실행 시에만 사용.",
   "clippy.need_file": "먼저 계약서 파일을 업로드해 주세요!", "clippy.need_key": "OpenRouter API 키가 필요해요!",
   "clippy.need_model": "분석할 모델을 하나 이상 선택해 주세요!", "clippy.key_missing": "API 키가 없어요. 돌아가서 입력해 주세요.",
@@ -1499,6 +1559,10 @@ const he: TranslationDict = {
   "clippy.wrong_format": "אני יכול לקרוא רק קבצי PDF, DOCX, TXT או MD.",
   "clippy.file_loaded": "מצוין! אני רואה את «{{filename}}». עכשיו נגדיר את הניתוח.",
   "clippy.file_error": "אוי, היה לי קושי לקרוא את הקובץ. ודא שאינו מוגן בסיסמה!",
+  "clippy.file_scanned": "PDF זה נראה סרוק (תמונה בלבד) — אני לא יכול לחלץ טקסט מתמונות. נסה PDF מבוסס טקסט או הדבק את התוכן ישירות.",
+  "clippy.file_too_large": "הקובץ גדול מדי! אנא העלה חוזה מתחת ל-10 MB.",
+  "toast.file_read_error": "לא ניתן לקרוא את הקובץ",
+  "toast.file_read_error_desc": "הקובץ לא הצליח להיות מעובד. נסה פורמט אחר או הדבק את הטקסט ישירות.",
   "clippy.key_locked": "מפתח API נעול. מוצפן בזיכרון — נמצא בשימוש רק בזמן ניתוח.",
   "clippy.need_file": "אנא העלה קובץ חוזה תחילה!", "clippy.need_key": "אני צריך את מפתח ה-API של OpenRouter שלך!",
   "clippy.need_model": "בחר לפחות מודל אחד לניתוח!", "clippy.key_missing": "מפתח API חסר. חזור ורשום אותו.",
@@ -1570,6 +1634,10 @@ const ar: TranslationDict = {
   "clippy.wrong_format": "يمكنني قراءة ملفات PDF أو DOCX أو TXT أو MD فقط.",
   "clippy.file_loaded": "رائع! أرى «{{filename}}». لنقم الآن بتكوين تحليلك.",
   "clippy.file_error": "عذرًا، واجهت مشكلة في قراءة هذا الملف. تأكد من أنه غير محمي بكلمة مرور!",
+  "clippy.file_scanned": "يبدو أن هذا PDF ممسوح ضوئياً (صورة فقط) — لا أستطيع استخراج النص من الصور. جرّب PDF نصياً أو الصق المحتوى مباشرة.",
+  "clippy.file_too_large": "هذا الملف كبير جداً! يرجى تحميل عقد أقل من 10 ميغابايت.",
+  "toast.file_read_error": "تعذّر قراءة الملف",
+  "toast.file_read_error_desc": "تعذّر تحليل الملف. جرّب تنسيقاً آخر أو الصق النص مباشرة.",
   "clippy.key_locked": "مفتاح API مقفل. مشفر في الذاكرة — يُستخدم فقط عند التشغيل.",
   "clippy.need_file": "يرجى تحميل ملف عقد أولاً!", "clippy.need_key": "أحتاج إلى مفتاح OpenRouter API الخاص بك!",
   "clippy.need_model": "اختر نموذجًا واحدًا على الأقل للتحليل!", "clippy.key_missing": "مفتاح API مفقود. ارجع وأدخله.",
@@ -1657,7 +1725,17 @@ export const TRANSLATIONS: Record<Locale, TranslationDict> = {
 export function detectLocale(): Locale {
   const supported = SUPPORTED_LOCALES.map(l => l.code) as Locale[];
 
-  // 1. Check persisted preference
+  // 1. ?lang= URL parameter — highest priority (shareable links, direct navigation)
+  if (typeof window !== "undefined") {
+    const param = new URLSearchParams(window.location.search).get("lang");
+    if (param && supported.includes(param as Locale)) {
+      // Persist so subsequent navigation within the app keeps the locale
+      try { localStorage.setItem("clippy_locale", param); } catch { /* private browsing */ }
+      return param as Locale;
+    }
+  }
+
+  // 2. localStorage — explicit user preference from a previous session
   const stored = typeof localStorage !== "undefined"
     ? localStorage.getItem("clippy_locale")
     : null;
@@ -1665,7 +1743,7 @@ export function detectLocale(): Locale {
     return stored as Locale;
   }
 
-  // 2. Check browser language
+  // 3. Browser language
   if (typeof navigator !== "undefined" && navigator.language) {
     const lang = navigator.language.split("-")[0].toLowerCase() as Locale;
     if (supported.includes(lang)) return lang;
