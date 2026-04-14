@@ -47,7 +47,7 @@ import {
   Upload, Key, Cpu, ChevronRight, ChevronLeft, AlertTriangle,
   X, Eye, EyeOff, Plus, Github, FileText, RefreshCw, Copy,
   Check, Download, Share2, Edit2, Trash2, Lock, Unlock,
-  FileDown, Clock
+  FileDown, Clock, Play
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -225,6 +225,110 @@ function DimensionBar({ name, score, note }: { name: string; score: number; note
 }
 
 // ---------------------------------------------------------------------------
+// Demo Modal — screenshot slideshow
+// ---------------------------------------------------------------------------
+
+const DEMO_SLIDES = [
+  {
+    src:     "https://clippy.legal/img/screenshot-step1.jpg",
+    label:   "Step 1",
+    caption: "Upload your contract (PDF, DOCX, TXT), paste your OpenRouter key, select AI models",
+  },
+  {
+    src:     "https://clippy.legal/img/screenshot-step2.jpg",
+    label:   "Step 2",
+    caption: "Toggle analysis objectives: GDPR, non-compete, IP assignment, financial risk, and more",
+  },
+  {
+    src:     "https://clippy.legal/img/screenshot-step3.jpg",
+    label:   "Step 3",
+    caption: "Trust score, dimension breakdown, and annotated clause flags with severity ratings",
+  },
+];
+
+function DemoModal({ onClose }: { onClose: () => void }) {
+  const [slide, setSlide] = useState(0);
+  const total = DEMO_SLIDES.length;
+  const prev  = () => setSlide(s => (s - 1 + total) % total);
+  const next  = () => setSlide(s => (s + 1) % total);
+
+  // Close on Escape, navigate on arrow keys
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape")     onClose();
+      if (e.key === "ArrowRight") next();
+      if (e.key === "ArrowLeft")  prev();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="relative bg-card border border-border rounded-2xl shadow-2xl max-w-3xl w-full mx-4 overflow-hidden"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-3 border-b border-border">
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-semibold">{DEMO_SLIDES[slide].label}</span>
+            <div className="flex gap-1.5">
+              {DEMO_SLIDES.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setSlide(i)}
+                  className={`w-2 h-2 rounded-full transition-all ${
+                    i === slide ? "bg-primary scale-125" : "bg-muted-foreground/40 hover:bg-muted-foreground"
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Screenshot */}
+        <div className="relative bg-muted/30">
+          <img
+            key={slide}
+            src={DEMO_SLIDES[slide].src}
+            alt={DEMO_SLIDES[slide].caption}
+            className="w-full block"
+            style={{ animation: "fadeIn 0.25s ease" }}
+          />
+          <button
+            onClick={prev}
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center text-white transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <button
+            onClick={next}
+            className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center text-white transition-colors"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Caption */}
+        <div className="px-5 py-3 text-sm text-muted-foreground">
+          {DEMO_SLIDES[slide].caption}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
 
@@ -272,6 +376,7 @@ export default function Home() {
   // Prompt editing state (Step 2)
   const [editingPromptId, setEditingPromptId] = useState<string | null>(null);
   const [editDraft, setEditDraft]             = useState({ title: "", description: "", prompt: "" });
+  const [showDemo, setShowDemo]               = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -694,9 +799,18 @@ export default function Home() {
         ==================================================================== */}
         {state.step === "setup" && (
           <div className="fade-in-up space-y-6 max-w-2xl mx-auto">
-            <div className="text-center space-y-1">
+            <div className="text-center space-y-3">
               <h1 className="text-2xl font-bold tracking-tight">{t("step1.title")}</h1>
               <p className="text-sm text-muted-foreground">{t("step1.subtitle")}</p>
+              <button
+                onClick={() => setShowDemo(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-card hover:bg-muted/60 text-sm font-medium text-muted-foreground hover:text-foreground transition-all group"
+              >
+                <span className="w-5 h-5 rounded-full bg-primary/10 group-hover:bg-primary/20 flex items-center justify-center transition-colors">
+                  <Play className="w-3 h-3 text-primary fill-primary" />
+                </span>
+                See Demo
+              </button>
             </div>
 
             {/* ---- Drop zone ---- */}
@@ -1353,6 +1467,9 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* Demo modal */}
+      {showDemo && <DemoModal onClose={() => setShowDemo(false)} />}
     </div>
   );
 }
