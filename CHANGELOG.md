@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [3.0.2] — 2026-04-14
+## [3.1.0] — 2026-04-14
 
 Locale-aware analysis output. When Clippy's UI is set to any non-English language, AI models now respond entirely in that language — all human-readable fields in the JSON output (summary, flag titles, flag descriptions, dimension labels and notes) are written in the active locale. Contract quotes remain verbatim in the original document language. JSON field names remain in English for structural consistency.
 
@@ -38,11 +38,11 @@ Locale-aware analysis output. When Clippy's UI is set to any non-English languag
 - `handleAnalyze()` now passes `locale` (from `useI18n()`) to `analyzeWithModel()`
 
 ### Changed
-- File header versions updated to v3.0.2 in `openrouter.ts` and `prompts.ts`
+- File header versions updated to v3.1.0 in `openrouter.ts` and `prompts.ts`
 
 ---
 
-## [3.0.1] — 2026-04-14
+## [3.1.0] — 2026-04-14
 
 A quality and depth patch. Deeply improved analysis prompts that cite specific laws and legal concepts, a richer system prompt with better severity calibration, hardened error handling, improved code comments throughout, and a massively expanded README covering EU/US/UK/FR consumer law, GDPR, arbitration jurisprudence, non-compete law, and IP assignment rules.
 
@@ -109,15 +109,15 @@ A quality and depth patch. Deeply improved analysis prompts that cite specific l
   - The "small print" problem (cognitive overload, information asymmetry)
   - Limitations of AI contract analysis and threat model
 - **Legal References section** — 10 direct links to official legal texts (EUR-Lex, US Code, California Legislature, etc.)
-- **Version badge** updated to v3.0.1
+- **Version badge** updated to v3.1.0
 - **Roadmap** updated to reflect completed milestones
-- **v3.0.1 "What's New"** section added
+- **v3.1.0 "What's New"** section added
 
 ### Changed
 
-- `package.json` — Version bumped from `3.0.0` → `3.0.1`
+- `package.json` — Version bumped from `3.1.0` → `3.1.0`
 - `CHANGELOG.md` — This entry
-- `README.md` — Version badge updated to v3.0.1; major content expansion
+- `README.md` — Version badge updated to v3.1.0; major content expansion
 
 ### Fixed
 
@@ -126,7 +126,7 @@ A quality and depth patch. Deeply improved analysis prompts that cite specific l
 
 ---
 
-## [3.0.0] — 2026-04-13
+## [3.1.0] — 2026-04-13
 
 This is a major internationalisation (i18n) release. Clippy now speaks 17 languages — English plus 16 others — with full RTL support for Arabic and Hebrew, automatic locale detection, a beautiful language switcher in the navigation bar, and zero external i18n libraries.
 
@@ -158,7 +158,7 @@ This is a major internationalisation (i18n) release. Clippy now speaks 17 langua
 - **`Home.tsx`** — All ~60 user-visible strings replaced with `t()` calls. Toast notifications, step placeholders, navigation labels, footer, speech bubbles, and category labels are all translated. `CLIPPY_MESSAGES` dictionary replaced by `CLIPPY_MESSAGE_KEYS` (key-based; resolved at render via `t()`). `setClippy()` now accepts a translation key string instead of a raw message.
 - **`ShareView.tsx`** — Fully rewritten to use `useI18n()`. All strings (header badges, metadata banner, disclaimer, results labels — Trust Score, Summary, 5 Dimensions, Flagged Clauses, Analysis failed, No significant issues found — CTA, footer) are now translated. `LanguageSwitcher` added to the header.
 - **`App.tsx`** — Wrapped with `<I18nProvider>` at the top level so all routes inherit the same locale state.
-- **`package.json`** — Version bumped from `2.0.0` → `3.0.0`.
+- **`package.json`** — Version bumped from `2.0.0` → `3.1.0`.
 - **README.md** — Major update: i18n architecture section, 17-language table, RTL design decisions, `{{variable}}` interpolation examples, logo tagline change, vibe-coding disclaimer.
 - **CHANGELOG.md** — This entry.
 
@@ -362,9 +362,9 @@ This version establishes the full core product: multi-model AI contract analysis
 
 ---
 
-[3.0.1]: https://github.com/paulfxyz/clippy/releases/tag/v3.0.1
-[3.0.0]: https://github.com/paulfxyz/clippy/releases/tag/v3.0.0
+[3.1.0]: https://github.com/paulfxyz/clippy/releases/tag/v3.1.0
+[3.1.0]: https://github.com/paulfxyz/clippy/releases/tag/v3.1.0
 [2.0.0]: https://github.com/paulfxyz/clippy/releases/tag/v2.0.0
 [1.0.0]: https://github.com/paulfxyz/clippy/releases/tag/v1.0.0
-[Unreleased]: https://github.com/paulfxyz/clippy/compare/v3.0.2...HEAD
-[3.0.2]: https://github.com/paulfxyz/clippy/compare/v3.0.1...v3.0.2
+[Unreleased]: https://github.com/paulfxyz/clippy/compare/v3.1.0...HEAD
+[3.1.0]: https://github.com/paulfxyz/clippy/compare/v3.1.0...v3.1.0

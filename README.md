@@ -69,7 +69,7 @@ Clippy is named after [Microsoft's Office Assistant](https://en.wikipedia.org/wi
 **Locale-aware analysis output.** When you use Clippy in French, Spanish, German, Japanese, Arabic, or any of the 17 supported languages, the AI models now respond entirely in that language — flag titles, descriptions, summaries, and dimension notes are all localised. Contract quotes remain verbatim in their original language. A `LANGUAGE INSTRUCTION` directive is dynamically prepended to the system prompt, with a belt-and-suspenders reminder in the user message.
 
 
-Version 3.0.1 is a quality patch focused on depth: deeply improved analysis prompts that cite specific laws and legal concepts, a richer system prompt with better severity calibration, hardened error handling, improved code comments throughout, and a massively expanded README.
+Version 3.1.0 is a quality patch focused on depth: deeply improved analysis prompts that cite specific laws and legal concepts, a richer system prompt with better severity calibration, hardened error handling, improved code comments throughout, and a massively expanded README.
 
 - **Legally grounded prompts** — each of the 10 analysis objectives now cites specific EU Directives, GDPR Articles, US case law (e.g. *AT&T Mobility v. Concepcion*), UK Acts, and French consumer law statutes
 - **Improved SYSTEM_PROMPT** — richer severity definitions with legal examples, cleaner JSON schema guidance, better instruction architecture
@@ -81,9 +81,9 @@ Version 3.0.1 is a quality patch focused on depth: deeply improved analysis prom
 
 ---
 
-## What's New in v3.0.0
+## What's New in v3.1.0
 
-Version 3.0.0 brings full internationalisation (i18n) to Clippy. The entire UI — every label, button, toast, speech bubble, and disclaimer — is now translated into 17 languages, with full RTL layout support for Arabic and Hebrew. No external i18n library is used: the system is a purpose-built, zero-dependency implementation in plain TypeScript.
+Version 3.1.0 brings full internationalisation (i18n) to Clippy. The entire UI — every label, button, toast, speech bubble, and disclaimer — is now translated into 17 languages, with full RTL layout support for Arabic and Hebrew. No external i18n library is used: the system is a purpose-built, zero-dependency implementation in plain TypeScript.
 
 ### 17 Languages
 
@@ -416,11 +416,11 @@ Clippy is honest about what it can and cannot do.
 - **Share URLs** — Base64-encoded results in URL hash fragment, rendered by ShareView page
 - **Duration tracking** — Wall-clock API call time per model, shown in results
 
-### New in v3.0.0
+### New in v3.1.0
 - **Full i18n** — 17 languages, RTL support, locale detection, language switcher
 - **Logo tagline** — "your contract analyst" on every page
 
-### New in v3.0.1
+### New in v3.1.0
 - **Legally grounded prompts** — All 10 prompts cite specific statutes and case law
 - **Improved system prompt** — Richer severity calibration with legal examples
 - **Hardened error handling** — More informative API error messages
@@ -849,8 +849,8 @@ Running all 8 models on a 5,000-word contract costs roughly **$0.10–0.15** tot
 ### Done
 - [x] v1.0.0 — Multi-model AI analysis, trust score, 5 dimensions, severity flags
 - [x] v2.0.0 — 3-step wizard, modular prompt library, AES-GCM encryption, PDF/MD export, share URLs
-- [x] v3.0.0 — Full i18n (17 languages), RTL support, logo tagline
-- [x] v3.0.1 — Legally grounded prompts, improved system prompt, hardened code, expanded README
+- [x] v3.1.0 — Full i18n (17 languages), RTL support, logo tagline
+- [x] v3.1.0 — Legally grounded prompts, improved system prompt, hardened code, expanded README
 - [x] v3.1.0 — Locale-aware AI output: analysis results in the active UI language
 
 ### Planned
