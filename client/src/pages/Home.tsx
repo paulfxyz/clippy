@@ -228,26 +228,27 @@ function DimensionBar({ name, score, note }: { name: string; score: number; note
 // Demo Modal — screenshot slideshow
 // ---------------------------------------------------------------------------
 
-const DEMO_SLIDES = [
+const getDemoSlides = (t: (k: string) => string) => [
   {
     src:     "https://clippy.legal/img/screenshot-step1.jpg",
-    label:   "Step 1",
-    caption: "Upload your contract (PDF, DOCX, TXT), paste your OpenRouter key, select AI models",
+    label:   t("demo.step1_label"),
+    caption: t("demo.step1_caption"),
   },
   {
     src:     "https://clippy.legal/img/screenshot-step2.jpg",
-    label:   "Step 2",
-    caption: "Toggle analysis objectives: GDPR, non-compete, IP assignment, financial risk, and more",
+    label:   t("demo.step2_label"),
+    caption: t("demo.step2_caption"),
   },
   {
     src:     "https://clippy.legal/img/screenshot-step3.jpg",
-    label:   "Step 3",
-    caption: "Trust score, dimension breakdown, and annotated clause flags with severity ratings",
+    label:   t("demo.step3_label"),
+    caption: t("demo.step3_caption"),
   },
 ];
 
-function DemoModal({ onClose }: { onClose: () => void }) {
+function DemoModal({ onClose, t }: { onClose: () => void; t: (k: string) => string }) {
   const [slide, setSlide] = useState(0);
+  const DEMO_SLIDES = getDemoSlides(t);
   const total = DEMO_SLIDES.length;
   const prev  = () => setSlide(s => (s - 1 + total) % total);
   const next  = () => setSlide(s => (s + 1) % total);
@@ -809,7 +810,7 @@ export default function Home() {
                 <span className="w-5 h-5 rounded-full bg-primary/10 group-hover:bg-primary/20 flex items-center justify-center transition-colors">
                   <Play className="w-3 h-3 text-primary fill-primary" />
                 </span>
-                See Demo
+                {t("demo.button")}
               </button>
             </div>
 
@@ -1469,7 +1470,7 @@ export default function Home() {
       </footer>
 
       {/* Demo modal */}
-      {showDemo && <DemoModal onClose={() => setShowDemo(false)} />}
+      {showDemo && <DemoModal onClose={() => setShowDemo(false)} t={t} />}
     </div>
   );
 }
