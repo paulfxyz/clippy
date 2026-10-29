@@ -65,7 +65,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { ClippyCharacter } from "@/components/ClippyCharacter";
 import { TrustScoreRing } from "@/components/TrustScoreRing";
-import { AVAILABLE_MODELS, analyzeWithModel } from "@/lib/openrouter";
+import { AVAILABLE_MODELS, DEFAULT_MODEL_IDS, analyzeWithModel, fetchLiveModelCatalog } from "@/lib/openrouter";
 import { extractTextFromFile } from "@/lib/fileParser";
 import { encryptKey, decryptKey, maskKey } from "@/lib/encryption";
 import { DEFAULT_PROMPTS, createCustomPrompt, CATEGORY_META } from "@/lib/prompts";
@@ -106,10 +106,13 @@ const SEVERITY_ORDER: Record<Severity, number> = { CRITICAL: 0, SUSPECT: 1, MINO
  * Shows 3 numbered steps with connecting lines; current step is highlighted.
  */
 function StepIndicator({ current }: { current: AppStep }) {
+  const { t } = useI18n();
+  // v3.3.0: labels come from i18n (steps.*). They were hard-coded English before,
+  // even though all 20 locales already shipped translations for them.
   const steps: Array<{ key: AppStep; label: string }> = [
-    { key: "setup",   label: "Setup" },
-    { key: "prompts", label: "Objectives" },
-    { key: "results", label: "Results" },
+    { key: "setup",   label: t("steps.setup") },
+    { key: "prompts", label: t("steps.objectives") },
+    { key: "results", label: t("steps.results") },
   ];
 
   // Map step key to a numeric index for comparison
@@ -172,34 +175,49 @@ function SeverityBadge({ severity }: { severity: Severity }) {
  * Highlights in primary yellow when selected.
  */
 function ModelChip({
-  modelId, selected, onClick
+  modelId, selected, unavailable, onClick, t,
 }: {
   modelId: string;
   selected: boolean;
+  /** true when the live OpenRouter catalogue no longer lists this model */
+  unavailable?: boolean;
   onClick: () => void;
+  t: (k: string) => string;
 }) {
-  const model = AVAILABLE_MODELS.find(m => m.id === modelId)!;
+  const model = AVAILABLE_MODELS.find(m => m.id === modelId);
+  if (!model) return null;
+  // Language-neutral facts (price, speed) + one localised tag. Price and speed
+  // are *measured* values from docs/BENCHMARK.md, not marketing claims.
+  const cost = model.costPerAnalysis < 0.01
+    ? `~$${model.costPerAnalysis.toFixed(3)}`
+    : `~$${model.costPerAnalysis.toFixed(2)}`;
+  const tooltip = unavailable
+    ? t("step1.model_unavailable")
+    : `${t(`model.tag.${model.tag}`)} · ${cost} · ~${model.seconds}s`;
   return (
     <button
       onClick={onClick}
-      title={model.description}
+      disabled={unavailable}
+      title={tooltip}
       data-testid={`model-chip-${modelId}`}
       className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all ${
-        selected
-          ? "border-primary bg-primary/10 text-primary font-medium"
-          : "border-border bg-card text-muted-foreground hover:border-primary/50 hover:text-foreground"
+        unavailable
+          ? "border-border bg-muted/40 text-muted-foreground/60 line-through cursor-not-allowed"
+          : selected
+            ? "border-primary bg-primary/10 text-primary font-medium"
+            : "border-border bg-card text-muted-foreground hover:border-primary/50 hover:text-foreground"
       }`}
     >
       <span
         className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-        style={{ background: selected ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))" }}
+        style={{ background: selected && !unavailable ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))" }}
       >
         {model.icon}
       </span>
       <div className="text-left">
         <p className="leading-none">{model.name}</p>
         <p className="text-xs text-muted-foreground mt-0.5 leading-tight hidden sm:block">
-          {model.provider}
+          {model.provider} · {cost}
         </p>
       </div>
     </button>
@@ -362,7 +380,7 @@ export default function Home() {
     fileName:        "",
     apiKey:          "",
     apiKeyEncrypted: "",
-    selectedModels:  ["anthropic/claude-3.7-sonnet", "openai/gpt-4.1"],
+    selectedModels:  [...DEFAULT_MODEL_IDS],
     prompts:         DEFAULT_PROMPTS,
     results:         [],
     step:            "setup",
@@ -378,6 +396,29 @@ export default function Home() {
   const [copied, setCopied]           = useState(false);
   const [shareUrl, setShareUrl]       = useState<string>("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  // Model IDs that the live OpenRouter catalogue no longer lists (retired/renamed).
+  // Empty until the check completes; the check fails open (nothing is disabled).
+  const [unavailableModels, setUnavailableModels] = useState<Set<string>>(new Set());
+
+  // One-time catalogue check at start-up: grey out retired models and drop
+  // them from the current selection so an analysis never starts on a dead ID.
+  useEffect(() => {
+    let cancelled = false;
+    fetchLiveModelCatalog().then(live => {
+      if (cancelled || !live) return;
+      const dead = new Set(AVAILABLE_MODELS.filter(m => !live.has(m.id)).map(m => m.id));
+      if (dead.size === 0) return;
+      setUnavailableModels(dead);
+      setState(s => {
+        let kept = s.selectedModels.filter(id => !dead.has(id));
+        if (kept.length === 0) {
+          kept = AVAILABLE_MODELS.filter(m => !dead.has(m.id)).slice(0, 2).map(m => m.id);
+        }
+        return { ...s, selectedModels: kept };
+      });
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   // Prompt editing state (Step 2)
   const [editingPromptId, setEditingPromptId] = useState<string | null>(null);
@@ -786,7 +827,7 @@ export default function Home() {
             </svg>
             <span className="font-bold text-base tracking-tight">clippy</span>
             <span className="hidden sm:inline text-muted-foreground text-sm select-none">·</span>
-            <span className="hidden sm:inline text-xs text-muted-foreground tracking-wide">your contract analyst</span>
+            <span className="hidden sm:inline text-xs text-muted-foreground tracking-wide">{t("nav.tagline")}</span>
             <Badge variant="secondary" className="text-xs hidden sm:inline-flex">{t("nav.version_badge")}</Badge>
           </div>
 
@@ -933,6 +974,7 @@ export default function Home() {
                     <div className="relative flex-1">
                       <Input
                         type={showKey ? "text" : "password"}
+                        dir="ltr"
                         placeholder="sk-or-v1-..."
                         value={state.apiKey}
                         onChange={e => setState(s => ({ ...s, apiKey: e.target.value }))}
@@ -981,7 +1023,7 @@ export default function Home() {
                   <Cpu className="w-4 h-4 text-primary" />
                   {t("step1.models_label")}
                   <Badge variant="secondary" className="ml-auto">
-                    {state.selectedModels.length} selected
+                    {t("step1.models_selected", { count: state.selectedModels.length })}
                   </Badge>
                 </CardTitle>
               </CardHeader>
@@ -991,6 +1033,8 @@ export default function Home() {
                     <ModelChip
                       key={model.id}
                       modelId={model.id}
+                      t={t}
+                      unavailable={unavailableModels.has(model.id)}
                       selected={state.selectedModels.includes(model.id)}
                       onClick={() => {
                         setState(s => ({
@@ -1169,7 +1213,7 @@ export default function Home() {
               <span className="text-muted-foreground">
                 {enabledPrompts !== 1 ? t("step2.enabled_count_plural", { count: enabledPrompts }) : t("step2.enabled_count", { count: enabledPrompts })}
                 &nbsp;·&nbsp;
-                <span className="font-semibold text-foreground">{state.selectedModels.length}</span> model{state.selectedModels.length !== 1 ? "s" : ""}
+                <span className="font-semibold text-foreground">{state.selectedModels.length}</span>{" "}{state.selectedModels.length !== 1 ? t("step2.models_plural") : t("step2.models_singular")}
               </span>
               <span className="text-xs text-muted-foreground">{state.fileName}</span>
             </div>
@@ -1207,7 +1251,7 @@ export default function Home() {
                 <div className="text-center space-y-1">
                   <h2 className="text-xl font-bold">{t("step3.analyzing")}</h2>
                   <p className="text-sm text-muted-foreground">
-                    Running {totalCount} model{totalCount !== 1 ? "s" : ""} in parallel
+                    {totalCount !== 1 ? t("step3.running_plural", { count: totalCount }) : t("step3.running_singular", { count: totalCount })}
                   </p>
                 </div>
                 <Progress value={totalCount > 0 ? (doneCount / totalCount) * 100 : 0} className="h-2" />
@@ -1222,8 +1266,8 @@ export default function Home() {
                         }`} />
                         <span className="text-sm font-medium flex-1">{r.modelName}</span>
                         <span className="text-xs text-muted-foreground">
-                          {r.status === "done"  ? "✓ Done" :
-                           r.status === "error" ? "✗ Error" :
+                          {r.status === "done"  ? `✓ ${t("step3.status_done")}` :
+                           r.status === "error" ? `✗ ${t("step3.status_error")}` :
                            t("step3.reading")}
                         </span>
                       </CardContent>
@@ -1482,7 +1526,7 @@ export default function Home() {
                 fill="none"
               />
             </svg>
-            <span>clippy v3.2.5 — {t("footer.tagline")}</span>
+            <span>clippy v3.3.0 — {t("footer.tagline")}</span>
           </div>
           <div className="flex items-center gap-4">
             <a

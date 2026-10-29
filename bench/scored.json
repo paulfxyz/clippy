@@ -1,0 +1,686 @@
+[
+ {
+  "model": "anthropic/claude-sonnet-5.5",
+  "synthetic": {
+   "ok": true,
+   "http": 200,
+   "ms": 19906,
+   "cost": 0.039388,
+   "finish": "stop",
+   "jsonModeRejected": false,
+   "tokensOut": 3137,
+   "flags": 12,
+   "trust": 3,
+   "quoteFidelity": 1,
+   "sev": {
+    "C": 9,
+    "S": 2,
+    "M": 1
+   },
+   "frRatio": 0.2373134328358209,
+   "recall": 1,
+   "sevAcc": 1,
+   "decoyFP": 0,
+   "missed": [],
+   "otherFlags": 0
+  },
+  "real": {
+   "ok": true,
+   "http": 200,
+   "ms": 18400,
+   "cost": 0.036756,
+   "finish": "stop",
+   "jsonModeRejected": false,
+   "tokensOut": 2903,
+   "flags": 10,
+   "trust": 48,
+   "quoteFidelity": 1,
+   "sev": {
+    "C": 0,
+    "S": 6,
+    "M": 4
+   },
+   "frRatio": 0.24662162162162163
+  },
+  "ok": true,
+  "score": 100,
+  "cost": 0.07614399999999999,
+  "avgMs": 19153
+ },
+ {
+  "model": "anthropic/claude-opus-5.5",
+  "synthetic": {
+   "ok": true,
+   "http": 200,
+   "ms": 32521,
+   "cost": 0.091716,
+   "finish": "stop",
+   "jsonModeRejected": false,
+   "tokensOut": 3784,
+   "flags": 14,
+   "trust": 4,
+   "quoteFidelity": 1,
+   "sev": {
+    "C": 9,
+    "S": 4,
+    "M": 1
+   },
+   "frRatio": 0.2301980198019802,
+   "recall": 1,
+   "sevAcc": 1,
+   "decoyFP": 0,
+   "missed": [],
+   "otherFlags": 0
+  },
+  "real": {
+   "ok": true,
+   "http": 200,
+   "ms": 46178,
+   "cost": 0.122792,
+   "finish": "stop",
+   "jsonModeRejected": false,
+   "tokensOut": 5367,
+   "flags": 13,
+   "trust": 62,
+   "quoteFidelity": 1,
+   "sev": {
+    "C": 0,
+    "S": 5,
+    "M": 8
+   },
+   "frRatio": 0.24574209245742093
+  },
+  "ok": true,
+  "score": 100,
+  "cost": 0.214508,
+  "avgMs": 39349.5
+ },
+ {
+  "model": "anthropic/claude-haiku-5.5",
+  "synthetic": {
+   "ok": true,
+   "http": 200,
+   "ms": 28824,
+   "cost": 0.0041039,
+   "finish": "stop",
+   "jsonModeRejected": false,
+   "tokensOut": 7406,
+   "flags": 16,
+   "trust": 8,
+   "quoteFidelity": 1,
+   "sev": {
+    "C": 10,
+    "S": 5,
+    "M": 1
+   },
+   "frRatio": 0.2443064182194617,
+   "recall": 1,
+   "sevAcc": 1,
+   "decoyFP": 0,
+   "missed": [],
+   "otherFlags": 0
+  },
+  "real": {
+   "ok": true,
+   "http": 200,
+   "ms": 24072,
+   "cost": 0.0032393,
+   "finish": "stop",
+   "jsonModeRejected": false,
+   "tokensOut": 5706,
+   "flags": 11,
+   "trust": 55,
+   "quoteFidelity": 1,
+   "sev": {
+    "C": 0,
+    "S": 6,
+    "M": 5
+   },
+   "frRatio": 0.25982905982905985
+  },
+  "ok": true,
+  "score": 100,
+  "cost": 0.007343199999999999,
+  "avgMs": 26448
+ },
+ {
+  "model": "anthropic/claude-fable-5.1",
+  "synthetic": {
+   "ok": true,
+   "http": 200,
+   "ms": 57326,
+   "cost": 0.29594,
+   "finish": "stop",
+   "jsonModeRejected": false,
+   "tokensOut": 5117,
+   "flags": 12,
+   "trust": 6,
+   "quoteFidelity": 1,
+   "sev": {
+    "C": 11,
+    "S": 0,
+    "M": 1
+   },
+   "frRatio": 0.21908893709327548,
+   "recall": 1,
+   "sevAcc": 1,
+   "decoyFP": 0,
+   "missed": [],
+   "otherFlags": 0
+  },
+  "real": {
+   "ok": true,
+   "http": 200,
+   "ms": 47703,
+   "cost": 0.25423,
+   "finish": "stop",
+   "jsonModeRejected": false,
+   "tokensOut": 4312,
+   "flags": 9,
+   "trust": 62,
+   "quoteFidelity": 1,
+   "sev": {
+    "C": 0,
+    "S": 5,
+    "M": 4
+   },
+   "frRatio": 0.22613065326633167
+  },
+  "ok": true,
+  "score": 100,
+  "cost": 0.55017,
+  "avgMs": 52514.5
+ },
+ {
+  "model": "openai/gpt-6.1-terra",
+  "synthetic": {
+   "ok": true,
+   "http": 200,
+   "ms": 23932,
+   "cost": 0.01059105,
+   "finish": "stop",
+   "jsonModeRejected": false,
+   "tokensOut": 2094,
+   "flags": 11,
+   "trust": 5,
+   "quoteFidelity": 1,
+   "sev": {
+    "C": 10,
+    "S": 1,
+    "M": 0
+   },
+   "frRatio": 0.25870646766169153,
+   "recall": 1,
+   "sevAcc": 1,
+   "decoyFP": 0,
+   "missed": [],
+   "otherFlags": 0
+  },
+  "real": {
+   "ok": true,
+   "http": 200,
+   "ms": 17416,
+   "cost": 0.00761335,
+   "finish": "stop",
+   "jsonModeRejected": false,
+   "tokensOut": 1498,
+   "flags": 5,
+   "trust": 58,
+   "quoteFidelity": 1,
+   "sev": {
+    "C": 0,
+    "S": 4,
+    "M": 1
+   },
+   "frRatio": 0.29464285714285715
+  },
+  "ok": true,
+  "score": 100,
+  "cost": 0.0182044,
+  "avgMs": 20674
+ },
+ {
+  "model": "openai/gpt-6.1-sol",
+  "synthetic": {
+   "ok": true,
+   "http": 200,
+   "ms": 33068,
+   "cost": 0.0277985,
+   "finish": "stop",
+   "jsonModeRejected": false,
+   "tokensOut": 2189,
+   "flags": 11,
+   "trust": 5,
+   "quoteFidelity": 1,
+   "sev": {
+    "C": 8,
+    "S": 3,
+    "M": 0
+   },
+   "frRatio": 0.23795180722891565,
+   "recall": 1,
+   "sevAcc": 1,
+   "decoyFP": 0,
+   "missed": [],
+   "otherFlags": 0
+  },
+  "real": {
+   "ok": true,
+   "http": 200,
+   "ms": 21573,
+   "cost": 0.0122567,
+   "finish": "stop",
+   "jsonModeRejected": false,
+   "tokensOut": 1201,
+   "flags": 4,
+   "trust": 65,
+   "quoteFidelity": 1,
+   "sev": {
+    "C": 0,
+    "S": 3,
+    "M": 1
+   },
+   "frRatio": 0.27936507936507937
+  },
+  "ok": true,
+  "score": 100,
+  "cost": 0.0400552,
+  "avgMs": 27320.5
+ },
+ {
+  "model": "mistralai/mistral-large-4-0",
+  "synthetic": {
+   "ok": true,
+   "http": 200,
+   "ms": 63297,
+   "cost": 0.02980288,
+   "finish": "stop",
+   "jsonModeRejected": false,
+   "tokensOut": 6336,
+   "flags": 11,
+   "trust": 5,
+   "quoteFidelity": 1,
+   "sev": {
+    "C": 11,
+    "S": 0,
+    "M": 0
+   },
+   "frRatio": 0.2531055900621118,
+   "recall": 1,
+   "sevAcc": 1,
+   "decoyFP": 0,
+   "missed": [],
+   "otherFlags": 0
+  },
+  "real": {
+   "ok": true,
+   "http": 200,
+   "ms": 39031,
+   "cost": 0.02678926,
+   "finish": "stop",
+   "jsonModeRejected": false,
+   "tokensOut": 5603,
+   "flags": 5,
+   "trust": 45,
+   "quoteFidelity": 1,
+   "sev": {
+    "C": 1,
+    "S": 2,
+    "M": 2
+   },
+   "frRatio": 0.3149847094801223
+  },
+  "ok": true,
+  "score": 100,
+  "cost": 0.05659214,
+  "avgMs": 51164
+ },
+ {
+  "model": "deepseek/deepseek-v4.1-flash-1017",
+  "synthetic": {
+   "ok": true,
+   "http": 200,
+   "ms": 26741,
+   "cost": 0.00212387,
+   "finish": "stop",
+   "jsonModeRejected": false,
+   "tokensOut": 3906,
+   "flags": 12,
+   "trust": 7,
+   "quoteFidelity": 1,
+   "sev": {
+    "C": 9,
+    "S": 2,
+    "M": 1
+   },
+   "frRatio": 0.2549295774647887,
+   "recall": 1,
+   "sevAcc": 1,
+   "decoyFP": 0,
+   "missed": [],
+   "otherFlags": 0
+  },
+  "real": {
+   "ok": true,
+   "http": 200,
+   "ms": 50000,
+   "cost": 0.00312285,
+   "finish": "stop",
+   "jsonModeRejected": false,
+   "tokensOut": 6112,
+   "flags": 7,
+   "trust": 64,
+   "quoteFidelity": 1,
+   "sev": {
+    "C": 0,
+    "S": 2,
+    "M": 5
+   },
+   "frRatio": 0.2545454545454545
+  },
+  "ok": true,
+  "score": 100,
+  "cost": 0.00524672,
+  "avgMs": 38370.5
+ },
+ {
+  "model": "x-ai/grok-4.7",
+  "synthetic": {
+   "ok": true,
+   "http": 200,
+   "ms": 48707,
+   "cost": 0.024556,
+   "finish": "stop",
+   "jsonModeRejected": false,
+   "tokensOut": 3769,
+   "flags": 11,
+   "trust": 12,
+   "quoteFidelity": 1,
+   "sev": {
+    "C": 10,
+    "S": 1,
+    "M": 0
+   },
+   "frRatio": 0.252387448840382,
+   "recall": 1,
+   "sevAcc": 1,
+   "decoyFP": 0,
+   "missed": [],
+   "otherFlags": 0
+  },
+  "real": {
+   "ok": true,
+   "http": 200,
+   "ms": 85367,
+   "cost": 0.03956,
+   "finish": "stop",
+   "jsonModeRejected": false,
+   "tokensOut": 6254,
+   "flags": 10,
+   "trust": 57,
+   "quoteFidelity": 1,
+   "sev": {
+    "C": 0,
+    "S": 9,
+    "M": 1
+   },
+   "frRatio": 0.2672
+  },
+  "ok": true,
+  "score": 100,
+  "cost": 0.064116,
+  "avgMs": 67037
+ },
+ {
+  "model": "minimax/minimax-m3.1-flash",
+  "synthetic": {
+   "ok": true,
+   "http": 200,
+   "ms": 9284,
+   "cost": 0.00191832,
+   "finish": "stop",
+   "jsonModeRejected": false,
+   "tokensOut": 2593,
+   "flags": 15,
+   "trust": 12,
+   "quoteFidelity": 1,
+   "sev": {
+    "C": 9,
+    "S": 4,
+    "M": 2
+   },
+   "frRatio": 0.22134831460674156,
+   "recall": 1,
+   "sevAcc": 1,
+   "decoyFP": 0,
+   "missed": [],
+   "otherFlags": 0
+  },
+  "real": {
+   "ok": true,
+   "http": 200,
+   "ms": 3799,
+   "cost": 0.00111357,
+   "finish": "stop",
+   "jsonModeRejected": false,
+   "tokensOut": 1243,
+   "flags": 6,
+   "trust": 55,
+   "quoteFidelity": 1,
+   "sev": {
+    "C": 0,
+    "S": 4,
+    "M": 2
+   },
+   "frRatio": 0.23670212765957446
+  },
+  "ok": true,
+  "score": 100,
+  "cost": 0.0030318899999999998,
+  "avgMs": 6541.5
+ },
+ {
+  "model": "moonshotai/kimi-k3.1-pro",
+  "synthetic": {
+   "ok": true,
+   "http": 200,
+   "ms": 196588,
+   "cost": 0.077446,
+   "finish": "stop",
+   "jsonModeRejected": false,
+   "tokensOut": 7242,
+   "flags": 11,
+   "trust": 3,
+   "quoteFidelity": 1,
+   "sev": {
+    "C": 9,
+    "S": 2,
+    "M": 0
+   },
+   "frRatio": 0.25671641791044775,
+   "recall": 1,
+   "sevAcc": 1,
+   "decoyFP": 0,
+   "missed": [],
+   "otherFlags": 0
+  },
+  "real": {
+   "ok": true,
+   "http": 200,
+   "ms": 226478,
+   "cost": 0.074404,
+   "finish": "stop",
+   "jsonModeRejected": false,
+   "tokensOut": 6929,
+   "flags": 6,
+   "trust": 65,
+   "quoteFidelity": 1,
+   "sev": {
+    "C": 0,
+    "S": 3,
+    "M": 3
+   },
+   "frRatio": 0.2591623036649215
+  },
+  "ok": true,
+  "score": 100,
+  "cost": 0.15184999999999998,
+  "avgMs": 211533
+ },
+ {
+  "model": "google/gemini-4-argon",
+  "synthetic": {
+   "ok": true,
+   "http": 200,
+   "ms": 33114,
+   "cost": 0.02546,
+   "finish": "stop",
+   "jsonModeRejected": false,
+   "tokensOut": 2028,
+   "flags": 10,
+   "trust": 5,
+   "quoteFidelity": 1,
+   "sev": {
+    "C": 9,
+    "S": 1,
+    "M": 0
+   },
+   "frRatio": 0.22112211221122113,
+   "recall": 1,
+   "sevAcc": 1,
+   "decoyFP": 0,
+   "missed": [],
+   "otherFlags": 0
+  },
+  "real": {
+   "ok": true,
+   "http": 200,
+   "ms": 21557,
+   "cost": 0.019136,
+   "finish": "stop",
+   "jsonModeRejected": false,
+   "tokensOut": 1382,
+   "flags": 6,
+   "trust": 65,
+   "quoteFidelity": 0.8333333333333334,
+   "sev": {
+    "C": 0,
+    "S": 2,
+    "M": 4
+   },
+   "frRatio": 0.23796791443850268
+  },
+  "ok": true,
+  "score": 99,
+  "cost": 0.044596,
+  "avgMs": 27335.5
+ },
+ {
+  "model": "meta/muse-spark-open",
+  "synthetic": {
+   "ok": true,
+   "http": 200,
+   "ms": 30761,
+   "cost": 0.015465,
+   "finish": "stop",
+   "jsonModeRejected": false,
+   "tokensOut": 2900,
+   "flags": 12,
+   "trust": 7,
+   "quoteFidelity": 0.9166666666666666,
+   "sev": {
+    "C": 12,
+    "S": 0,
+    "M": 0
+   },
+   "frRatio": 0.20652173913043478,
+   "recall": 1,
+   "sevAcc": 1,
+   "decoyFP": 0,
+   "missed": [],
+   "otherFlags": 0
+  },
+  "real": {
+   "ok": true,
+   "http": 200,
+   "ms": 57410,
+   "cost": 0.03158575,
+   "finish": "stop",
+   "jsonModeRejected": false,
+   "tokensOut": 6669,
+   "flags": 9,
+   "trust": 56,
+   "quoteFidelity": 1,
+   "sev": {
+    "C": 0,
+    "S": 6,
+    "M": 3
+   },
+   "frRatio": 0.24508050089445438
+  },
+  "ok": true,
+  "score": 99,
+  "cost": 0.04705075,
+  "avgMs": 44085.5
+ },
+ {
+  "model": "qwen/qwen3.8-max-0902",
+  "synthetic": {
+   "ok": false,
+   "http": 0,
+   "err": "SyntaxError: Unexpected end of JSON input",
+   "ms": 57397,
+   "jsonModeRejected": false
+  },
+  "real": {
+   "ok": true,
+   "http": 200,
+   "ms": 213795,
+   "cost": 0.057226,
+   "finish": "stop",
+   "jsonModeRejected": false,
+   "tokensOut": 9265,
+   "flags": 7,
+   "trust": 66,
+   "quoteFidelity": 1,
+   "sev": {
+    "C": 0,
+    "S": 3,
+    "M": 4
+   },
+   "frRatio": 0.240625
+  },
+  "ok": false
+ },
+ {
+  "model": "z-ai/glm-5.3-prime",
+  "synthetic": {
+   "ok": false,
+   "http": 200,
+   "ms": 122589,
+   "cost": 0.10712544,
+   "finish": "length",
+   "jsonModeRejected": false,
+   "tokensOut": 12000
+  },
+  "real": {
+   "ok": true,
+   "http": 200,
+   "ms": 64431,
+   "cost": 0.05643624,
+   "finish": "stop",
+   "jsonModeRejected": false,
+   "tokensOut": 6223,
+   "flags": 6,
+   "trust": 62,
+   "quoteFidelity": 1,
+   "sev": {
+    "C": 0,
+    "S": 3,
+    "M": 3
+   },
+   "frRatio": 0.23274161735700197
+  },
+  "ok": false
+ }
+]

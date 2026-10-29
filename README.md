@@ -14,18 +14,19 @@
 ╚═══════════════════════════════════════════════════════════════╝
 ```
 
-[![Version](https://img.shields.io/badge/version-3.2.5-F5D000?style=flat-square&labelColor=1a1a2e)](https://github.com/paulfxyz/clippy/releases/tag/v3.2.5)
+[![Version](https://img.shields.io/badge/version-3.3.0-F5D000?style=flat-square&labelColor=1a1a2e)](https://github.com/paulfxyz/clippy/releases/tag/v3.3.0)
 [![License: MIT](https://img.shields.io/badge/license-MIT-000000?style=flat-square)](https://github.com/paulfxyz/clippy/blob/main/LICENSE)
 [![Built with React](https://img.shields.io/badge/React-18-61dafb?style=flat-square&logo=react&logoColor=white&labelColor=20232a)](https://reactjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![OpenRouter](https://img.shields.io/badge/OpenRouter-API-7c3aed?style=flat-square)](https://openrouter.ai)
 [![Zero Backend](https://img.shields.io/badge/backend-zero-22c55e?style=flat-square)](https://clippy.legal)
+[![Benchmarked](https://img.shields.io/badge/benchmarked-15%20models-F5D000?style=flat-square)](./docs/BENCHMARK.md)
 [![Status](https://img.shields.io/badge/status-live-22c55e?style=flat-square)](https://clippy.legal)
 [![i18n](https://img.shields.io/badge/i18n-20%20languages-F5D000?style=flat-square)](https://clippy.legal)
 
 ![Clippy — your contract analyst](https://clippy.legal/img/logo.jpg?v=2)
 
-**Open-source, browser-only AI contract analyzer. Multi-model. Zero storage. No server. Just truth.**
+**Open-source, browser-only AI contract analyzer. Multi-model. No server, no account, nothing stored. Just truth.**
 
 [**Try it live →**](https://clippy.legal) · [Releases](https://github.com/paulfxyz/clippy/releases) · [Report Bug](https://github.com/paulfxyz/clippy/issues) · [CHANGELOG](./CHANGELOG.md) · [INSTALL](./INSTALL.md)
 
@@ -42,6 +43,8 @@
 - [Features](#features)
 - [Quick Start](#quick-start)
 - [Supported Models](#supported-models)
+- [Benchmark: October 2026](#benchmark-october-2026)
+- [What Clippy Does and Does Not Send](#what-clippy-does-and-does-not-send)
 - [Tech Stack — Every Choice Explained](#tech-stack--every-choice-explained)
 - [Architecture](#architecture)
 - [The Legal Context](#the-legal-context)
@@ -86,7 +89,7 @@ Clippy lets you upload any contract — PDF, DOCX, TXT, or Markdown — and have
 
 You choose which AI models to run. You choose which analysis objectives matter — GDPR compliance? Non-compete enforceability? Hidden fees? Unlimited IP assignment? The models run in parallel. Results appear live. You can download a PDF or Markdown report, or generate a shareable URL that encodes the full results for a colleague.
 
-For under $0.15, you get the same first-pass analysis that a paralegal would charge $150 for — instantaneous, parallel across 8 models, with specific clause quotation and severity tagging.
+A typical contract costs a few cents to analyze with the two default models (about $0.05 combined in our [October 2026 benchmark](./docs/BENCHMARK.md)), or under a cent with the budget models. You get a fast first pass with clause quotes and severity tags. It is a first pass, not legal advice: see [Limitations of AI Contract Analysis](#limitations-of-ai-contract-analysis).
 
 ---
 
@@ -126,7 +129,7 @@ The name is also a small act of reclamation. Clippy was mocked into retirement i
 ## Features
 
 ### Core
-- **Multi-model analysis** — Run up to 8 AI models simultaneously (Claude, GPT, Gemini, Mistral, Llama, DeepSeek)
+- **Multi-model analysis** — Run up to 8 current frontier models simultaneously (Claude, GPT, Gemini, Mistral, Grok, DeepSeek), with price and speed hints on every model chip
 - **Parallel execution** — All selected models run concurrently via `Promise.allSettled()`, not sequentially
 - **Trust Score** — A 0–100 score per model with animated ring visualization, color-coded by tier
 - **5 analysis dimensions** — Transparency, Balance, Legal Compliance, Financial Risk, Exit Freedom — each scored 0–100
@@ -139,10 +142,10 @@ The name is also a small act of reclamation. Clippy was mocked into retirement i
 - **Custom prompt creation** — "Add custom objective" creates a blank prompt in your session
 
 ### Privacy & Architecture
-- **Zero backend** — no server, no database, no account, no logs
+- **Zero backend** — the shipped site is static files: no server, no database, no account, no logs. (The repository still contains an unused Express/Drizzle scaffold from the project template under `server/`; it is not part of the deployed site.)
 - **Files never leave your browser** — contract text is extracted client-side; only the text (not the file) goes to OpenRouter
 - **AES-GCM API key encryption** — key is encrypted in browser memory (Web Crypto API) as soon as you lock it; decrypted just-in-time before each call
-- **No analytics, no tracking, no cookies**
+- **No analytics, no tracking, no cookies, no third-party requests while you work** — fonts and the PDF worker are bundled with the app (v3.3.0). Details and the one remaining request are in [What Clippy Does and Does Not Send](#what-clippy-does-and-does-not-send).
 
 ### Export & Share
 - **PDF export** — jsPDF text-based report with cover page, trust score badges, dimension bars, flagged clause cards
@@ -163,6 +166,8 @@ The name is also a small act of reclamation. Clippy was mocked into retirement i
 - **Locale detection priority** — `?lang=XX` URL param → `localStorage` → browser language → English fallback
 - **Locale-aware AI output** — analysis results delivered in the active UI language
 - **Demo modal** — "See Demo" hero slideshow translated in all 20 languages
+- **Verified completeness** — `npm run check:i18n` fails the build if any of the 20 locales misses a key or has a broken `{{placeholder}}`
+- **AI-translated, AI-reviewed** — the translations were produced by an LLM and reviewed by a second LLM from a different vendor (`script/i18n-sync.mjs`), not by native-speaker professionals. Native-speaker corrections are very welcome via pull request
 
 ---
 
@@ -206,22 +211,55 @@ https://clippy.legal?lang=id   → Bahasa Indonesia
 
 ## Supported Models
 
-Current model list (v3.2.5), via [OpenRouter](https://openrouter.ai):
+Model list in v3.3.0 (checked against OpenRouter on 29 October 2026), via [OpenRouter](https://openrouter.ai). Cost and time are measured per analysis of a short contract in our [benchmark](./docs/BENCHMARK.md) and will vary with document length.
 
-| Model | Provider | Default | JSON Mode | Notes |
-|-------|----------|---------|-----------|-------|
-| `anthropic/claude-3.7-sonnet` | Anthropic | ✅ #1 | Prompt-only | Fast, excellent reasoning |
-| `anthropic/claude-3.5-haiku` | Anthropic | — | Prompt-only | Cheapest Anthropic option |
-| `openai/gpt-4.1` | OpenAI | ✅ #2 | `response_format` | Strong JSON compliance |
-| `openai/gpt-4.1-mini` | OpenAI | — | `response_format` | Good value |
-| `google/gemini-2.5-pro` | Google | — | Prompt-only | 1M context window |
-| `mistralai/mistral-large-2512` | Mistral | — | Prompt-only | Strong EU legal context |
-| `meta-llama/llama-3.3-70b-instruct` | Meta | — | Prompt-only | Open weights |
-| `deepseek/deepseek-r1` | DeepSeek | — | Prompt-only | Chain-of-thought reasoning |
+| Model | Provider | Default | Typical cost | Typical time | Best for |
+|-------|----------|---------|--------------|--------------|----------|
+| `anthropic/claude-sonnet-5.5` | Anthropic | Yes | ~$0.04 | ~20 s | Best all-round |
+| `openai/gpt-6.1-terra` | OpenAI | Yes | ~$0.009 | ~20 s | Fast and inexpensive, a second opinion from another vendor |
+| `google/gemini-4-argon` | Google | — | ~$0.02 | ~30 s | Alternative vendor, long context |
+| `anthropic/claude-haiku-5.5` | Anthropic | — | ~$0.004 | ~25 s | Budget |
+| `mistralai/mistral-large-4-0` | Mistral | — | ~$0.03 | ~50 s | EU vendor |
+| `deepseek/deepseek-v4.1-flash-1017` | DeepSeek | — | ~$0.003 | ~40 s | Budget alternative |
+| `x-ai/grok-4.7` | xAI | — | ~$0.03 | ~65 s | Alternative vendor |
+| `anthropic/claude-opus-5.5` | Anthropic | — | ~$0.11 | ~40 s | Deepest analysis |
 
-**JSON mode:** OpenAI models receive `response_format: { type: "json_object" }`. All other models receive a prompt instruction to output valid JSON. This is gated on a `JSON_MODE_MODELS` prefix whitelist in `openrouter.ts` — see [War Stories #3](#3-response_format-is-openai-only) for why.
+**JSON mode.** Every model is sent `response_format: { type: "json_object" }`. If a provider rejects it (HTTP 400 mentioning `response_format`), Clippy retries once without it and relies on the prompt instruction and the fallback parser. The earlier `JSON_MODE_MODELS` allow-list is gone: in the October 2026 benchmark all 15 models accepted the parameter. See [War Story 3](#3-response_format-is-openai-only) for the history.
 
-**Model IDs go stale.** OpenRouter renames IDs as providers release new versions. The IDs above were verified against the live [OpenRouter models endpoint](https://openrouter.ai/api/v1/models) in April 2026. If a model returns "No endpoints found," check the live endpoint and update `AVAILABLE_MODELS` in `openrouter.ts`.
+**Model IDs go stale; v3.3.0 notices.** On load, Clippy makes one anonymous request to OpenRouter's public [models endpoint](https://openrouter.ai/api/v1/models) and greys out any model in the picker that no longer exists, instead of letting you pick a retired model and fail. If that request fails (offline, blocked), the app simply behaves as if every model were available. A retired model that gets through still produces a clear "model no longer available" message rather than a raw API error.
+
+---
+
+## Benchmark: October 2026
+
+We ran 15 current OpenRouter models through Clippy's production prompt on a synthetic contract with 10 planted problems and 5 decoys, and on a real excerpt of the Google Terms of Service. Full method, table, failure modes and raw data: **[docs/BENCHMARK.md](./docs/BENCHMARK.md)**.
+
+What we found, and what we are careful not to claim:
+
+- **13 of 15 models completed both documents.** `qwen/qwen3.8-max-0902` timed out and `z-ai/glm-5.3-prime` ran out of output tokens on the synthetic contract, so neither is offered.
+- **Every completed model found all 10 planted problems at the right severity, with no false alarm on the decoys.** The honest reading is that this test is too easy to rank frontier models: it tells you that all of them are competent at spotting blatantly abusive clauses.
+- **What differs is cost and speed**: from about $0.0015 (4–9 s) to about $0.28 per analysis (50 s). `claude-fable-5.1` returned the same results as Sonnet 5.5 at roughly seven times the cost, and `kimi-k3.1-pro` was correct but needed 3–4 minutes, longer than Clippy's 120-second timeout.
+- **On the real Google excerpt the models disagree** about severity (trust scores from 45 to 66; only one model raised a CRITICAL flag). That disagreement is the reason Clippy runs several models side by side.
+- Limits: one run per model per document, two documents, my own composite score. See the caveats in the benchmark document before quoting any number.
+
+Reproduce it with `cd bench && OPENROUTER_API_KEY=... node run-benchmark.mjs fr` (about $2–3 for everything).
+
+---
+
+## What Clippy Does and Does Not Send
+
+"Private" claims deserve specifics. This is what the v3.3.0 build does, verified by loading the production build in a headless browser and recording every network request.
+
+| When | Request | Contains |
+|---|---|---|
+| Page load | `GET clippy.legal` static files (HTML, JS, CSS, fonts) | Normal web request metadata (IP address, user agent) seen by the host, as for any website |
+| Page load | `GET https://openrouter.ai/api/v1/models` | Nothing from you: a public, anonymous model catalogue lookup. Fails open |
+| Analysis | `POST https://openrouter.ai/api/v1/chat/completions` | The extracted contract text, your objectives and your API key, sent directly from your browser to OpenRouter and from there to the model provider you picked |
+| Anything else | — | No analytics, no cookies, no Google Fonts, no CDN scripts |
+
+Storage in the browser: the only item persisted is your language preference (`localStorage["clippy_locale"]`). Your API key is encrypted in memory with a session-only AES-GCM key and is never written to storage. Your contract is not stored. Share links encode the analysis results (not the contract) in the URL fragment, which browsers do not send to servers.
+
+What this does not protect against: OpenRouter and the model providers you choose see your contract text and apply their own retention and training policies. Check them before sending anything confidential. Before v3.3.0 the app also loaded about 25 Google Fonts families and had an unpkg.com fallback for the PDF worker; both are gone.
 
 ---
 
@@ -619,7 +657,7 @@ Five dimensions score each contract on a 0–100 scale:
 
 ### JSON Mode and Fallback Parsing
 
-OpenAI models receive `response_format: { type: "json_object" }`. Other models receive a prompt instruction. The fallback parser handles the common case where models wrap JSON in a Markdown code fence:
+Every model receives `response_format: { type: "json_object" }` (with a retry without it if a provider rejects the parameter) plus a prompt instruction to output JSON. The fallback parser handles the common case where models wrap JSON in a Markdown code fence:
 
 ```typescript
 const cleaned = content
@@ -711,6 +749,8 @@ Multiple models returned `"No endpoints found"` immediately after v3.1.0 launche
 
 **Lesson:** Never hard-code OpenRouter model IDs and assume permanence. Review the live endpoint each major version bump.
 
+**Update, October 2026 (v3.3.0):** it happened again, only slower. By the v3.3.0 audit the default model (`claude-3.7-sonnet`), `claude-3.5-haiku` and `deepseek-r1` no longer existed on OpenRouter, so a first-time visitor's default selection was broken. Reviewing "each major version bump" had not happened. Two fixes: the line-up was rebuilt from a [benchmark](./docs/BENCHMARK.md), and the app now checks OpenRouter's public catalogue on load and disables retired models itself.
+
 ---
 
 ### 3. `response_format` Is OpenAI-Only
@@ -724,6 +764,8 @@ After fixing model IDs, Claude, Gemini, Mistral, Llama, and DeepSeek still faile
 **Fix:** Added a `JSON_MODE_MODELS` set of OpenAI model ID prefixes. The `response_format` field is only included when the model ID starts with `openai/`. All other models receive a prompt instruction to output JSON.
 
 **Lesson:** The OpenAI Chat Completions API is a de facto standard, but its extensions are not universal. Always read each provider's specific docs before assuming OpenAI extensions work everywhere.
+
+**Update, October 2026 (v3.3.0):** this was right in April and obsolete by October. In the benchmark all 15 current models accepted `response_format`, so the `openai/`-only allow-list was silently costing every other model its structured-output guarantee. v3.3.0 sends the parameter to everyone and retries without it on a 400 that mentions it. Lesson: a workaround for a provider quirk needs an expiry date, or a test that tells you when it is no longer needed.
 
 ---
 
@@ -821,12 +863,88 @@ Analysis appeared to work in English but would crash silently when triggered wit
 
 ---
 
+### 10. Three Languages Shipped Answering in English
+
+**v3.2.4 · Turkish, Swedish and Indonesian users got English analyses**
+
+v3.2.4 added three UI languages and the README celebrated 20 languages. But the AI output language is chosen by a separate map (`LOCALE_LANGUAGE_NAMES` in `openrouter.ts`), and the three new codes were never added to it. The UI was fully Turkish; the analysis came back in English.
+
+**Why nothing caught it:** the map is typed loosely, the fallback is English, and nobody had run those three locales end to end.
+
+**Fix:** added the entries, and added `npm run check:i18n` so locale completeness is at least machine-verified for the UI strings.
+
+**Lesson:** "added a language" has more than one place to touch. A fallback that fails quietly hides exactly this class of bug.
+
+---
+
+### 11. The Build Never Type-Checked
+
+**Found in the v3.3.0 audit**
+
+`npm run build` runs Vite, and Vite strips types without checking them. The project had a `check` script (`tsc`), but nothing ran it before a release, so type errors could have shipped unnoticed (none turned up in this audit, but nothing was guarding against it).
+
+**Fix:** `npm run check` now runs `tsc` and the i18n completeness check; run it before every release.
+
+---
+
+### 12. A Trust Score of Zero Became 50
+
+**Found in the v3.3.0 audit**
+
+The normalisation of a model's `trustScore` used `Number(value) || 50`. In JavaScript, `0 || 50` is `50`. So the worst possible contract, the one a model scored 0, was displayed as a mediocre 50. Only a model answering a genuinely abusive contract with a zero would trigger it, which is why nobody noticed. The benchmark's synthetic contract is abusive on purpose (scores of 3–12), and that is what made the pattern worth checking.
+
+**Fix:** explicit finite-number checks with a clamp to 0–100.
+
+**Lesson:** `||` is not a default operator for numbers. Use `??` or an explicit check.
+
+---
+
+### 13. The Stale "90 Seconds" and the 3-Minute Models
+
+**Found in the v3.3.0 audit**
+
+The timeout had been raised to 120 s in v3.2.2, but the user-facing message still said 90 s. Worse, the benchmark showed that some strong models legitimately need more than 120 s on a long contract (Kimi K3.1 Pro: 197–226 s; Qwen 3.8 Max: 214 s). A single `REQUEST_TIMEOUT_MS` constant now drives both the timeout and the message, and models slower than the timeout are simply not offered.
+
+---
+
+### 14. Claiming "Privacy" While Loading Google Fonts
+
+**Found in the v3.3.0 audit**
+
+Auditing the README's claims against the network log: the site said "nothing leaves your browser, no tracking", yet `index.html` requested roughly 25 Google Fonts families (only two were used), which tells Google that someone opened Clippy, and a PDF-worker fallback pointed at unpkg.com. Neither touched the contract, but they undercut the point of the promise.
+
+**Fix:** the two fonts actually used are now bundled (`@fontsource-variable`), the CDN fallback is removed, an unused UI component that wrote a cookie was deleted, and the README now has an exact table of what the app sends and when. The absolute wording ("zero storage", "no cookies") was replaced with what is true: only the language preference is stored.
+
+**Lesson:** a privacy claim is a testable statement. Test it with the network tab, not with the README.
+
+---
+
+### 15. I Mis-Diagnosed the Translations
+
+**Found, and corrected, during the v3.3.0 audit**
+
+While preparing v3.3.0's new interface strings I wrote a script to find missing translations. It reported that 15 of 20 languages were missing more than half of their keys, and I started translating them with an LLM. Then the type-checker failed with dozens of duplicate keys. The cause was my script, not the locales: 15 locale blocks pack several `"key": "value"` pairs on one line, and my parser only read the first pair on each line. Every language was in fact complete apart from the strings added in this release. I discarded the output (about 64 US cents of wasted translation calls), fixed the parser, and re-ran only the 15 genuinely new strings.
+
+**Lesson:** when a check reports something dramatic about your own project, suspect the check first. A type-checker was the only thing between that mistake and production, which is a good argument for story 11.
+
+---
+
+### 16. English Hidden Inside Translated Pages
+
+**Found in the v3.3.0 audit**
+
+Beyond missing keys, a visual check of the Arabic page showed English: the step labels ("Setup / Objectives / Results") and the header tagline were hard-coded in the components, even though translations of the step labels already existed in all 20 locales and were simply never used. A key-parity check cannot see strings that never go through `t()`. Fixed, plus a new `nav.tagline` key in all 20 languages. Models' own output language is a separate story (see 10).
+
+**Lesson:** completeness checks on dictionaries prove the dictionary is complete, not that the app uses it. Look at the rendered page in an RTL and a non-Latin language.
+
+---
+
 ## Project Structure
 
 ```
 clippy/
 ├── client/
-│   ├── index.html                    # Vite entry point + no-cache meta + font preloads
+│   ├── index.html                    # Vite entry point + no-cache meta (fonts are bundled via main.tsx)
 │   ├── public/
 │   │   └── .htaccess                 # MIME types (.mjs → text/js) + cache headers
 │   └── src/
@@ -837,7 +955,7 @@ clippy/
 │       │   ├── TrustScoreRing.tsx    # Animated SVG progress ring (stroke-dashoffset)
 │       │   └── LanguageSwitcher.tsx  # Flag grid dropdown for 20 locales
 │       ├── lib/
-│       │   ├── openrouter.ts         # API client, model registry, system prompt, JSON mode gating
+│       │   ├── openrouter.ts         # API client, model registry + live catalogue check, system prompt, retries
 │       │   ├── fileParser.ts         # PDF (blob URL worker) + DOCX (mammoth) + TXT extraction
 │       │   ├── encryption.ts         # AES-GCM 256-bit key encryption via Web Crypto API
 │       │   ├── prompts.ts            # 10 curated analysis objectives, 5 categories
@@ -849,7 +967,13 @@ clippy/
 │           └── ShareView.tsx         # Read-only shared result viewer
 ├── shared/
 │   └── schema.ts                     # Shared TypeScript types (AppState, ModelResult, SharePayload)
-├── server/                           # Express dev scaffold (not used in production)
+├── server/                           # Express dev scaffold from the project template (not used in production)
+├── script/
+│   ├── i18n-check.mjs                # `npm run check:i18n` — 20 locales × all keys, placeholders
+│   ├── i18n-sync.mjs                 # LLM translate + cross-vendor review of missing keys (OpenRouter)
+│   └── i18n-lib.mjs                  # locale-block parser shared by both
+├── bench/                            # Benchmark harness, ground truth, raw results
+├── docs/BENCHMARK.md                 # Methodology, results, caveats
 ├── CHANGELOG.md
 ├── CONTRIBUTING.md
 ├── INSTALL.md
@@ -871,10 +995,14 @@ clippy/
   provider: "Provider Name",   // shown as label
   description: "Short desc",   // tooltip / card description
   icon: "P",                   // single letter avatar fallback
+  tag: "balanced",             // balanced | fast | deep | budget | longctx | eu | alt
+  costPerAnalysis: 0.02,       // USD, shown on the chip (measure it: bench/)
+  seconds: 30,                 // typical time, shown in the tooltip
+  context: 200_000,            // context window in tokens
 }
 ```
 
-3. If the model is OpenAI-compatible and supports `response_format`, add its prefix to `JSON_MODE_MODELS` in the same file.
+3. Measure it first: `cd bench && OPENROUTER_API_KEY=... node run-benchmark.mjs fr your/model-id` and look at validity, time and cost. A model that needs more than 120 seconds will time out in the app.
 
 That's it. The model appears in the grid automatically. Find current IDs at [openrouter.ai/models](https://openrouter.ai/models).
 
@@ -908,21 +1036,21 @@ That's it. The model appears in the grid automatically. Find current IDs at [ope
 
 ## Cost Estimates
 
-Approximate cost per model for a 5,000-word contract (3 default prompts, ~8k tokens in, ~1.5k out):
+Measured per analysis in the [October 2026 benchmark](./docs/BENCHMARK.md) (a ~2,500-word contract, all built-in objectives in one request, French output; mean of two documents):
 
-| Model | Estimated cost |
+| Model | Cost per analysis |
 |-------|---------------|
-| `claude-3.5-haiku` | ~$0.002 |
-| `gpt-4.1-mini` | ~$0.002 |
-| `llama-3.3-70b-instruct` | ~$0.003 |
-| `mistral-large-2512` | ~$0.008 |
-| `gemini-2.5-pro` | ~$0.012 |
-| `gpt-4.1` | ~$0.030 |
-| `claude-3.7-sonnet` | ~$0.035 |
+| `minimax/minimax-m3.1-flash` (benchmarked, not in picker) | ~$0.0015 |
+| `deepseek-v4.1-flash-1017` | ~$0.003 |
+| `claude-haiku-5.5` | ~$0.004 |
+| `gpt-6.1-terra` | ~$0.009 |
+| `gemini-4-argon` | ~$0.02 |
+| `mistral-large-4-0` | ~$0.03 |
+| `grok-4.7` | ~$0.03 |
+| `claude-sonnet-5.5` | ~$0.04 |
+| `claude-opus-5.5` | ~$0.11 |
 
-Running all 8 models: roughly **$0.10–0.15** total. The two cheapest models (Haiku + GPT-4.1 Mini) together cost under $0.01. Enabling additional objectives (Step 2) increases input tokens proportionally.
-
-Prices change. Check [openrouter.ai/models](https://openrouter.ai/models) for current pricing.
+The two default models together cost about $0.05; running all eight picker models costs roughly $0.30. Longer contracts and more objectives increase input tokens roughly proportionally, and long outputs (the cost driver for the cheap models) grow with the number of flagged clauses. Prices change; check [openrouter.ai/models](https://openrouter.ai/models) for current pricing.
 
 ---
 
@@ -939,8 +1067,10 @@ Prices change. Check [openrouter.ai/models](https://openrouter.ai/models) for cu
 - [x] v3.2.3 — Full code audit, improved JSDoc, comprehensive README rewrite
 - [x] v3.2.4 — 20 languages (added Turkish 🇹🇷, Swedish 🇸🇪, Indonesian 🇮🇩), README mega-rewrite with screenshots
 - [x] v3.2.5 — Clippy shows "analyzing" message while working, switches to results message when done
+- [x] v3.3.0 — Audit release: current model line-up chosen from a 15-model benchmark, retired-model detection, truthful privacy (self-hosted fonts, no CDN fallback), locale-aware AI output fixed for Turkish/Swedish/Indonesian, hard-coded English removed, i18n and type checks (`npm run check`)
 
 ### Planned
+- [ ] A harder benchmark: subtle, cross-referenced and combination issues, several runs per model, native-speaker review of AI translations
 - [ ] Side-by-side diff view between model results
 - [ ] Clause-by-clause highlighting (map flagged clauses back to source text)
 - [ ] Template prompt sets (SaaS ToS, employment, real estate, NDA)

@@ -145,10 +145,10 @@ export async function extractTextFromFile(file: File): Promise<string> {
  * WORKER STRATEGY
  * ---------------
  * pdf.js requires a Web Worker to do the heavy decoding off the main thread.
- * Rather than bundling the worker (~400KB), we load it from the cdnjs CDN.
- * This keeps the main bundle small but requires an internet connection.
- * The version MUST match the installed pdfjs-dist npm package version —
- * check package.json if you update pdfjs-dist.
+ * The worker ships inside the app bundle (pdfjs-dist/build/pdf.worker.min.mjs,
+ * resolved by Vite) and is loaded through a blob: URL. No CDN is involved, so
+ * reading a PDF never triggers a third-party request (cdnjs/unpkg were used
+ * before v3.3.0). The worker and library always match — same npm package.
  *
  * SCANNED PDF DETECTION
  * ---------------------
@@ -186,8 +186,10 @@ async function extractFromPDF(file: File): Promise<string> {
   // This bypasses the server's MIME type entirely — the browser gets the script
   // content inline, with the MIME type we set, and loads it happily as a worker.
   //
-  // Fallback: if the fetch fails (offline, CSP, etc.), we fall back to the
-  // CDN version with a pinned version matching the installed pdfjs-dist.
+  // v3.3.0: there is NO CDN fallback any more. Earlier versions fell back to
+  // unpkg.com, which meant a third-party request could happen while reading a
+  // contract — at odds with the "nothing leaves your browser" promise. The worker
+  // ships with the app bundle, so if it cannot load we say so instead.
   // ─────────────────────────────────────────────────────────────────────────
   const workerUrl = new URL(
     "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -201,11 +203,11 @@ async function extractFromPDF(file: File): Promise<string> {
     const workerBlob = new Blob([workerText], { type: "text/javascript" });
     const blobUrl = URL.createObjectURL(workerBlob);
     GlobalWorkerOptions.workerSrc = blobUrl;
-  } catch {
-    // Fallback: unpkg CDN with pinned version matching installed pdfjs-dist
-    // (cdnjs only has up to 5.4.x; unpkg always has the exact version)
-    GlobalWorkerOptions.workerSrc =
-      `https://unpkg.com/pdfjs-dist@5.6.205/build/pdf.worker.min.mjs`;
+  } catch (err: any) {
+    throw new Error(
+      `Could not load the bundled PDF reader (${err?.message || "unknown error"}). ` +
+      "Reload the page, or paste the contract text directly."
+    );
   }
 
   // Convert File to ArrayBuffer — required by pdf.js

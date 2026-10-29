@@ -386,7 +386,7 @@ docker run -p 8080:80 clippy
 
 - Ensure the PDF is not password-protected. pdf.js cannot decrypt encrypted PDFs without the user password.
 - Very scanned-only PDFs (images without text layers) will return empty text. Clippy needs machine-readable text.
-- If the pdf.js CDN worker fails to load (offline environment), PDF parsing will fail. Use TXT export as a fallback.
+- Since v3.3.0 the PDF worker and fonts are bundled, so the app works offline apart from the OpenRouter calls themselves. If the bundled PDF reader fails to load, reload the page or paste the contract as TXT.
 
 ### "Model returned invalid JSON"
 

@@ -182,7 +182,7 @@ export default function ShareView() {
             </svg>
             <span className="font-bold text-base tracking-tight">{t("nav.brand")}</span>
             <span className="hidden sm:inline text-muted-foreground text-sm select-none">·</span>
-            <span className="hidden sm:inline text-xs text-muted-foreground tracking-wide">your contract analyst</span>
+            <span className="hidden sm:inline text-xs text-muted-foreground tracking-wide">{t("nav.tagline")}</span>
             {/* "shared report" badge — translated */}
             <Badge variant="secondary" className="text-xs hidden sm:inline-flex">
               {t("nav.shared_badge")}

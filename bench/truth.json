@@ -1,0 +1,21 @@
+{
+ "planted": [
+  {"id":"auto-renewal","re":"automatically renew|ninety \\(90\\)|registered letter|will not send any reminder","sev":"CRITICAL"},
+  {"id":"unilateral-price","re":"change the fees at any time|continued use of the Service after any change","sev":"CRITICAL"},
+  {"id":"vendor-terminate-no-exit","re":"terminate this Agreement at any time|may not terminate this Agreement for convenience|without refund","sev":"SUSPECT"},
+  {"id":"ip-assignment","re":"irrevocably assigns|in perpetuity and throughout the universe","sev":"SUSPECT"},
+  {"id":"data-sale","re":"sell, license or share|retain all Customer data indefinitely|without further notice or consent","sev":"CRITICAL"},
+  {"id":"non-compete","re":"anywhere in the world|compete with Northbeam|No compensation is payable","sev":"SUSPECT"},
+  {"id":"unlimited-customer-liability","re":"without limitation as to amount|liability under this Agreement is unlimited|indemnify and hold harmless","sev":"CRITICAL"},
+  {"id":"vendor-cap-death","re":"one euro|death or personal injury","sev":"CRITICAL"},
+  {"id":"arbitration-class-waiver","re":"binding individual arbitration|class action|small-claims","sev":"CRITICAL"},
+  {"id":"governing-law-strip","re":"laws of the State of Delaware|exclusive jurisdiction|notwithstanding any mandatory consumer","sev":"SUSPECT"}
+ ],
+ "decoys": [
+  {"id":"payment-30d","re":"within thirty \\(30\\) days of the invoice|statutory rate"},
+  {"id":"confidentiality","re":"keep confidential|survives for three"},
+  {"id":"notices-email","re":"Notices may be given by email|twenty-four"},
+  {"id":"force-majeure","re":"beyond its reasonable control|natural disasters"},
+  {"id":"entire-agreement","re":"entire agreement"}
+ ]
+}

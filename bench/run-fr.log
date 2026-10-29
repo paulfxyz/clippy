@@ -1,0 +1,28 @@
+anthropic/claude-sonnet-5.5 [real] http=200 json=true 18400ms $0.036756 
+anthropic/claude-sonnet-5.5 [synthetic] http=200 json=true 19906ms $0.039388 
+anthropic/claude-opus-5.5 [real] http=200 json=true 44299ms $0.115272 
+anthranthropic/claude-haiku-5.5 [real] http=200 json=true 24072ms $0.0032393 
+anthropic/claude-opus-5.5 [real] http=200 json=true 46178ms $0.122792 
+anthropic/claude-haiku-5.5 [synthetic] http=200 json=true 28824ms $0.0041039 
+anthropic/claude-fable-5.1 [real] http=200 json=true 47703ms $0.25423 
+anthropic/claude-fable-5.1 [synthetic] http=200 json=true 57326ms $0.29594 
+openai/gpt-6.1-terra [real] http=200 json=true 17416ms $0.00761335 
+openai/gpt-6.1-sol [real] http=200 json=true 21573ms $0.0122567 
+openai/gpt-6.1-terra [synthetic] http=200 json=true 26288ms $0.01420425 
+mistralai/mistral-large-4-0 [synthetic] http=429 json=undefined 383ms $undefined Provider returned error
+mistralai/mistral-large-4-0 [real] http=429 json=undefined 491ms $undefined Provider returned erropeopenai/gpt-6.1-sol [synthetic] http=200 json=true 33770ms $0.0230621 
+google/gemini-4-argon [real] http=200 json=true 21557ms $0.019136 
+google/gemini-4-argon [synthetic] http=200 json=true 38140ms $0.02699 
+deepseek/deepseek-v4.1-flash-1017 [synthetic] http=200 json=true 24619ms $0.001862586 x-ai/grok-4.7 [synthetic] http=200 json=true 48707ms $0.024556 
+deepseek/deepseek-v4.1-flash-1017 [real] http=200 json=true 50000ms $0.00312285 
+qwen/qwen3.8-max-0902 [synthetic] http=0 json=undefined 5739z-ai/glm-5.3-prime [synthetic] http=200 json=false 124199ms $0.1122864 
+z-ai/glm-5.3-prime [real] http=200 json=true 86502ms $0.0771044 
+meta/muse-spark-open [synthetic] http=200 json=true 25295ms $0.0114444 
+minimax/minimax-m3.1-flash [synthetic] http=200 json=true 13710ms $0.00169488 
+minimax/minimax-m3.1-flash [real] http=200 json=true 5195ms $0.00129945 
+meta/muse-spark-open [real] http=200 json=true 35589ms $0.0101514 
+moonshotai/kimi-k3.1-pro [real] http=200 json=true 188147ms $0.061514 
+moonshotai/kimi-k3.1-pro [synthetic] http=200 json=true 238732ms $0.089296 
+qwen/qwen3.8-max-0902 [synthetic] http=0 json=undefined 240003ms $undefined AbortError: This operation was aborted
+qqwen/qwen3.8-max-0902 [real] http=0 json=undefined 240002ms $undefined AbortError: This operation was aborted
+done 30

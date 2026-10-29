@@ -54,8 +54,8 @@ The dev server runs at `http://localhost:5000`. All changes to `client/src/` hot
 - Every function exported from `lib/` should have a JSDoc block
 
 ### Git
-- Branch names: `feat/dark-mode-toggle`, `fix/pdf-worker-cdn`, `docs/install-fly-io`
-- Commit messages: imperative mood, concise — "Add dark mode toggle", "Fix pdf.js CDN worker loading"
+- Branch names: `feat/dark-mode-toggle`, `fix/pdf-worker-load`, `docs/install-fly-io`
+- Commit messages: imperative mood, concise — "Add dark mode toggle", "Fix pdf.js worker loading"
 - One concern per PR
 
 ---
@@ -73,11 +73,15 @@ export const AVAILABLE_MODELS = [
     provider: "Provider Name",
     description: "One sentence about strengths",
     icon: "P",                    // Single letter, shown in avatar
+    tag: "balanced",              // balanced | fast | deep | budget | longctx | eu | alt
+    costPerAnalysis: 0.02,        // USD, measured
+    seconds: 30,                  // typical time, measured
+    context: 200_000,
   },
 ];
 ```
 
-Test it locally, open a PR with the model name in the title.
+Please measure the model first (`cd bench && OPENROUTER_API_KEY=... node run-benchmark.mjs fr provider/model-name`) and include validity, time and cost in the PR. Models slower than the 120-second request timeout cannot be offered.
 
 ---
 
@@ -87,7 +91,9 @@ Test it locally, open a PR with the model name in the title.
 2. Create a branch: `git checkout -b feat/your-feature`
 3. Make your changes
 4. Test locally with `npm run dev`
-5. Build to verify no TypeScript errors: `npm run build`
+5. Run `npm run check` (type-check plus the i18n completeness check: every locale must have every key) and then `npm run build`
+
+**Translations:** adding a UI string means adding it to all 20 locales. `npm run i18n:sync` (needs `OPENROUTER_API_KEY`) drafts the missing ones with an LLM and has a second model review them; native-speaker corrections to any language are very welcome.
 6. Push and open a PR against `main`
 
 PRs should include:

@@ -1,0 +1,337 @@
+[
+ {
+  "model": "mistralai/mistral-large-4-0",
+  "contract": "real",
+  "locale": "fr",
+  "httpStatus": 200,
+  "ms": 39031,
+  "jsonModeRejected": false,
+  "finish": "stop",
+  "provider": "Mistral",
+  "cost": 0.02678926,
+  "tokensIn": 2477,
+  "tokensOut": 5603,
+  "reasoningTokens": 4487,
+  "raw": "{\n  \"trustScore\": 45,\n  \"summary\": \"Conditions d'utilisation standard de Google accordant à l'entreprise des droits très larges sur le contenu des utilisateurs, notamment pour le développement de l'IA, avec des possibilités de modification unilatérale des services. Risque élevé concernant la conformité au RGPD et l'utilisation des données pour l'entraînement de modèles d'intelligence artificielle.\",\n  \"jurisdiction\": \"California, USA (Delaware)\",\n  \"dimensions\": [\n    {\n      \"name\": \"Transparency\",\n      \"score\": 70,\n      \"label\": \"Passable\",\n      \"note\": \"Le contrat est rédigé en langage relativement clair mais contient des termes juridiques larges comme 'développer de nouvelles technologies' qui masquent l'ampleur réelle de l'utilisation des données pour l'IA.\"\n    },\n    {\n      \"name\": \"Balance\",\n      \"score\": 35,\n      \"label\": \"Déséquilibré\",\n      \"note\": \"Google obtient une licence mondiale, perpétuelle et gratuite sur tout le contenu utilisateur tout en conservant le droit de modifier unilatéralement les services et les fonctionnalités.\"\n    },\n    {\n      \"name\": \"Legal Compliance\",\n      \"score\": 40,\n      \"label\": \"Douteux\",\n      \"note\": \"L'utilisation du contenu pour l'entraînement de l'IA et la durée perpétuelle de la licence posent des problèmes sérieux au regard du RGPD et de la directive européenne sur les clauses abusives.\"\n    },\n    {\n      \"name\": \"Financial Risk\",\n      \"score\": 60,\n      \"label\": \"Modéré\",\n      \"note\": \"L'utilisateur supporte tous les coûts de connexion réseau, y compris pour l'utilisation en arrière-plan des services lorsque l'utilisateur n'est pas activement engagé.\"\n    },\n    {\n      \"name\": \"Exit Freedom\",\n      \"score\": 65,\n      \"label\": \"Raisonnable\",\n      \"note\": \"Google Takeout permet d'exporter ses données, bien que la licence persiste tant que les droits de propriété intellectuelle existent sur le contenu.\"\n    }\n  ],\n  \"flags\": [\n    {\n      \"id\": \"licence-ia-developpement\",\n      \"title\": \"Licence perpétuelle pour l'entraînement de l'IA\",\n      \"description\": \"La licence accordée à Google permet d'utiliser votre contenu pour 'développer de nouvelles technologies et services', ce qui inclut l'entraînement de modèles d'intelligence artificielle. Cette autorisation très large soulève des questions majeures au regard du RGPD (absence de base légale spécifique pour le traitement à des fins d'IA) et constitue un déséquilibre significatif au sens de la directive 93/13/CEE sur les clauses abusives.\",\n      \"severity\": \"CRITICAL\",\n      \"quote\": \"developing new technologies and services for Google consistent with these terms\"\n    },\n    {\n      \"id\": \"modification-unilaterale-services\",\n      \"title\": \"Modification unilatérale des services\",\n      \"description\": \"Google se réserve le droit d'ajouter ou supprimer des fonctionnalités, modifier les limites ou arrêter des services avec seulement un 'préavis raisonnable' pour les changements négatifs majeurs. Cette clause figure sur la liste grise de la directive 93/13/CEE concernant les clauses abusives et permet une modification unilatérale substantielle du contrat.\",\n      \"severity\": \"SUSPECT\",\n      \"quote\": \"we sometimes add or remove features and functionalities, increase or decrease limits to our services...\"\n    },\n    {\n      \"id\": \"licence-perpetuelle-suppression\",\n      \"title\": \"Licence perpétuelle survivant à la suppression\",\n      \"description\": \"La licence dure 'tant que votre contenu est protégé par des droits de propriété intellectuelle', ce qui signifie qu'elle peut persister indéfiniment même après la suppression du contenu, avec des exceptions pour le contenu déjà partagé. Cela entre potentiellement en conflit avec le droit à l'effacement du RGPD (article 17) et crée un déséquilibre dans la durée des obligations.\",\n      \"severity\": \"SUSPECT\",\n      \"quote\": \"This license lasts for as long as your content is protected by intellectual property rights\"\n    },\n    {\n      \"id\": \"interdiction-reverse-engineering\",\n      \"title\": \"Interdiction large du reverse engineering\",\n      \"description\": \"L'interdiction de 'reverse engineering' s'étend aux modèles d'apprentissage automatique pour extraire des secrets commerciaux, ce qui peut entraver la recherche en sécurité et l'interopérabilité, bien qu'une exception existe pour ce qui est 'autorisé par la loi applicable'. Cette restriction est inhabituellement large pour un contrat de consommation.\",\n      \"severity\": \"MINOR\",\n      \"quote\": \"reverse engineering our services or underlying technology, such as our machine learning models, to extract trade secrets\"\n    },\n    {\n      \"id\": \"couts-reseau-utilisateur\",\n      \"title\": \"Responsabilité totale des coûts réseau\",\n      \"description\": \"L'utilisateur est responsable de tous les coûts de données cellulaires et Wi-Fi, y compris lorsque les services utilisent Internet 'lorsque vous n'êtes pas activement engagé', ce qui peut entraîner des frais inattendus et incontrôlables.\",\n      \"severity\": \"MINOR\",\n      \"quote\": \"You're responsible for all of these network usages and associated costs\"\n    }\n  ]\n}",
+  "parsed": {
+   "trustScore": 45,
+   "summary": "Conditions d'utilisation standard de Google accordant à l'entreprise des droits très larges sur le contenu des utilisateurs, notamment pour le développement de l'IA, avec des possibilités de modification unilatérale des services. Risque élevé concernant la conformité au RGPD et l'utilisation des données pour l'entraînement de modèles d'intelligence artificielle.",
+   "jurisdiction": "California, USA (Delaware)",
+   "dimensions": [
+    {
+     "name": "Transparency",
+     "score": 70,
+     "label": "Passable",
+     "note": "Le contrat est rédigé en langage relativement clair mais contient des termes juridiques larges comme 'développer de nouvelles technologies' qui masquent l'ampleur réelle de l'utilisation des données pour l'IA."
+    },
+    {
+     "name": "Balance",
+     "score": 35,
+     "label": "Déséquilibré",
+     "note": "Google obtient une licence mondiale, perpétuelle et gratuite sur tout le contenu utilisateur tout en conservant le droit de modifier unilatéralement les services et les fonctionnalités."
+    },
+    {
+     "name": "Legal Compliance",
+     "score": 40,
+     "label": "Douteux",
+     "note": "L'utilisation du contenu pour l'entraînement de l'IA et la durée perpétuelle de la licence posent des problèmes sérieux au regard du RGPD et de la directive européenne sur les clauses abusives."
+    },
+    {
+     "name": "Financial Risk",
+     "score": 60,
+     "label": "Modéré",
+     "note": "L'utilisateur supporte tous les coûts de connexion réseau, y compris pour l'utilisation en arrière-plan des services lorsque l'utilisateur n'est pas activement engagé."
+    },
+    {
+     "name": "Exit Freedom",
+     "score": 65,
+     "label": "Raisonnable",
+     "note": "Google Takeout permet d'exporter ses données, bien que la licence persiste tant que les droits de propriété intellectuelle existent sur le contenu."
+    }
+   ],
+   "flags": [
+    {
+     "id": "licence-ia-developpement",
+     "title": "Licence perpétuelle pour l'entraînement de l'IA",
+     "description": "La licence accordée à Google permet d'utiliser votre contenu pour 'développer de nouvelles technologies et services', ce qui inclut l'entraînement de modèles d'intelligence artificielle. Cette autorisation très large soulève des questions majeures au regard du RGPD (absence de base légale spécifique pour le traitement à des fins d'IA) et constitue un déséquilibre significatif au sens de la directive 93/13/CEE sur les clauses abusives.",
+     "severity": "CRITICAL",
+     "quote": "developing new technologies and services for Google consistent with these terms"
+    },
+    {
+     "id": "modification-unilaterale-services",
+     "title": "Modification unilatérale des services",
+     "description": "Google se réserve le droit d'ajouter ou supprimer des fonctionnalités, modifier les limites ou arrêter des services avec seulement un 'préavis raisonnable' pour les changements négatifs majeurs. Cette clause figure sur la liste grise de la directive 93/13/CEE concernant les clauses abusives et permet une modification unilatérale substantielle du contrat.",
+     "severity": "SUSPECT",
+     "quote": "we sometimes add or remove features and functionalities, increase or decrease limits to our services..."
+    },
+    {
+     "id": "licence-perpetuelle-suppression",
+     "title": "Licence perpétuelle survivant à la suppression",
+     "description": "La licence dure 'tant que votre contenu est protégé par des droits de propriété intellectuelle', ce qui signifie qu'elle peut persister indéfiniment même après la suppression du contenu, avec des exceptions pour le contenu déjà partagé. Cela entre potentiellement en conflit avec le droit à l'effacement du RGPD (article 17) et crée un déséquilibre dans la durée des obligations.",
+     "severity": "SUSPECT",
+     "quote": "This license lasts for as long as your content is protected by intellectual property rights"
+    },
+    {
+     "id": "interdiction-reverse-engineering",
+     "title": "Interdiction large du reverse engineering",
+     "description": "L'interdiction de 'reverse engineering' s'étend aux modèles d'apprentissage automatique pour extraire des secrets commerciaux, ce qui peut entraver la recherche en sécurité et l'interopérabilité, bien qu'une exception existe pour ce qui est 'autorisé par la loi applicable'. Cette restriction est inhabituellement large pour un contrat de consommation.",
+     "severity": "MINOR",
+     "quote": "reverse engineering our services or underlying technology, such as our machine learning models, to extract trade secrets"
+    },
+    {
+     "id": "couts-reseau-utilisateur",
+     "title": "Responsabilité totale des coûts réseau",
+     "description": "L'utilisateur est responsable de tous les coûts de données cellulaires et Wi-Fi, y compris lorsque les services utilisent Internet 'lorsque vous n'êtes pas activement engagé', ce qui peut entraîner des frais inattendus et incontrôlables.",
+     "severity": "MINOR",
+     "quote": "You're responsible for all of these network usages and associated costs"
+    }
+   ]
+  },
+  "jsonValid": true
+ },
+ {
+  "model": "mistralai/mistral-large-4-0",
+  "contract": "synthetic",
+  "locale": "fr",
+  "httpStatus": 200,
+  "ms": 63297,
+  "jsonModeRejected": false,
+  "finish": "stop",
+  "provider": "Mistral",
+  "cost": 0.02980288,
+  "tokensIn": 2440,
+  "tokensOut": 6336,
+  "reasoningTokens": 4071,
+  "raw": "{\n  \"trustScore\": 5,\n  \"summary\": \"Contrat d'abonnement cloud extrêmement déséquilibré entre un fournisseur américain et un consommateur européen. Le contrat contient de nombreuses clauses abusives violant le droit européen de la consommation et le RGPD, notamment l'attribution unilatérale des droits de propriété intellectuelle, la vente de données personnelles sans consentement, et l'exclusion de responsabilité pour décès ou blessures. Le déséquilibre entre les parties est total et le contrat est probablement inapplicable dans sa majeure partie.\",\n  \"jurisdiction\": \"Delaware, USA (avec tentative d'exclusion des protections obligatoires de l'UE)\",\n  \"dimensions\": [\n    {\n      \"name\": \"Transparency\",\n      \"score\": 20,\n      \"label\": \"Opaque\",\n      \"note\": \"Les clauses sont rédigées en langage juridique dense masquant des obligations extrêmement défavorables et des renonciations de droits fondamentaux pour le consommateur.\"\n    },\n    {\n      \"name\": \"Balance\",\n      \"score\": 5,\n      \"label\": \"Abusive\",\n      \"note\": \"Déséquilibre extrême : le fournisseur peut modifier les prix, résilier sans motif et vendre les données, tandis que le client est lié pour 12 mois avec une responsabilité illimitée et une clause de non-concurrence.\"\n    },\n    {\n      \"name\": \"Legal Compliance\",\n      \"score\": 10,\n      \"label\": \"Non-compliant\",\n      \"note\": \"Violations multiples du RGPD (vente de données, rétention indéfinie sans finalité) et de la Directive 93/13/CEE (clauses abusives, exclusion de responsabilité pour dommages corporels, liste noire).\"\n    },\n    {\n      \"name\": \"Financial Risk\",\n      \"score\": 5,\n      \"label\": \"Severe\",\n      \"note\": \"Responsabilité illimitée du client, plafond de responsabilité du fournisseur à 1 EUR, renouvellement automatique sans remboursement possible et obligation de payer jusqu'à la fin du terme.\"\n    },\n    {\n      \"name\": \"Exit Freedom\",\n      \"score\": 10,\n      \"label\": \"Locked-in\",\n      \"note\": \"Impossible de résilier pour convenance, préavis de 90 jours par lettre recommandée sans rappel, et clause de non-concurrence de 3 ans interdisant tout service concurrent dans le monde.\"\n    }\n  ],\n  \"flags\": [\n    {\n      \"id\": \"unilateral-price-change\",\n      \"title\": \"Modification unilatérale des tarifs sans préavis\",\n      \"description\": \"Northbeam peut modifier les prix à tout moment et à sa seule discrétion sans préavis, le simple usage continu valant acceptation. C'est une clause de la liste grise de la Directive 93/13/CEE considérée comme abusive car elle crée un déséquilibre significatif au détriment du consommateur.\",\n      \"severity\": \"CRITICAL\",\n      \"quote\": \"Northbeam may change the fees at any time, at its sole discretion and without prior notice. Customer's continued use of the Service after any change constitutes acceptance of the new fees.\"\n    },\n    {\n      \"id\": \"auto-renewal-no-reminder\",\n      \"title\": \"Renouvellement automatique sans rappel\",\n      \"description\": \"Le contrat se renouvelle automatiquement pour 12 mois sans que Northbeam n'envoie de rappel, exigeant un préavis de 90 jours par lettre recommandée. Cela viole la Directive 2011/83/UE sur les droits des consommateurs qui exige une information claire et un droit de rétractation effectif.\",\n      \"severity\": \"CRITICAL\",\n      \"quote\": \"The Agreement will automatically renew for successive twelve (12) month terms unless Customer gives written notice of non-renewal by registered letter at least ninety (90) days before the end of the then-current Term. Northbeam will not send any reminder of the upcoming renewal.\"\n    },\n    {\n      \"id\": \"termination-without-cause\",\n      \"title\": \"Résiliation sans motif ni remboursement\",\n      \"description\": \"Northbeam peut suspendre ou résilier le contrat à tout moment, pour n'importe quelle raison ou sans raison, sans préavis et sans remboursement des frais prépayés, tandis que le client reste redevable de tous les frais jusqu'à la fin du terme et ne peut résilier pour convenance.\",\n      \"severity\": \"CRITICAL\",\n      \"quote\": \"Northbeam may suspend or terminate this Agreement at any time, for any reason or no reason, without notice and without refund of prepaid fees. Customer may not terminate this Agreement for convenience during the Term and remains liable for all fees through the end of the Term.\"\n    },\n    {\n      \"id\": \"blanket-ip-assignment\",\n      \"title\": \"Cession totale des droits de propriété intellectuelle\",\n      \"description\": \"Le client cède irrévocablement à Northbeam tous les droits sur tout contenu uploadé, y compris les œuvres créées, en perpétuité et dans l'univers entier, sans compensation. Cette clause est abusive et probablement inapplicable en droit européen qui exige des cessions spécifiques, écrites et limitées dans leur objet.\",\n      \"severity\": \"CRITICAL\",\n      \"quote\": \"Customer hereby irrevocably assigns to Northbeam all right, title and interest in and to all content, files, and materials that Customer uploads to the Service, including any works created using the Service, in perpetuity and throughout the universe, without further compensation.\"\n    },\n    {\n      \"id\": \"gdpr-data-selling\",\n      \"title\": \"Vente de données personnelles sans consentement\",\n      \"description\": \"Northbeam se réserve le droit de vendre, licencier ou partager les données personnelles du client avec des tiers à des fins commerciales sans préavis ni consentement. Cela viole le RGPD qui exige une base légale et un consentement explicite, libre et éclairé pour le traitement commercial des données personnelles.\",\n      \"severity\": \"CRITICAL\",\n      \"quote\": \"Customer grants Northbeam the right to sell, license or share Customer's personal data and uploaded content with third-party partners for any commercial purpose, without further notice or consent.\"\n    },\n    {\n      \"id\": \"indefinite-data-retention\",\n      \"title\": \"Conservation indéfinie des données sans finalité\",\n      \"description\": \"Northbeam peut conserver toutes les données du client indéfiniment, même après la fermeture du compte, sans indiquer de finalité. Cela viole le principe de limitation de la conservation du RGPD (article 5) qui exige que les données ne soient pas conservées plus longtemps que nécessaire.\",\n      \"severity\": \"CRITICAL\",\n      \"quote\": \"Northbeam may retain all Customer data indefinitely, including after the account is closed, without stating a purpose.\"\n    },\n    {\n      \"id\": \"consumer-non-compete\",\n      \"title\": \"Clause de non-concurrence abusive sur le consommateur\",\n      \"description\": \"Interdiction pendant 3 ans dans le monde entier d'utiliser tout service concurrent, sans compensation. En droit français (Code de la consommation) et européen, une telle clause dans un contrat de consommation est nulle et non avenue car disproportionnée et contraire à la liberté de choix du consommateur.\",\n      \"severity\": \"CRITICAL\",\n      \"quote\": \"During the Term and for three (3) years thereafter, Customer shall not, anywhere in the world, use, subscribe to or contribute to any cloud storage or collaboration service that competes with Northbeam. No compensation is payable for this restriction.\"\n    },\n    {\n      \"id\": \"unlimited-consumer-liability\",\n      \"title\": \"Responsabilité illimitée du consommateur\",\n      \"description\": \"Le client doit indemniser Northbeam sans limitation de montant pour toute réclamation, y compris celles de tiers, et sa responsabilité est illimitée. C'est une clause abusive créant un déséquilibre significatif au sens de la Directive 93/13/CEE, d'autant plus qu'elle s'applique à des consommateurs.\",\n      \"severity\": \"CRITICAL\",\n      \"quote\": \"Customer shall indemnify and hold harmless Northbeam and its affiliates from any and all claims, losses, damages and costs of any kind, including claims by third parties arising from Customer's use of the Service, without limitation as to amount. Customer's liability under this Agreement is unlimited.\"\n    },\n    {\n      \"id\": \"liability-cap-one-euro\",\n      \"title\": \"Exclusion de responsabilité pour dommages corporels\",\n      \"description\": \"La responsabilité totale de Northbeam est plafonnée à 1 EUR, y compris pour décès ou blessures causées par sa négligence. C'est une clause de la liste noire de la Directive 93/13/CEE, interdite et nulle en droit européen et britannique (Consumer Rights Act 2015, section 65).\",\n      \"severity\": \"CRITICAL\",\n      \"quote\": \"To the maximum extent permitted by law, Northbeam's total aggregate liability for any claim, including death or personal injury caused by its negligence, shall not exceed one euro (EUR 1).\"\n    },\n    {\n      \"id\": \"mandatory-arbitration-class-waiver\",\n      \"title\": \"Arbitrage obligatoire et renonciation aux recours collectifs\",\n      \"description\": \"Toutes les disputes doivent être résolues par arbitrage individuel à Wilmington, Delaware, avec renonciation au jury et aux actions de classe, et interdiction de saisir les tribunaux même pour les petits litiges. Cela prive le consommateur européen de son droit à une protection juridictionnelle effective et viole la Directive 93/13/CEE.\",\n      \"severity\": \"CRITICAL\",\n      \"quote\": \"Any dispute shall be resolved exclusively by binding individual arbitration administered in Wilmington, Delaware. Customer waives any right to a jury trial and to participate in any class action or collective proceeding. Customer may not bring claims before any court, including small-claims court.\"\n    },\n    {\n      \"id\": \"choice-of-law-strip-eu-protections\",\n      \"title\": \"Choix de loi privant des protections européennes\",\n      \"description\": \"Le contrat applique le droit du Delaware et la compétence exclusive des tribunaux du Delaware, nonobstant les lois impératives de protection du consommateur du pays de résidence. Cela viole le Règlement Rome I (CE) n° 593/2008 qui interdit de priver le consommateur des protections de sa résidence habituelle.\",\n      \"severity\": \"CRITICAL\",\n      \"quote\": \"This Agreement is governed by the laws of the State of Delaware, USA, excluding its conflict-of-laws rules. The courts of Delaware have exclusive jurisdiction, notwithstanding any mandatory consumer protection law of Customer's country of residence.\"\n    }\n  ]\n}",
+  "parsed": {
+   "trustScore": 5,
+   "summary": "Contrat d'abonnement cloud extrêmement déséquilibré entre un fournisseur américain et un consommateur européen. Le contrat contient de nombreuses clauses abusives violant le droit européen de la consommation et le RGPD, notamment l'attribution unilatérale des droits de propriété intellectuelle, la vente de données personnelles sans consentement, et l'exclusion de responsabilité pour décès ou blessures. Le déséquilibre entre les parties est total et le contrat est probablement inapplicable dans sa majeure partie.",
+   "jurisdiction": "Delaware, USA (avec tentative d'exclusion des protections obligatoires de l'UE)",
+   "dimensions": [
+    {
+     "name": "Transparency",
+     "score": 20,
+     "label": "Opaque",
+     "note": "Les clauses sont rédigées en langage juridique dense masquant des obligations extrêmement défavorables et des renonciations de droits fondamentaux pour le consommateur."
+    },
+    {
+     "name": "Balance",
+     "score": 5,
+     "label": "Abusive",
+     "note": "Déséquilibre extrême : le fournisseur peut modifier les prix, résilier sans motif et vendre les données, tandis que le client est lié pour 12 mois avec une responsabilité illimitée et une clause de non-concurrence."
+    },
+    {
+     "name": "Legal Compliance",
+     "score": 10,
+     "label": "Non-compliant",
+     "note": "Violations multiples du RGPD (vente de données, rétention indéfinie sans finalité) et de la Directive 93/13/CEE (clauses abusives, exclusion de responsabilité pour dommages corporels, liste noire)."
+    },
+    {
+     "name": "Financial Risk",
+     "score": 5,
+     "label": "Severe",
+     "note": "Responsabilité illimitée du client, plafond de responsabilité du fournisseur à 1 EUR, renouvellement automatique sans remboursement possible et obligation de payer jusqu'à la fin du terme."
+    },
+    {
+     "name": "Exit Freedom",
+     "score": 10,
+     "label": "Locked-in",
+     "note": "Impossible de résilier pour convenance, préavis de 90 jours par lettre recommandée sans rappel, et clause de non-concurrence de 3 ans interdisant tout service concurrent dans le monde."
+    }
+   ],
+   "flags": [
+    {
+     "id": "unilateral-price-change",
+     "title": "Modification unilatérale des tarifs sans préavis",
+     "description": "Northbeam peut modifier les prix à tout moment et à sa seule discrétion sans préavis, le simple usage continu valant acceptation. C'est une clause de la liste grise de la Directive 93/13/CEE considérée comme abusive car elle crée un déséquilibre significatif au détriment du consommateur.",
+     "severity": "CRITICAL",
+     "quote": "Northbeam may change the fees at any time, at its sole discretion and without prior notice. Customer's continued use of the Service after any change constitutes acceptance of the new fees."
+    },
+    {
+     "id": "auto-renewal-no-reminder",
+     "title": "Renouvellement automatique sans rappel",
+     "description": "Le contrat se renouvelle automatiquement pour 12 mois sans que Northbeam n'envoie de rappel, exigeant un préavis de 90 jours par lettre recommandée. Cela viole la Directive 2011/83/UE sur les droits des consommateurs qui exige une information claire et un droit de rétractation effectif.",
+     "severity": "CRITICAL",
+     "quote": "The Agreement will automatically renew for successive twelve (12) month terms unless Customer gives written notice of non-renewal by registered letter at least ninety (90) days before the end of the then-current Term. Northbeam will not send any reminder of the upcoming renewal."
+    },
+    {
+     "id": "termination-without-cause",
+     "title": "Résiliation sans motif ni remboursement",
+     "description": "Northbeam peut suspendre ou résilier le contrat à tout moment, pour n'importe quelle raison ou sans raison, sans préavis et sans remboursement des frais prépayés, tandis que le client reste redevable de tous les frais jusqu'à la fin du terme et ne peut résilier pour convenance.",
+     "severity": "CRITICAL",
+     "quote": "Northbeam may suspend or terminate this Agreement at any time, for any reason or no reason, without notice and without refund of prepaid fees. Customer may not terminate this Agreement for convenience during the Term and remains liable for all fees through the end of the Term."
+    },
+    {
+     "id": "blanket-ip-assignment",
+     "title": "Cession totale des droits de propriété intellectuelle",
+     "description": "Le client cède irrévocablement à Northbeam tous les droits sur tout contenu uploadé, y compris les œuvres créées, en perpétuité et dans l'univers entier, sans compensation. Cette clause est abusive et probablement inapplicable en droit européen qui exige des cessions spécifiques, écrites et limitées dans leur objet.",
+     "severity": "CRITICAL",
+     "quote": "Customer hereby irrevocably assigns to Northbeam all right, title and interest in and to all content, files, and materials that Customer uploads to the Service, including any works created using the Service, in perpetuity and throughout the universe, without further compensation."
+    },
+    {
+     "id": "gdpr-data-selling",
+     "title": "Vente de données personnelles sans consentement",
+     "description": "Northbeam se réserve le droit de vendre, licencier ou partager les données personnelles du client avec des tiers à des fins commerciales sans préavis ni consentement. Cela viole le RGPD qui exige une base légale et un consentement explicite, libre et éclairé pour le traitement commercial des données personnelles.",
+     "severity": "CRITICAL",
+     "quote": "Customer grants Northbeam the right to sell, license or share Customer's personal data and uploaded content with third-party partners for any commercial purpose, without further notice or consent."
+    },
+    {
+     "id": "indefinite-data-retention",
+     "title": "Conservation indéfinie des données sans finalité",
+     "description": "Northbeam peut conserver toutes les données du client indéfiniment, même après la fermeture du compte, sans indiquer de finalité. Cela viole le principe de limitation de la conservation du RGPD (article 5) qui exige que les données ne soient pas conservées plus longtemps que nécessaire.",
+     "severity": "CRITICAL",
+     "quote": "Northbeam may retain all Customer data indefinitely, including after the account is closed, without stating a purpose."
+    },
+    {
+     "id": "consumer-non-compete",
+     "title": "Clause de non-concurrence abusive sur le consommateur",
+     "description": "Interdiction pendant 3 ans dans le monde entier d'utiliser tout service concurrent, sans compensation. En droit français (Code de la consommation) et européen, une telle clause dans un contrat de consommation est nulle et non avenue car disproportionnée et contraire à la liberté de choix du consommateur.",
+     "severity": "CRITICAL",
+     "quote": "During the Term and for three (3) years thereafter, Customer shall not, anywhere in the world, use, subscribe to or contribute to any cloud storage or collaboration service that competes with Northbeam. No compensation is payable for this restriction."
+    },
+    {
+     "id": "unlimited-consumer-liability",
+     "title": "Responsabilité illimitée du consommateur",
+     "description": "Le client doit indemniser Northbeam sans limitation de montant pour toute réclamation, y compris celles de tiers, et sa responsabilité est illimitée. C'est une clause abusive créant un déséquilibre significatif au sens de la Directive 93/13/CEE, d'autant plus qu'elle s'applique à des consommateurs.",
+     "severity": "CRITICAL",
+     "quote": "Customer shall indemnify and hold harmless Northbeam and its affiliates from any and all claims, losses, damages and costs of any kind, including claims by third parties arising from Customer's use of the Service, without limitation as to amount. Customer's liability under this Agreement is unlimited."
+    },
+    {
+     "id": "liability-cap-one-euro",
+     "title": "Exclusion de responsabilité pour dommages corporels",
+     "description": "La responsabilité totale de Northbeam est plafonnée à 1 EUR, y compris pour décès ou blessures causées par sa négligence. C'est une clause de la liste noire de la Directive 93/13/CEE, interdite et nulle en droit européen et britannique (Consumer Rights Act 2015, section 65).",
+     "severity": "CRITICAL",
+     "quote": "To the maximum extent permitted by law, Northbeam's total aggregate liability for any claim, including death or personal injury caused by its negligence, shall not exceed one euro (EUR 1)."
+    },
+    {
+     "id": "mandatory-arbitration-class-waiver",
+     "title": "Arbitrage obligatoire et renonciation aux recours collectifs",
+     "description": "Toutes les disputes doivent être résolues par arbitrage individuel à Wilmington, Delaware, avec renonciation au jury et aux actions de classe, et interdiction de saisir les tribunaux même pour les petits litiges. Cela prive le consommateur européen de son droit à une protection juridictionnelle effective et viole la Directive 93/13/CEE.",
+     "severity": "CRITICAL",
+     "quote": "Any dispute shall be resolved exclusively by binding individual arbitration administered in Wilmington, Delaware. Customer waives any right to a jury trial and to participate in any class action or collective proceeding. Customer may not bring claims before any court, including small-claims court."
+    },
+    {
+     "id": "choice-of-law-strip-eu-protections",
+     "title": "Choix de loi privant des protections européennes",
+     "description": "Le contrat applique le droit du Delaware et la compétence exclusive des tribunaux du Delaware, nonobstant les lois impératives de protection du consommateur du pays de résidence. Cela viole le Règlement Rome I (CE) n° 593/2008 qui interdit de priver le consommateur des protections de sa résidence habituelle.",
+     "severity": "CRITICAL",
+     "quote": "This Agreement is governed by the laws of the State of Delaware, USA, excluding its conflict-of-laws rules. The courts of Delaware have exclusive jurisdiction, notwithstanding any mandatory consumer protection law of Customer's country of residence."
+    }
+   ]
+  },
+  "jsonValid": true
+ },
+ {
+  "model": "qwen/qwen3.8-max-0902",
+  "contract": "real",
+  "locale": "fr",
+  "httpStatus": 200,
+  "ms": 213795,
+  "jsonModeRejected": false,
+  "finish": "stop",
+  "provider": "Alibaba",
+  "cost": 0.057226,
+  "tokensIn": 2610,
+  "tokensOut": 9265,
+  "reasoningTokens": 8039,
+  "raw": "{\n  \"trustScore\": 66,\n  \"summary\": \"Cet extrait des conditions de Google est un contrat de services numériques grand public présentant un risque modéré. Les points principaux sont la possibilité pour Google de modifier ou d'arrêter des services et la licence très large sur les contenus utilisateurs. Le texte est relativement clair, mais les droits du fournisseur restent nettement plus étendus que ceux de l'utilisateur.\",\n  \"jurisdiction\": \"Delaware, États-Unis\",\n  \"dimensions\": [\n    {\n      \"name\": \"Transparency\",\n      \"score\": 78,\n      \"label\": \"Good\",\n      \"note\": \"Les clauses sont rédigées clairement et prévoient une information préalable pour les changements importants.\"\n    },\n    {\n      \"name\": \"Balance\",\n      \"score\": 55,\n      \"label\": \"Uneven\",\n      \"note\": \"Google conserve des pouvoirs étendus de modification, d'exploitation et de développement des services.\"\n    },\n    {\n      \"name\": \"Legal Compliance\",\n      \"score\": 65,\n      \"label\": \"Questionable\",\n      \"note\": \"Certaines clauses de modification et de licence pourraient être contestées comme créant un déséquilibre significatif.\"\n    },\n    {\n      \"name\": \"Financial Risk\",\n      \"score\": 80,\n      \"label\": \"Low\",\n      \"note\": \"Le principal risque financier direct identifié est la prise en charge des coûts de réseau par l'utilisateur.\"\n    },\n    {\n      \"name\": \"Exit Freedom\",\n      \"score\": 65,\n      \"label\": \"Reasonable\",\n      \"note\": \"L'export des données est prévu, mais les conditions de résiliation et de conservation ne sont pas détaillées.\"\n    }\n  ],\n  \"flags\": [\n    {\n      \"id\": \"modification-unilaterale-services\",\n      \"title\": \"Modification unilatérale des services\",\n      \"description\": \"Google peut ajouter ou retirer des fonctionnalités, modifier des limites et arrêter d'anciens services. Même avec un préavis raisonnable, ce pouvoir unilatéral relève de la liste grise de la directive 93/13/EEC s'il n'est pas suffisamment encadré.\",\n      \"severity\": \"SUSPECT\",\n      \"quote\": \"we sometimes add or remove features and functionalities, increase or decrease limits to our services\"\n    },\n    {\n      \"id\": \"mises-a-jour-automatiques\",\n      \"title\": \"Mises à jour automatiques\",\n      \"description\": \"Le logiciel peut se mettre à jour automatiquement sur l'appareil, sans consentement explicite à chaque mise à jour. Cela peut modifier le service ou affecter l'expérience utilisateur, même si des préavis sont promis pour les changements importants.\",\n      \"severity\": \"MINOR\",\n      \"quote\": \"that software sometimes updates automatically on your device once a new version or feature is available\"\n    },\n    {\n      \"id\": \"licence-contenu-tres-large\",\n      \"title\": \"Licence de contenu très large\",\n      \"description\": \"La licence accordée à Google est mondiale, gratuite et permet notamment d'héberger, reproduire, distribuer, communiquer et modifier le contenu. Une telle étendue peut dépasser ce qui est strictement nécessaire et créer un déséquilibre au détriment de l'utilisateur.\",\n      \"severity\": \"SUSPECT\",\n      \"quote\": \"This license allows Google to: host, reproduce, distribute, communicate, and use your content\"\n    },\n    {\n      \"id\": \"duree-licence-excessive\",\n      \"title\": \"Durée de licence excessive\",\n      \"description\": \"La licence dure tant que le contenu est protégé par des droits de propriété intellectuelle. Cette durée peut être très longue et incertaine, surtout si le contenu est retiré mais reste couvert par des exceptions.\",\n      \"severity\": \"SUSPECT\",\n      \"quote\": \"This license lasts for as long as your content is protected by intellectual property rights.\"\n    },\n    {\n      \"id\": \"feedback-sans-obligation\",\n      \"title\": \"Feedback utilisable sans obligation\",\n      \"description\": \"Google peut utiliser les retours de l'utilisateur sans compensation ni obligation. C'est courant, mais cela prive l'utilisateur de toute garantie sur la valorisation de ses suggestions.\",\n      \"severity\": \"MINOR\",\n      \"quote\": \"we may act on your feedback without obligation to you.\"\n    },\n    {\n      \"id\": \"frais-reseau-utilisateur\",\n      \"title\": \"Frais réseau à votre charge\",\n      \"description\": \"L'utilisateur supporte tous les coûts de connexion, y compris lorsque les services utilisent Internet en arrière-plan. Le risque financier reste limité mais doit être compris.\",\n      \"severity\": \"MINOR\",\n      \"quote\": \"You're responsible for all of these network usages and associated costs.\"\n    },\n    {\n      \"id\": \"restriction-contenus-ia\",\n      \"title\": \"Restriction des contenus générés par IA\",\n      \"description\": \"L'interdiction d'utiliser du contenu généré par les services pour développer des modèles d'IA est large. Elle peut limiter des usages légitimes ou créer une incertitude sur la portée réelle des droits de l'utilisateur.\",\n      \"severity\": \"MINOR\",\n      \"quote\": \"using AI-generated content from our services to develop machine learning models or related AI technology\"\n    }\n  ]\n}",
+  "parsed": {
+   "trustScore": 66,
+   "summary": "Cet extrait des conditions de Google est un contrat de services numériques grand public présentant un risque modéré. Les points principaux sont la possibilité pour Google de modifier ou d'arrêter des services et la licence très large sur les contenus utilisateurs. Le texte est relativement clair, mais les droits du fournisseur restent nettement plus étendus que ceux de l'utilisateur.",
+   "jurisdiction": "Delaware, États-Unis",
+   "dimensions": [
+    {
+     "name": "Transparency",
+     "score": 78,
+     "label": "Good",
+     "note": "Les clauses sont rédigées clairement et prévoient une information préalable pour les changements importants."
+    },
+    {
+     "name": "Balance",
+     "score": 55,
+     "label": "Uneven",
+     "note": "Google conserve des pouvoirs étendus de modification, d'exploitation et de développement des services."
+    },
+    {
+     "name": "Legal Compliance",
+     "score": 65,
+     "label": "Questionable",
+     "note": "Certaines clauses de modification et de licence pourraient être contestées comme créant un déséquilibre significatif."
+    },
+    {
+     "name": "Financial Risk",
+     "score": 80,
+     "label": "Low",
+     "note": "Le principal risque financier direct identifié est la prise en charge des coûts de réseau par l'utilisateur."
+    },
+    {
+     "name": "Exit Freedom",
+     "score": 65,
+     "label": "Reasonable",
+     "note": "L'export des données est prévu, mais les conditions de résiliation et de conservation ne sont pas détaillées."
+    }
+   ],
+   "flags": [
+    {
+     "id": "modification-unilaterale-services",
+     "title": "Modification unilatérale des services",
+     "description": "Google peut ajouter ou retirer des fonctionnalités, modifier des limites et arrêter d'anciens services. Même avec un préavis raisonnable, ce pouvoir unilatéral relève de la liste grise de la directive 93/13/EEC s'il n'est pas suffisamment encadré.",
+     "severity": "SUSPECT",
+     "quote": "we sometimes add or remove features and functionalities, increase or decrease limits to our services"
+    },
+    {
+     "id": "mises-a-jour-automatiques",
+     "title": "Mises à jour automatiques",
+     "description": "Le logiciel peut se mettre à jour automatiquement sur l'appareil, sans consentement explicite à chaque mise à jour. Cela peut modifier le service ou affecter l'expérience utilisateur, même si des préavis sont promis pour les changements importants.",
+     "severity": "MINOR",
+     "quote": "that software sometimes updates automatically on your device once a new version or feature is available"
+    },
+    {
+     "id": "licence-contenu-tres-large",
+     "title": "Licence de contenu très large",
+     "description": "La licence accordée à Google est mondiale, gratuite et permet notamment d'héberger, reproduire, distribuer, communiquer et modifier le contenu. Une telle étendue peut dépasser ce qui est strictement nécessaire et créer un déséquilibre au détriment de l'utilisateur.",
+     "severity": "SUSPECT",
+     "quote": "This license allows Google to: host, reproduce, distribute, communicate, and use your content"
+    },
+    {
+     "id": "duree-licence-excessive",
+     "title": "Durée de licence excessive",
+     "description": "La licence dure tant que le contenu est protégé par des droits de propriété intellectuelle. Cette durée peut être très longue et incertaine, surtout si le contenu est retiré mais reste couvert par des exceptions.",
+     "severity": "SUSPECT",
+     "quote": "This license lasts for as long as your content is protected by intellectual property rights."
+    },
+    {
+     "id": "feedback-sans-obligation",
+     "title": "Feedback utilisable sans obligation",
+     "description": "Google peut utiliser les retours de l'utilisateur sans compensation ni obligation. C'est courant, mais cela prive l'utilisateur de toute garantie sur la valorisation de ses suggestions.",
+     "severity": "MINOR",
+     "quote": "we may act on your feedback without obligation to you."
+    },
+    {
+     "id": "frais-reseau-utilisateur",
+     "title": "Frais réseau à votre charge",
+     "description": "L'utilisateur supporte tous les coûts de connexion, y compris lorsque les services utilisent Internet en arrière-plan. Le risque financier reste limité mais doit être compris.",
+     "severity": "MINOR",
+     "quote": "You're responsible for all of these network usages and associated costs."
+    },
+    {
+     "id": "restriction-contenus-ia",
+     "title": "Restriction des contenus générés par IA",
+     "description": "L'interdiction d'utiliser du contenu généré par les services pour développer des modèles d'IA est large. Elle peut limiter des usages légitimes ou créer une incertitude sur la portée réelle des droits de l'utilisateur.",
+     "severity": "MINOR",
+     "quote": "using AI-generated content from our services to develop machine learning models or related AI technology"
+    }
+   ]
+  },
+  "jsonValid": true
+ },
+ {
+  "model": "qwen/qwen3.8-max-0902",
+  "contract": "synthetic",
+  "locale": "fr",
+  "httpStatus": 0,
+  "ms": 240004,
+  "jsonModeRejected": false,
+  "error": "AbortError: This operation was aborted"
+ }
+]

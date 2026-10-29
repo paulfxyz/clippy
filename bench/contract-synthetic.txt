@@ -1,0 +1,35 @@
+NORTHBEAM CLOUD SUBSCRIPTION AGREEMENT
+
+This Subscription Agreement ("Agreement") is entered into between Northbeam Technologies, Inc., a Delaware corporation ("Northbeam"), and the individual subscriber identified at sign-up ("Customer"), a consumer residing in the European Union.
+
+1. SERVICES. Northbeam grants Customer a limited, non-transferable right to use the Northbeam Cloud storage and collaboration service (the "Service") during the Term.
+
+2. FEES AND PAYMENT. Customer shall pay the subscription fee of EUR 19.90 per month. Invoices are payable within thirty (30) days of the invoice date. Late amounts bear interest at the statutory rate.
+
+3. TERM AND RENEWAL. The initial Term is twelve (12) months. The Agreement will automatically renew for successive twelve (12) month terms unless Customer gives written notice of non-renewal by registered letter at least ninety (90) days before the end of the then-current Term. Northbeam will not send any reminder of the upcoming renewal.
+
+4. PRICE CHANGES. Northbeam may change the fees at any time, at its sole discretion and without prior notice. Customer's continued use of the Service after any change constitutes acceptance of the new fees.
+
+5. TERMINATION. Northbeam may suspend or terminate this Agreement at any time, for any reason or no reason, without notice and without refund of prepaid fees. Customer may not terminate this Agreement for convenience during the Term and remains liable for all fees through the end of the Term.
+
+6. CUSTOMER CONTENT AND INTELLECTUAL PROPERTY. Customer hereby irrevocably assigns to Northbeam all right, title and interest in and to all content, files, and materials that Customer uploads to the Service, including any works created using the Service, in perpetuity and throughout the universe, without further compensation.
+
+7. DATA. Customer grants Northbeam the right to sell, license or share Customer's personal data and uploaded content with third-party partners for any commercial purpose, without further notice or consent. Northbeam may retain all Customer data indefinitely, including after the account is closed, without stating a purpose.
+
+8. CONFIDENTIALITY. Each party shall keep confidential the non-public information of the other party that is marked confidential, and shall use it only for the purposes of this Agreement. This obligation survives for three (3) years after termination.
+
+9. RESTRICTIVE COVENANT. During the Term and for three (3) years thereafter, Customer shall not, anywhere in the world, use, subscribe to or contribute to any cloud storage or collaboration service that competes with Northbeam. No compensation is payable for this restriction.
+
+10. CUSTOMER LIABILITY AND INDEMNITY. Customer shall indemnify and hold harmless Northbeam and its affiliates from any and all claims, losses, damages and costs of any kind, including claims by third parties arising from Customer's use of the Service, without limitation as to amount. Customer's liability under this Agreement is unlimited.
+
+11. NORTHBEAM LIABILITY. To the maximum extent permitted by law, Northbeam's total aggregate liability for any claim, including death or personal injury caused by its negligence, shall not exceed one euro (EUR 1).
+
+12. DISPUTE RESOLUTION. Any dispute shall be resolved exclusively by binding individual arbitration administered in Wilmington, Delaware. Customer waives any right to a jury trial and to participate in any class action or collective proceeding. Customer may not bring claims before any court, including small-claims court.
+
+13. GOVERNING LAW. This Agreement is governed by the laws of the State of Delaware, USA, excluding its conflict-of-laws rules. The courts of Delaware have exclusive jurisdiction, notwithstanding any mandatory consumer protection law of Customer's country of residence.
+
+14. NOTICES. Notices may be given by email to the address provided at sign-up and are deemed received twenty-four (24) hours after sending.
+
+15. FORCE MAJEURE. Neither party is liable for delay or failure caused by events beyond its reasonable control, including natural disasters, war, or failure of public utilities.
+
+16. ENTIRE AGREEMENT. This Agreement constitutes the entire agreement between the parties and supersedes all prior understandings relating to its subject matter.

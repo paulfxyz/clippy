@@ -1,6 +1,6 @@
 /**
  * @file openrouter.ts
- * @description OpenRouter API client for Clippy v3.0.2.
+ * @description OpenRouter API client for Clippy.
  *
  * OpenRouter (https://openrouter.ai) is a unified API gateway that routes
  * requests to 100+ AI models from different providers (Anthropic, OpenAI,
@@ -39,6 +39,30 @@
  * - LOCALE_LANGUAGE_NAMES maps every supported Clippy locale to the full
  *   English language name used in the model instruction.
  * - buildSystemPrompt(locale) dynamically composes the final system prompt.
+ *
+ * WHAT CHANGED IN v3.3.0
+ * -----------------------
+ * Driven by a measured benchmark (see bench/ and docs/BENCHMARK.md):
+ * - Model registry rebuilt around the current OpenRouter frontier. Three
+ *   previously listed models (claude-3.7-sonnet, claude-3.5-haiku,
+ *   deepseek-r1) no longer exist on OpenRouter — the old default would have
+ *   failed with "No endpoints found". Registry entries now carry measured
+ *   price / latency so the UI can show honest expectations.
+ * - fetchLiveModelCatalog(): checks the public OpenRouter catalog at start-up
+ *   so a retired model is greyed out instead of failing mid-analysis.
+ * - JSON mode (`response_format`) is now requested for every model. All 15
+ *   benchmarked models accepted it. If a model does reject it we retry once
+ *   without it, instead of maintaining a hard-coded allow-list that rots.
+ * - One automatic retry on transient provider errors (429 / 502 / 503 / 504).
+ * - `finish_reason: "length"` is detected and reported as a truncation error
+ *   instead of a cryptic "invalid JSON".
+ * - trustScore bug fixed: a legitimate score of 0 used to be shown as 50
+ *   (`Number(0) || 50`).
+ * - Flag / dimension normalisation: severities are validated, text fields
+ *   coerced, flags capped at 20 — a model that returns "High" or null can no
+ *   longer break the results UI.
+ * - Locale map completed for tr / sv / id (3.2.4 shipped without them, so
+ *   Turkish, Swedish and Indonesian users silently received English analyses).
  *
  * CORS STRATEGY
  * -------------
@@ -91,6 +115,9 @@ export const LOCALE_LANGUAGE_NAMES: Record<Locale, string> = {
   ko: "Korean",
   he: "Hebrew",
   ar: "Arabic",
+  tr: "Turkish",
+  sv: "Swedish",
+  id: "Indonesian",
 };
 
 // ---------------------------------------------------------------------------
@@ -113,81 +140,120 @@ export const LOCALE_LANGUAGE_NAMES: Record<Locale, string> = {
  * description: shown in the model card tooltip. Should capture the model's
  * specific strength for contract analysis use cases.
  */
-export const AVAILABLE_MODELS = [
+export interface ModelInfo {
+  /** OpenRouter model ID ("provider/model-name"). */
+  id: string;
+  /** Short display name. */
+  name: string;
+  provider: string;
+  /** English-only fallback description (the UI shows the localised `tag`). */
+  description: string;
+  /** Single-character provider badge. */
+  icon: string;
+  /** i18n key suffix → t(`model.tag.${tag}`). */
+  tag: "balanced" | "fast" | "deep" | "budget" | "longctx" | "eu" | "alt";
+  /** Approx. USD per analysis of a ~10-page contract (measured, see docs/BENCHMARK.md). */
+  costPerAnalysis: number;
+  /** Mean wall-clock seconds over the two benchmark runs. */
+  seconds: number;
+  /** Context window in tokens. */
+  context: number;
+}
+
+export const AVAILABLE_MODELS: ModelInfo[] = [
   {
-    id: "anthropic/claude-3.7-sonnet",
-    name: "Claude 3.7 Sonnet",
+    id: "anthropic/claude-sonnet-5.5",
+    name: "Claude Sonnet 5.5",
     provider: "Anthropic",
-    description: "Best for nuanced legal reasoning — strongest at identifying indirect risks, implied obligations, and implicitly one-sided language across complex multi-party agreements",
-    icon: "A",
+    description: "Best all-round pick — found all 10 planted problems, quoted the contract verbatim every time, and answered in under 20 seconds",
+    icon: "A", tag: "balanced", costPerAnalysis: 0.038, seconds: 19, context: 1_000_000,
   },
   {
-    id: "anthropic/claude-3.5-haiku",
-    name: "Claude 3.5 Haiku",
-    provider: "Anthropic",
-    description: "Fast and affordable — good for a quick first pass before running heavier models; strong JSON compliance",
-    icon: "A",
-  },
-  {
-    id: "openai/gpt-4.1",
-    name: "GPT-4.1",
+    id: "openai/gpt-6.1-terra",
+    name: "GPT-6.1 Terra",
     provider: "OpenAI",
-    description: "Excellent general analysis — very reliable JSON output; particularly strong at identifying financial risk clauses and indemnification exposure",
-    icon: "O",
+    description: "Newest OpenAI model — found all 10 planted problems at roughly a quarter of Sonnet's price, with concise, valid JSON every time",
+    icon: "O", tag: "balanced", costPerAnalysis: 0.009, seconds: 21, context: 1_050_000,
   },
   {
-    id: "openai/gpt-4.1-mini",
-    name: "GPT-4.1 Mini",
-    provider: "OpenAI",
-    description: "Fast and cost-effective — great as a second opinion alongside a larger model; strong JSON compliance",
-    icon: "O",
-  },
-  {
-    id: "google/gemini-2.5-pro",
-    name: "Gemini 2.5 Pro",
+    id: "google/gemini-4-argon",
+    name: "Gemini 4 Argon",
     provider: "Google",
-    description: "1M token context window — the best choice for very long contracts (50+ pages) that would exceed other models' context limits",
-    icon: "G",
+    description: "1M-token context — the safe choice for very long contracts (100+ pages)",
+    icon: "G", tag: "longctx", costPerAnalysis: 0.022, seconds: 27, context: 1_048_576,
   },
   {
-    id: "mistralai/mistral-large-2512",
-    name: "Mistral Large 2512",
+    id: "anthropic/claude-haiku-5.5",
+    name: "Claude Haiku 5.5",
+    provider: "Anthropic",
+    description: "Fast and almost free — matched the flagships on planted-clause detection at a small fraction of their cost",
+    icon: "A", tag: "fast", costPerAnalysis: 0.0035, seconds: 26, context: 1_000_000,
+  },
+  {
+    id: "mistralai/mistral-large-4-0",
+    name: "Mistral Large 4",
     provider: "Mistral",
-    description: "Strong EU legal context — particularly effective on GDPR clauses, French and European consumer law, and civil law contract structures",
-    icon: "M",
+    description: "European provider — a useful second opinion on GDPR and civil-law structures; the only model to use the top severity on our real-world excerpt",
+    icon: "M", tag: "eu", costPerAnalysis: 0.028, seconds: 51, context: 1_048_576,
   },
   {
-    id: "meta-llama/llama-3.3-70b-instruct",
-    name: "Llama 3.3 70B",
-    provider: "Meta",
-    description: "Open-source powerhouse — useful to compare against closed-source models for potential bias; runs on a variety of inference providers via OpenRouter",
-    icon: "L",
-  },
-  {
-    id: "deepseek/deepseek-r1",
-    name: "DeepSeek R1",
+    id: "deepseek/deepseek-v4.1-flash-1017",
+    name: "DeepSeek V4.1 Flash",
     provider: "DeepSeek",
-    description: "Chain-of-thought reasoning model — particularly strong at multi-step legal logic chains, inconsistency detection, and evaluating interplay between clauses",
-    icon: "D",
+    description: "Budget pick — found all 10 planted problems for a fraction of a cent per analysis",
+    icon: "D", tag: "budget", costPerAnalysis: 0.0025, seconds: 38, context: 1_048_576,
+  },
+  {
+    id: "x-ai/grok-4.7",
+    name: "Grok 4.7",
+    provider: "xAI",
+    description: "A different training lineage — useful as an independent third opinion",
+    icon: "X", tag: "alt", costPerAnalysis: 0.032, seconds: 67, context: 500_000,
+  },
+  {
+    id: "anthropic/claude-opus-5.5",
+    name: "Claude Opus 5.5",
+    provider: "Anthropic",
+    description: "Deep review — flagged more items than most models in our tests; use it on contracts that really matter",
+    icon: "A", tag: "deep", costPerAnalysis: 0.11, seconds: 39, context: 1_000_000,
   },
 ];
 
+/** Models pre-selected for a new session (cheap, fast, different vendors). */
+export const DEFAULT_MODEL_IDS = ["anthropic/claude-sonnet-5.5", "openai/gpt-6.1-terra"];
+
 // ---------------------------------------------------------------------------
-// JSON mode support map
+// Live catalogue check
 // ---------------------------------------------------------------------------
 
 /**
- * Models that natively support response_format: { type: "json_object" }.
- * Sending this parameter to unsupported models (Anthropic, Gemini, Mistral,
- * Llama, DeepSeek) causes API errors or silent failures. Those models rely
- * purely on the prompt instruction to return valid JSON.
+ * Asks OpenRouter which model IDs currently exist.
+ *
+ * Why: model IDs retire without warning (this is what produced the
+ * "No endpoints found for anthropic/claude-3.5-sonnet" failures in v3.1/3.2).
+ * The endpoint is public and needs no API key, and it is the same host the
+ * analysis calls already go to, so it adds no new third party.
+ *
+ * Fail-open: on any network/parse error we return null and the UI treats
+ * every model as available.
  */
-const JSON_MODE_MODELS = new Set([
-  "openai/gpt-4.1",
-  "openai/gpt-4.1-mini",
-  "openai/gpt-4o",
-  "openai/gpt-4o-mini",
-]);
+export async function fetchLiveModelCatalog(): Promise<Set<string> | null> {
+  try {
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), 6000);
+    const r = await fetch("https://openrouter.ai/api/v1/models", { signal: ctl.signal });
+    clearTimeout(t);
+    if (!r.ok) return null;
+    const j = await r.json();
+    if (!Array.isArray(j?.data)) return null;
+    return new Set<string>(j.data.map((m: { id: string }) => m.id));
+  } catch {
+    return null;
+  }
+}
+
+/** Per-request timeout. Every picker model finished well inside this in testing. */
+export const REQUEST_TIMEOUT_MS = 120_000;
 
 // ---------------------------------------------------------------------------
 // System prompt
@@ -456,47 +522,61 @@ export async function analyzeWithModel(
   // Record start time for duration measurement (wall-clock, not CPU time)
   const startTime = Date.now();
 
-  // 90-second timeout — some models (DeepSeek R1, Llama) can be slow;
-  // without a timeout the request hangs indefinitely and the card stays
-  // stuck in "Reading" state forever.
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 120_000);
-
-  // Only send response_format: json_object to models that support it.
-  // Sending it to Anthropic, Gemini, Mistral, Llama or DeepSeek causes
-  // API errors (400 / "unsupported parameter") or silent failures.
-  const bodyPayload: Record<string, unknown> = {
+  // Request body. `response_format: json_object` is requested for every model:
+  // all 15 models in the v3.3.0 benchmark accepted it. If a model does reject
+  // it (HTTP 400 mentioning the parameter) we retry once without it below.
+  const buildBody = (jsonMode: boolean): string => JSON.stringify({
     model: modelId,
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt },
     ],
     temperature: 0.1,
-  };
-  if (JSON_MODE_MODELS.has(modelId)) {
-    bodyPayload.response_format = { type: "json_object" };
-  }
+    ...(jsonMode ? { response_format: { type: "json_object" } } : {}),
+  });
 
-  // Make the API call directly from the browser.
-  // OpenRouter's CORS policy allows browser-to-API calls from any origin.
-  // The user's own API key is used — Clippy itself pays nothing.
+  // -------------------------------------------------------------------------
+  // Network layer: timeout + one automatic retry for transient provider errors
+  // -------------------------------------------------------------------------
+  // The timeout covers the whole call (including a retry) so a card can never
+  // stay on "Reading" longer than REQUEST_TIMEOUT_MS.
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  const post = (jsonMode: boolean) => fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    signal: controller.signal,
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+      "HTTP-Referer": "https://clippy.legal",
+      "X-Title": "Clippy Contract Analyzer",
+    },
+    body: buildBody(jsonMode),
+  });
+
   let response: Response;
   try {
-    response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      signal: controller.signal,
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://clippy.legal",
-        "X-Title": "Clippy Contract Analyzer",
-      },
-      body: JSON.stringify(bodyPayload),
-    });
+    response = await post(true);
+    // Transient upstream failure (rate limit / gateway) → wait briefly, retry once.
+    if ([429, 502, 503, 504].includes(response.status)) {
+      await new Promise(r => setTimeout(r, 2000));
+      response = await post(true);
+    }
+    // A model that rejects JSON mode → retry once without it.
+    if (response.status === 400) {
+      const peek = await response.clone().text().catch(() => "");
+      if (/response_format|json_object|json mode|structured/i.test(peek)) {
+        response = await post(false);
+      }
+    }
   } catch (fetchErr: any) {
     clearTimeout(timeoutId);
     if (fetchErr?.name === "AbortError") {
-      throw new Error("Request timed out after 90 seconds — the model may be overloaded. Try again or select a different model.");
+      throw new Error(
+        `Request timed out after ${REQUEST_TIMEOUT_MS / 1000} seconds — the model may be overloaded. ` +
+        `Try again or select a different model.`
+      );
     }
     throw new Error(`Network error: ${fetchErr?.message || "unknown"}`);
   }
@@ -505,26 +585,19 @@ export async function analyzeWithModel(
   // Capture wall-clock duration immediately after the response arrives
   const durationMs = Date.now() - startTime;
 
-  // ---------------------------------------------------------------------------
-  // HTTP error handling
-  //
-  // Common OpenRouter error codes with user-friendly messages.
-  // We try to extract OpenRouter's own error message first; if parsing fails
-  // we fall back to the HTTP status text.
-  // ---------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // HTTP error handling — map OpenRouter errors to actionable messages
+  // -------------------------------------------------------------------------
   if (!response.ok) {
     let errMessage: string;
-
     try {
       const errBody = await response.json();
       // OpenRouter wraps errors in { error: { message: "..." } }
       errMessage = errBody?.error?.message || errBody?.message || response.statusText;
     } catch {
-      // JSON parsing failed — use the HTTP status text
       errMessage = response.statusText || `HTTP ${response.status}`;
     }
 
-    // Map common HTTP codes to more actionable messages
     switch (response.status) {
       case 401:
         throw new Error(`Invalid API key — please check your OpenRouter key and try again`);
@@ -532,69 +605,69 @@ export async function analyzeWithModel(
         throw new Error(`Insufficient OpenRouter credits — top up your account at openrouter.ai`);
       case 403:
         throw new Error(`Access denied — your API key may not have permission to use this model`);
+      case 404:
+        // "No endpoints found for <model>" — the model was retired or renamed.
+        throw new Error(`This model is no longer available on OpenRouter — please select a different model`);
       case 429:
         throw new Error(`Rate limit reached — please wait a moment before trying again`);
-      case 503:
       case 502:
+      case 503:
         throw new Error(`Model temporarily unavailable — try a different model or retry in a moment`);
       default:
+        if (/context|too long|maximum.*tokens/i.test(errMessage)) {
+          throw new Error(`This contract is too long for the selected model — try a model with a larger context window (e.g. Gemini 4 Argon)`);
+        }
         throw new Error(errMessage || `HTTP ${response.status}`);
     }
   }
 
   const data = await response.json();
+  const choice = data.choices?.[0];
 
-  // Extract the model's text response from the OpenAI-compatible envelope
-  const content = data.choices?.[0]?.message?.content;
-  if (!content) throw new Error("Empty response from model — this model may not support JSON output mode");
+  // Some providers return content as an array of parts instead of a string.
+  const rawContent = choice?.message?.content;
+  const content: string = Array.isArray(rawContent)
+    ? rawContent.map((p: any) => (typeof p === "string" ? p : p?.text ?? "")).join("")
+    : rawContent;
+  if (!content) throw new Error("Empty response from model — please retry or select a different model");
 
-  // ---------------------------------------------------------------------------
-  // JSON parsing with two-layer fallback strategy
-  //
-  // Layer 1: Direct parse
-  //   The ideal case. Models in JSON mode return clean JSON.
-  //
-  // Layer 2: Strip Markdown code fences
-  //   Even with response_format: json_object, some models (especially open-source
-  //   ones via OpenRouter) wrap their output in Markdown code fences:
-  //
-  //     ```json
-  //     { "trustScore": 72, ... }
-  //     ```
-  //
-  // Layer 3: Extract first { ... } JSON block
-  //   Some models prepend a preamble ("Here is the analysis:") before the JSON.
-  //   This layer finds the first valid JSON object in the response.
-  //
-  // If all layers fail, we throw a descriptive error — the caller shows it
-  // in the per-model error state in the UI.
-  // ---------------------------------------------------------------------------
+  // The model ran out of output tokens: the JSON is cut off mid-way. Say so
+  // plainly rather than surfacing a cryptic parser error. (Seen with
+  // reasoning-heavy models that spend their budget "thinking".)
+  const truncated = choice?.finish_reason === "length";
+
+  // -------------------------------------------------------------------------
+  // JSON parsing with three-layer fallback strategy
+  //   1. Direct parse (the ideal case in JSON mode)
+  //   2. Strip Markdown code fences (```json ... ```)
+  //   3. Extract the first {...} block when the model adds a preamble
+  // -------------------------------------------------------------------------
   let parsed: any;
   let parseError: Error | null = null;
-
-  // Layer 1: Direct parse
   try {
     parsed = JSON.parse(content);
   } catch (e1) {
     parseError = e1 as Error;
-
-    // Layer 2: Strip code fences
     try {
       const stripped = content
-        .replace(/^```json?\n?/i, "") // strip opening ```json or ``` fence
-        .replace(/\n?```$/i, "")      // strip closing ``` fence
+        .replace(/^```json?\n?/i, "")
+        .replace(/\n?```$/i, "")
         .trim();
       parsed = JSON.parse(stripped);
       parseError = null;
-    } catch (e2) {
-      // Layer 3: Extract first JSON object block from mixed content
+    } catch {
       try {
         const match = content.match(/\{[\s\S]*\}/);
         if (!match) throw new Error("No JSON object found in response");
         parsed = JSON.parse(match[0]);
         parseError = null;
       } catch {
-        // All fallbacks exhausted — use the original parse error message
+        if (truncated) {
+          throw new Error(
+            "The model's answer was cut off before it finished (output limit reached). " +
+            "Try a different model or a shorter contract."
+          );
+        }
         throw new Error(
           `Model returned invalid JSON. Try a different model or a shorter contract. ` +
           `(Parser error: ${parseError?.message})`
@@ -603,24 +676,44 @@ export async function analyzeWithModel(
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // Result normalisation
-  //
-  // Coerce and clamp all fields to their expected types. Models occasionally:
-  // - Return trustScore as a string ("72") rather than a number (72)
-  // - Return scores outside [0, 100] (e.g. 102 or -5)
-  // - Return null for optional fields
-  // - Return a `flags` field with missing optional sub-fields
-  // ---------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Result normalisation — never trust model output shape
+  // -------------------------------------------------------------------------
+  const score = Number(parsed.trustScore);
+  const SEVERITIES = ["CRITICAL", "SUSPECT", "MINOR"] as const;
+
+  const flags: ClauseFlag[] = (Array.isArray(parsed.flags) ? parsed.flags : [])
+    .filter((f: any) => f && typeof f === "object")
+    .slice(0, 20)
+    .map((f: any, i: number): ClauseFlag => {
+      const sev = String(f.severity ?? "").toUpperCase();
+      return {
+        id:          String(f.id ?? `flag-${i + 1}`),
+        title:       String(f.title ?? "Untitled"),
+        description: String(f.description ?? ""),
+        // Unknown severities degrade to SUSPECT (visible, not alarming)
+        severity:    (SEVERITIES as readonly string[]).includes(sev) ? (sev as ClauseFlag["severity"]) : "SUSPECT",
+        quote:       f.quote == null ? undefined : String(f.quote),
+      };
+    });
+
+  const dimensions: Dimension[] = (Array.isArray(parsed.dimensions) ? parsed.dimensions : [])
+    .filter((d: any) => d && typeof d === "object")
+    .map((d: any): Dimension => ({
+      ...d,
+      name:  String(d.name ?? ""),
+      score: Math.max(0, Math.min(100, Number.isFinite(Number(d.score)) ? Number(d.score) : 50)),
+      label: String(d.label ?? ""),
+      note:  String(d.note ?? ""),
+    }));
+
   return {
-    // Clamp trust score to [0, 100] — models occasionally return values like 102 or -5
-    trustScore:   Math.max(0, Math.min(100, Number(parsed.trustScore) || 50)),
+    // Clamp to [0,100]. Number.isFinite (not `|| 50`) so a genuine 0 stays 0.
+    trustScore:   Number.isFinite(score) ? Math.max(0, Math.min(100, Math.round(score))) : 50,
     summary:      String(parsed.summary     || "No summary provided."),
     jurisdiction: String(parsed.jurisdiction || "Unknown"),
-    // Cast arrays — if the model returns null/undefined, default to empty array
-    flags:        Array.isArray(parsed.flags)      ? (parsed.flags as ClauseFlag[])   : [],
-    dimensions:   Array.isArray(parsed.dimensions) ? (parsed.dimensions as Dimension[]) : [],
-    // v2+: wall-clock duration for the request, shown in the results dashboard
+    flags,
+    dimensions,
     durationMs,
   };
 }

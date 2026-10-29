@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.3.0] — 2026-10-29
+
+An audit release. Every claim in the README was checked against the code, the network log and live data; what did not hold up was fixed or reworded.
+
+### Changed
+- **New model line-up**, chosen from a benchmark of 15 current OpenRouter models ([docs/BENCHMARK.md](./docs/BENCHMARK.md)). Defaults: `anthropic/claude-sonnet-5.5` and `openai/gpt-6.1-terra`. Also offered: Gemini 4 Argon, Claude Haiku 5.5, Mistral Large 4, DeepSeek V4.1 Flash, Grok 4.7, Claude Opus 5.5. Each model chip shows provider, typical cost and a speed/quality tag.
+- `response_format: json_object` is now sent to all models (all 15 benchmarked models accepted it), with an automatic retry without it if a provider rejects it. The `JSON_MODE_MODELS` allow-list is removed.
+- Requests retry once on HTTP 429/502/503/504. Clear messages for retired models (404), context-length errors and truncated output (`finish_reason: length`).
+- Privacy wording in README/INSTALL made precise; new section "What Clippy Does and Does Not Send".
+- README: new model table, measured cost table, Benchmark section, war stories 10–16.
+
+### Added
+- On load, Clippy checks OpenRouter's public model catalogue (anonymous, fails open) and disables retired models in the picker.
+- `docs/BENCHMARK.md` and the reproducible harness in `bench/`.
+- `npm run check` (type-check + i18n completeness), `npm run check:i18n`, `npm run i18n:sync`, `npm run bench`.
+- New interface strings (selected-model count, model tags, parallel-run status, unavailable-model notice, header tagline), translated into all 20 languages by an LLM and reviewed by a second LLM from another vendor. Native-speaker corrections welcome.
+
+### Fixed
+- Turkish, Swedish and Indonesian users received English analyses: their language names were missing from the AI-output language map (a v3.2.4 regression).
+- A model trust score of `0` was displayed as `50` (`Number(x) || 50`).
+- The timeout message said 90 s while the timeout was 120 s; one constant now drives both.
+- Hard-coded English in the UI: step labels (Setup / Objectives / Results), the header tagline, "N selected", "model(s)", "Running N models in parallel", "Done"/"Error".
+- The API key input now stays left-to-right in RTL languages.
+
+### Security / Privacy
+- Fonts are self-hosted (`@fontsource-variable/plus-jakarta-sans`, `@fontsource-variable/jetbrains-mono`); the ~25-family Google Fonts request is removed.
+- The unpkg.com fallback for the PDF worker is removed; the worker is bundled.
+- Removed an unused sidebar component that set a cookie.
+
+### Known limitations
+- PDF and Markdown exports are still English-only.
+- The benchmark is a first, easy test (single run per model, two documents); see its caveats.
+- Translations are AI-generated and AI-reviewed, not professionally reviewed.
+
+---
+
 ## [3.2.5] — 2026-04-14
 
 ### Fixed
@@ -219,14 +255,15 @@ This version establishes the full core product: multi-model AI contract analysis
 - No PDF export of results
 - Password-protected PDFs will fail to parse (pdf.js cannot decrypt without the password)
 - Very long contracts (>200 pages) may exceed some model context windows — models with 1M context (Gemini) handle this best
-- The pdf.js CDN worker requires an internet connection even for locally-run instances
+- The pdf.js CDN worker requires an internet connection even for locally-run instances (removed in 3.3.0: the worker is bundled)
 
 ---
 
+[3.3.0]: https://github.com/paulfxyz/clippy/releases/tag/v3.3.0
 [3.2.5]: https://github.com/paulfxyz/clippy/releases/tag/v3.2.5
 [3.2.4]: https://github.com/paulfxyz/clippy/releases/tag/v3.2.4
 [3.2.3]: https://github.com/paulfxyz/clippy/releases/tag/v3.2.3
 [3.2.2]: https://github.com/paulfxyz/clippy/releases/tag/v3.2.2
 [2.0.0]: https://github.com/paulfxyz/clippy/releases/tag/v2.0.0
 [1.0.0]: https://github.com/paulfxyz/clippy/releases/tag/v1.0.0
-[Unreleased]: https://github.com/paulfxyz/clippy/compare/v3.2.5...HEAD
+[Unreleased]: https://github.com/paulfxyz/clippy/compare/v3.3.0...HEAD

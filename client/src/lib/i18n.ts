@@ -1,10 +1,10 @@
 /**
  * @file i18n.ts
- * @description Lightweight internationalisation (i18n) system for Clippy v3.2.3.
+ * @description Lightweight internationalisation (i18n) system for Clippy v3.3.0.
  *
  * OVERVIEW
  * --------
- * Clippy v3.2.3 ships with full UI translations in 17 languages:
+ * Clippy v3.3.0 ships with full UI translations in 20 languages (140 keys each; verified by `npm run check:i18n`):
  *   English, French, Spanish, Portuguese, German, Dutch, Italian,
  *   Chinese (Simplified), Russian, Hindi, Bulgarian, Polish, Danish,
  *   Japanese, Korean, Hebrew, Arabic
@@ -131,7 +131,8 @@ const en: TranslationDict = {
   // ---- Navigation ----------------------------------------------------------
   "nav.brand":                      "clippy",
   "nav.github":                     "GitHub",
-  "nav.version_badge": "v3.2.5",
+  "nav.version_badge": "v3.3.0",
+  "nav.tagline": "your contract analyst",
   "nav.shared_badge":               "shared report",
 
   // ---- Step indicator ------------------------------------------------------
@@ -274,6 +275,23 @@ const en: TranslationDict = {
   "cat.employment":                 "Employment",
   "cat.ip":                         "IP",
   "cat.custom":                     "Custom",
+
+  // ---- Model picker & run status (v3.3.0) ----------------------------------
+  "step1.models_selected":          "{{count}} selected",
+  "step1.model_unavailable":        "This model is no longer available on OpenRouter",
+  "step2.models_singular":          "model",
+  "step2.models_plural":            "models",
+  "step3.running_singular":         "Running {{count}} model in parallel",
+  "step3.running_plural":           "Running {{count}} models in parallel",
+  "step3.status_done":              "Done",
+  "step3.status_error":             "Error",
+  "model.tag.balanced":             "Best all-round",
+  "model.tag.fast":                 "Fast and cheap",
+  "model.tag.deep":                 "Deep review",
+  "model.tag.budget":               "Lowest cost",
+  "model.tag.longctx":              "Very long contracts",
+  "model.tag.eu":                   "European perspective",
+  "model.tag.alt":                  "Independent third opinion",
 };
 
 // ---------------------------------------------------------------------------
@@ -282,7 +300,7 @@ const en: TranslationDict = {
 const fr: TranslationDict = {
   "nav.brand": "clippy",
   "nav.github": "GitHub",
-  "nav.version_badge": "v3.2.5",
+  "nav.version_badge": "v3.3.0",
   "nav.shared_badge": "rapport partagé",
   "steps.setup": "Configuration",
   "steps.objectives": "Objectifs",
@@ -405,6 +423,26 @@ const fr: TranslationDict = {
   "cat.employment": "Emploi",
   "cat.ip": "PI",
   "cat.custom": "Personnalisé",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "step1.models_selected": "{{count}} sélectionné(s)",
+  "step1.model_unavailable": "Ce modèle n'est plus disponible sur OpenRouter",
+  "step2.models_singular": "modèle",
+  "step2.models_plural": "modèles",
+  "step3.running_singular": "Exécution de {{count}} modèle en parallèle",
+  "step3.running_plural": "Exécution de {{count}} modèles en parallèle",
+  "step3.status_done": "Terminé",
+  "step3.status_error": "Erreur",
+  "model.tag.balanced": "Le meilleur choix global",
+  "model.tag.fast": "Rapide et économique",
+  "model.tag.deep": "Analyse approfondie",
+  "model.tag.budget": "Le moins cher",
+  "model.tag.longctx": "Contrats très longs",
+  "model.tag.eu": "Point de vue européen",
+  "model.tag.alt": "Un troisième avis indépendant",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "nav.tagline": "votre analyste de contrats",
 };
 
 // ---------------------------------------------------------------------------
@@ -413,7 +451,7 @@ const fr: TranslationDict = {
 const es: TranslationDict = {
   "nav.brand": "clippy",
   "nav.github": "GitHub",
-  "nav.version_badge": "v3.2.5",
+  "nav.version_badge": "v3.3.0",
   "nav.shared_badge": "informe compartido",
   "steps.setup": "Configuración",
   "steps.objectives": "Objetivos",
@@ -536,6 +574,26 @@ const es: TranslationDict = {
   "cat.employment": "Empleo",
   "cat.ip": "PI",
   "cat.custom": "Personalizado",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "step1.models_selected": "{{count}} seleccionados",
+  "step1.model_unavailable": "Este modelo ya no está disponible en OpenRouter",
+  "step2.models_singular": "modelo",
+  "step2.models_plural": "modelos",
+  "step3.running_singular": "Ejecutando {{count}} modelo en paralelo",
+  "step3.running_plural": "Ejecutando {{count}} modelos en paralelo",
+  "step3.status_done": "Listo",
+  "step3.status_error": "Error",
+  "model.tag.balanced": "El mejor todoterreno",
+  "model.tag.fast": "Rápido y económico",
+  "model.tag.deep": "Revisión a fondo",
+  "model.tag.budget": "El más económico",
+  "model.tag.longctx": "Contratos muy largos",
+  "model.tag.eu": "Perspectiva europea",
+  "model.tag.alt": "Una tercera opinión independiente",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "nav.tagline": "tu analista de contratos",
 };
 
 // ---------------------------------------------------------------------------
@@ -544,7 +602,7 @@ const es: TranslationDict = {
 const pt: TranslationDict = {
   "nav.brand": "clippy",
   "nav.github": "GitHub",
-  "nav.version_badge": "v3.2.5",
+  "nav.version_badge": "v3.3.0",
   "nav.shared_badge": "relatório partilhado",
   "steps.setup": "Configuração",
   "steps.objectives": "Objetivos",
@@ -667,6 +725,26 @@ const pt: TranslationDict = {
   "cat.employment": "Emprego",
   "cat.ip": "PI",
   "cat.custom": "Personalizado",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "step1.models_selected": "{{count}} selecionado(s)",
+  "step1.model_unavailable": "Este modelo já não está disponível no OpenRouter",
+  "step2.models_singular": "modelo",
+  "step2.models_plural": "modelos",
+  "step3.running_singular": "A executar {{count}} modelo em paralelo",
+  "step3.running_plural": "A executar {{count}} modelos em paralelo",
+  "step3.status_done": "Concluído",
+  "step3.status_error": "Erro",
+  "model.tag.balanced": "Melhor opção geral",
+  "model.tag.fast": "Rápido e económico",
+  "model.tag.deep": "Análise aprofundada",
+  "model.tag.budget": "Custo mais baixo",
+  "model.tag.longctx": "Contratos muito longos",
+  "model.tag.eu": "Perspetiva europeia",
+  "model.tag.alt": "Terceira opinião independente",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "nav.tagline": "o seu analista de contratos",
 };
 
 // ---------------------------------------------------------------------------
@@ -675,7 +753,7 @@ const pt: TranslationDict = {
 const de: TranslationDict = {
   "nav.brand": "clippy",
   "nav.github": "GitHub",
-  "nav.version_badge": "v3.2.5",
+  "nav.version_badge": "v3.3.0",
   "nav.shared_badge": "geteilter Bericht",
   "steps.setup": "Einrichtung",
   "steps.objectives": "Ziele",
@@ -798,13 +876,33 @@ const de: TranslationDict = {
   "cat.employment": "Beschäftigung",
   "cat.ip": "IP",
   "cat.custom": "Benutzerdefiniert",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "step1.models_selected": "{{count}} ausgewählt",
+  "step1.model_unavailable": "Dieses Modell ist auf OpenRouter nicht mehr verfügbar",
+  "step2.models_singular": "Modell",
+  "step2.models_plural": "Modelle",
+  "step3.running_singular": "{{count}} Modell läuft parallel",
+  "step3.running_plural": "{{count}} Modelle laufen parallel",
+  "step3.status_done": "Fertig",
+  "step3.status_error": "Fehler",
+  "model.tag.balanced": "Bester Allrounder",
+  "model.tag.fast": "Schnell und günstig",
+  "model.tag.deep": "Gründliche Prüfung",
+  "model.tag.budget": "Niedrigste Kosten",
+  "model.tag.longctx": "Sehr lange Verträge",
+  "model.tag.eu": "Europäische Perspektive",
+  "model.tag.alt": "Unabhängige Drittmeinung",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "nav.tagline": "dein Vertragsanalyst",
 };
 
 // ---------------------------------------------------------------------------
 // Dutch
 // ---------------------------------------------------------------------------
 const nl: TranslationDict = {
-  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.5", "nav.shared_badge": "gedeeld rapport",
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.3.0", "nav.shared_badge": "gedeeld rapport",
   "steps.setup": "Instelling", "steps.objectives": "Doelen", "steps.results": "Resultaten",
   "clippy.setup": "Het lijkt erop dat je een contract gaat tekenen. Wil je dat ik de vervelende clausules controleer?",
   "clippy.prompts": "Geweldig! Kies nu wat ik moet zoeken. Je kunt doelen bewerken of je eigen toevoegen!",
@@ -872,13 +970,33 @@ const nl: TranslationDict = {
   "lang.label": "Taal", "lang.select": "Taal selecteren",
   "cat.general": "Algemeen", "cat.financial": "Financieel", "cat.privacy": "Privacy",
   "cat.employment": "Arbeidsmarkt", "cat.ip": "IP", "cat.custom": "Aangepast",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "step1.models_selected": "{{count}} geselecteerd",
+  "step1.model_unavailable": "Dit model is niet meer beschikbaar op OpenRouter",
+  "step2.models_singular": "model",
+  "step2.models_plural": "modellen",
+  "step3.running_singular": "{{count}} model wordt parallel uitgevoerd",
+  "step3.running_plural": "{{count}} modellen worden parallel uitgevoerd",
+  "step3.status_done": "Klaar",
+  "step3.status_error": "Fout",
+  "model.tag.balanced": "Beste allrounder",
+  "model.tag.fast": "Snel en goedkoop",
+  "model.tag.deep": "Diepgaande controle",
+  "model.tag.budget": "Laagste kosten",
+  "model.tag.longctx": "Zeer lange contracten",
+  "model.tag.eu": "Europees perspectief",
+  "model.tag.alt": "Onafhankelijke derde mening",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "nav.tagline": "jouw contractanalist",
 };
 
 // ---------------------------------------------------------------------------
 // Italian
 // ---------------------------------------------------------------------------
 const it: TranslationDict = {
-  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.5", "nav.shared_badge": "report condiviso",
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.3.0", "nav.shared_badge": "report condiviso",
   "steps.setup": "Configurazione", "steps.objectives": "Obiettivi", "steps.results": "Risultati",
   "clippy.setup": "Sembra che tu stia per firmare un contratto. Vuoi che controlli le clausole abusive?",
   "clippy.prompts": "Ottimo! Ora scegli cosa cercare. Puoi modificare o aggiungere i tuoi obiettivi!",
@@ -947,13 +1065,33 @@ const it: TranslationDict = {
   "lang.label": "Lingua", "lang.select": "Seleziona lingua",
   "cat.general": "Generale", "cat.financial": "Finanziario", "cat.privacy": "Privacy",
   "cat.employment": "Impiego", "cat.ip": "PI", "cat.custom": "Personalizzato",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "step1.models_selected": "{{count}} selezionati",
+  "step1.model_unavailable": "Questo modello non è più disponibile su OpenRouter",
+  "step2.models_singular": "modello",
+  "step2.models_plural": "modelli",
+  "step3.running_singular": "Esecuzione di {{count}} modello in parallelo",
+  "step3.running_plural": "Esecuzione di {{count}} modelli in parallelo",
+  "step3.status_done": "Fatto",
+  "step3.status_error": "Errore",
+  "model.tag.balanced": "Il migliore a tutto tondo",
+  "model.tag.fast": "Veloce ed economico",
+  "model.tag.deep": "Analisi approfondita",
+  "model.tag.budget": "Costo più basso",
+  "model.tag.longctx": "Contratti molto lunghi",
+  "model.tag.eu": "Prospettiva europea",
+  "model.tag.alt": "Terza opinione indipendente",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "nav.tagline": "il tuo analista di contratti",
 };
 
 // ---------------------------------------------------------------------------
 // Chinese (Simplified)
 // ---------------------------------------------------------------------------
 const zh: TranslationDict = {
-  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.5", "nav.shared_badge": "共享报告",
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.3.0", "nav.shared_badge": "共享报告",
   "steps.setup": "设置", "steps.objectives": "目标", "steps.results": "结果",
   "clippy.setup": "看起来您要签署合同。需要我帮您检查不公平条款吗？",
   "clippy.prompts": "太棒了！现在选择我应该寻找什么。您可以编辑或添加自己的目标！",
@@ -1022,13 +1160,33 @@ const zh: TranslationDict = {
   "lang.label": "语言", "lang.select": "选择语言",
   "cat.general": "通用", "cat.financial": "财务", "cat.privacy": "隐私",
   "cat.employment": "就业", "cat.ip": "知识产权", "cat.custom": "自定义",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "step1.models_selected": "已选择{{count}}个",
+  "step1.model_unavailable": "该模型在OpenRouter上已不可用",
+  "step2.models_singular": "个模型",
+  "step2.models_plural": "个模型",
+  "step3.running_singular": "正在并行运行{{count}}个模型",
+  "step3.running_plural": "正在并行运行{{count}}个模型",
+  "step3.status_done": "已完成",
+  "step3.status_error": "出错",
+  "model.tag.balanced": "综合表现最佳",
+  "model.tag.fast": "快速且便宜",
+  "model.tag.deep": "深度审查",
+  "model.tag.budget": "成本最低",
+  "model.tag.longctx": "超长合同",
+  "model.tag.eu": "欧洲视角",
+  "model.tag.alt": "独立的第三份意见",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "nav.tagline": "您的合同分析助手",
 };
 
 // ---------------------------------------------------------------------------
 // Russian
 // ---------------------------------------------------------------------------
 const ru: TranslationDict = {
-  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.5", "nav.shared_badge": "общий отчёт",
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.3.0", "nav.shared_badge": "общий отчёт",
   "steps.setup": "Настройка", "steps.objectives": "Цели", "steps.results": "Результаты",
   "clippy.setup": "Похоже, вы собираетесь подписать договор. Хотите, чтобы я проверил неудобные пункты?",
   "clippy.prompts": "Отлично! Теперь выберите, что я должен искать. Вы можете редактировать или добавлять свои цели!",
@@ -1097,13 +1255,33 @@ const ru: TranslationDict = {
   "lang.label": "Язык", "lang.select": "Выбрать язык",
   "cat.general": "Общее", "cat.financial": "Финансовое", "cat.privacy": "Конфиденциальность",
   "cat.employment": "Занятость", "cat.ip": "ИС", "cat.custom": "Пользовательское",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "step1.models_selected": "Выбрано: {{count}}",
+  "step1.model_unavailable": "Эта модель больше не доступна в OpenRouter",
+  "step2.models_singular": "модель",
+  "step2.models_plural": "моделей",
+  "step3.running_singular": "Параллельно запущена {{count}} модель",
+  "step3.running_plural": "Параллельно запущено моделей: {{count}}",
+  "step3.status_done": "Готово",
+  "step3.status_error": "Ошибка",
+  "model.tag.balanced": "Лучший универсал",
+  "model.tag.fast": "Быстро и недорого",
+  "model.tag.deep": "Глубокая проверка",
+  "model.tag.budget": "Самая низкая цена",
+  "model.tag.longctx": "Очень длинные договоры",
+  "model.tag.eu": "Европейский взгляд",
+  "model.tag.alt": "Независимое третье мнение",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "nav.tagline": "ваш специалист по анализу договоров",
 };
 
 // ---------------------------------------------------------------------------
 // Hindi
 // ---------------------------------------------------------------------------
 const hi: TranslationDict = {
-  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.5", "nav.shared_badge": "साझा रिपोर्ट",
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.3.0", "nav.shared_badge": "साझा रिपोर्ट",
   "steps.setup": "सेटअप", "steps.objectives": "उद्देश्य", "steps.results": "परिणाम",
   "clippy.setup": "लगता है आप एक अनुबंध पर हस्ताक्षर करने वाले हैं। क्या मैं हानिकारक खंडों की जांच करूं?",
   "clippy.prompts": "बढ़िया! अब चुनें कि मुझे क्या ढूंढना चाहिए। आप अपने उद्देश्य संपादित या जोड़ सकते हैं!",
@@ -1172,13 +1350,33 @@ const hi: TranslationDict = {
   "lang.label": "भाषा", "lang.select": "भाषा चुनें",
   "cat.general": "सामान्य", "cat.financial": "वित्तीय", "cat.privacy": "गोपनीयता",
   "cat.employment": "रोजगार", "cat.ip": "बौद्धिक संपदा", "cat.custom": "कस्टम",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "step1.models_selected": "{{count}} चुने गए",
+  "step1.model_unavailable": "यह मॉडल अब OpenRouter पर उपलब्ध नहीं है",
+  "step2.models_singular": "मॉडल",
+  "step2.models_plural": "मॉडल",
+  "step3.running_singular": "{{count}} मॉडल एक साथ चल रहा है",
+  "step3.running_plural": "{{count}} मॉडल एक साथ चल रहे हैं",
+  "step3.status_done": "पूरा हुआ",
+  "step3.status_error": "त्रुटि",
+  "model.tag.balanced": "हर मामले में बेहतरीन",
+  "model.tag.fast": "तेज़ और किफ़ायती",
+  "model.tag.deep": "गहन समीक्षा",
+  "model.tag.budget": "सबसे कम लागत",
+  "model.tag.longctx": "बहुत लंबे अनुबंध",
+  "model.tag.eu": "यूरोपीय दृष्टिकोण",
+  "model.tag.alt": "स्वतंत्र तीसरी राय",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "nav.tagline": "आपका अनुबंध विश्लेषक",
 };
 
 // ---------------------------------------------------------------------------
 // Bulgarian
 // ---------------------------------------------------------------------------
 const bg: TranslationDict = {
-  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.5", "nav.shared_badge": "споделен отчет",
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.3.0", "nav.shared_badge": "споделен отчет",
   "steps.setup": "Настройка", "steps.objectives": "Цели", "steps.results": "Резултати",
   "clippy.setup": "Изглежда, че ще подписвате договор. Искате ли да проверя клаузите?",
   "clippy.prompts": "Чудесно! Изберете какво да търся. Можете да редактирате или добавяте свои цели!",
@@ -1247,13 +1445,33 @@ const bg: TranslationDict = {
   "lang.label": "Език", "lang.select": "Изберете език",
   "cat.general": "Общо", "cat.financial": "Финансово", "cat.privacy": "Поверителност",
   "cat.employment": "Заетост", "cat.ip": "ИС", "cat.custom": "Персонализирано",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "step1.models_selected": "{{count}} избрани",
+  "step1.model_unavailable": "Този модел вече не е наличен в OpenRouter",
+  "step2.models_singular": "модел",
+  "step2.models_plural": "модела",
+  "step3.running_singular": "Изпълнява се {{count}} модел паралелно",
+  "step3.running_plural": "Изпълняват се {{count}} модела паралелно",
+  "step3.status_done": "Готово",
+  "step3.status_error": "Грешка",
+  "model.tag.balanced": "Най-добър като цяло",
+  "model.tag.fast": "Бърз и евтин",
+  "model.tag.deep": "Задълбочен преглед",
+  "model.tag.budget": "Най-ниска цена",
+  "model.tag.longctx": "Много дълги договори",
+  "model.tag.eu": "Европейска перспектива",
+  "model.tag.alt": "Независимо трето мнение",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "nav.tagline": "вашият анализатор на договори",
 };
 
 // ---------------------------------------------------------------------------
 // Polish
 // ---------------------------------------------------------------------------
 const pl: TranslationDict = {
-  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.5", "nav.shared_badge": "udostępniony raport",
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.3.0", "nav.shared_badge": "udostępniony raport",
   "steps.setup": "Konfiguracja", "steps.objectives": "Cele", "steps.results": "Wyniki",
   "clippy.setup": "Wygląda na to, że zamierzasz podpisać umowę. Chcesz, żebym sprawdził kłopotliwe klauzule?",
   "clippy.prompts": "Świetnie! Teraz wybierz, czego szukać. Możesz edytować lub dodawać własne cele!",
@@ -1322,13 +1540,33 @@ const pl: TranslationDict = {
   "lang.label": "Język", "lang.select": "Wybierz język",
   "cat.general": "Ogólne", "cat.financial": "Finansowe", "cat.privacy": "Prywatność",
   "cat.employment": "Zatrudnienie", "cat.ip": "IP", "cat.custom": "Niestandardowe",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "step1.models_selected": "Wybrano: {{count}}",
+  "step1.model_unavailable": "Ten model nie jest już dostępny w OpenRouter",
+  "step2.models_singular": "model",
+  "step2.models_plural": "modele",
+  "step3.running_singular": "Uruchamiam {{count}} model równolegle",
+  "step3.running_plural": "Uruchamiam modele równolegle. Liczba modeli: {{count}}",
+  "step3.status_done": "Gotowe",
+  "step3.status_error": "Błąd",
+  "model.tag.balanced": "Najbardziej wszechstronny",
+  "model.tag.fast": "Szybki i tani",
+  "model.tag.deep": "Dogłębna analiza",
+  "model.tag.budget": "Najniższy koszt",
+  "model.tag.longctx": "Bardzo długie umowy",
+  "model.tag.eu": "Europejska perspektywa",
+  "model.tag.alt": "Niezależna trzecia opinia",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "nav.tagline": "Twój analityk umów",
 };
 
 // ---------------------------------------------------------------------------
 // Danish
 // ---------------------------------------------------------------------------
 const da: TranslationDict = {
-  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.5", "nav.shared_badge": "delt rapport",
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.3.0", "nav.shared_badge": "delt rapport",
   "steps.setup": "Opsætning", "steps.objectives": "Mål", "steps.results": "Resultater",
   "clippy.setup": "Det ser ud til, at du er ved at underskrive en kontrakt. Vil du have hjælp til at tjekke de grimme klausuler?",
   "clippy.prompts": "Fantastisk! Vælg nu, hvad jeg skal kigge efter. Du kan redigere eller tilføje dine egne mål!",
@@ -1397,13 +1635,33 @@ const da: TranslationDict = {
   "lang.label": "Sprog", "lang.select": "Vælg sprog",
   "cat.general": "Generelt", "cat.financial": "Finansielt", "cat.privacy": "Privatliv",
   "cat.employment": "Beskæftigelse", "cat.ip": "IP", "cat.custom": "Brugerdefineret",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "step1.models_selected": "{{count}} valgt",
+  "step1.model_unavailable": "Denne model er ikke længere tilgængelig på OpenRouter",
+  "step2.models_singular": "model",
+  "step2.models_plural": "modeller",
+  "step3.running_singular": "Kører {{count}} model parallelt",
+  "step3.running_plural": "Kører {{count}} modeller parallelt",
+  "step3.status_done": "Færdig",
+  "step3.status_error": "Fejl",
+  "model.tag.balanced": "Bedste allroundmodel",
+  "model.tag.fast": "Hurtig og billig",
+  "model.tag.deep": "Dybdegående gennemgang",
+  "model.tag.budget": "Laveste pris",
+  "model.tag.longctx": "Meget lange kontrakter",
+  "model.tag.eu": "Europæisk perspektiv",
+  "model.tag.alt": "Uafhængig tredje vurdering",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "nav.tagline": "din kontraktanalytiker",
 };
 
 // ---------------------------------------------------------------------------
 // Japanese
 // ---------------------------------------------------------------------------
 const ja: TranslationDict = {
-  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.5", "nav.shared_badge": "共有レポート",
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.3.0", "nav.shared_badge": "共有レポート",
   "steps.setup": "設定", "steps.objectives": "目標", "steps.results": "結果",
   "clippy.setup": "契約書に署名しようとしているようですね。不公平な条項を確認しましょうか？",
   "clippy.prompts": "素晴らしい！何を調べるか選んでください。目標を編集したり、独自のものを追加できます！",
@@ -1472,13 +1730,33 @@ const ja: TranslationDict = {
   "lang.label": "言語", "lang.select": "言語を選択",
   "cat.general": "一般", "cat.financial": "財務", "cat.privacy": "プライバシー",
   "cat.employment": "雇用", "cat.ip": "知的財産", "cat.custom": "カスタム",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "step1.models_selected": "{{count}}件選択中",
+  "step1.model_unavailable": "このモデルはOpenRouterで利用できなくなりました",
+  "step2.models_singular": "モデル",
+  "step2.models_plural": "モデル",
+  "step3.running_singular": "{{count}}つのモデルを並行して実行中",
+  "step3.running_plural": "{{count}}つのモデルを並行して実行中",
+  "step3.status_done": "完了",
+  "step3.status_error": "エラー",
+  "model.tag.balanced": "総合力No.1",
+  "model.tag.fast": "高速・低価格",
+  "model.tag.deep": "詳細レビュー",
+  "model.tag.budget": "最安値",
+  "model.tag.longctx": "超長文の契約書向け",
+  "model.tag.eu": "ヨーロッパの視点",
+  "model.tag.alt": "独立した第三の意見",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "nav.tagline": "あなたの契約アナリスト",
 };
 
 // ---------------------------------------------------------------------------
 // Korean
 // ---------------------------------------------------------------------------
 const ko: TranslationDict = {
-  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.5", "nav.shared_badge": "공유 보고서",
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.3.0", "nav.shared_badge": "공유 보고서",
   "steps.setup": "설정", "steps.objectives": "목표", "steps.results": "결과",
   "clippy.setup": "계약서에 서명하려는 것 같군요. 불공정한 조항을 확인해 드릴까요?",
   "clippy.prompts": "훌륭해요! 이제 무엇을 찾을지 선택하세요. 목표를 편집하거나 직접 추가할 수 있어요!",
@@ -1547,13 +1825,33 @@ const ko: TranslationDict = {
   "lang.label": "언어", "lang.select": "언어 선택",
   "cat.general": "일반", "cat.financial": "재무", "cat.privacy": "개인정보",
   "cat.employment": "고용", "cat.ip": "지식재산", "cat.custom": "사용자 지정",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "step1.models_selected": "{{count}}개 선택됨",
+  "step1.model_unavailable": "이 모델은 더 이상 OpenRouter에서 사용할 수 없어요",
+  "step2.models_singular": "모델",
+  "step2.models_plural": "모델",
+  "step3.running_singular": "모델 {{count}}개를 동시에 실행 중",
+  "step3.running_plural": "모델 {{count}}개를 동시에 실행 중",
+  "step3.status_done": "완료",
+  "step3.status_error": "오류",
+  "model.tag.balanced": "전반적으로 가장 우수",
+  "model.tag.fast": "빠르고 저렴",
+  "model.tag.deep": "심층 검토",
+  "model.tag.budget": "최저 비용",
+  "model.tag.longctx": "아주 긴 계약서용",
+  "model.tag.eu": "유럽의 시각",
+  "model.tag.alt": "독립적인 제3의 의견",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "nav.tagline": "나의 계약서 분석 도우미",
 };
 
 // ---------------------------------------------------------------------------
 // Hebrew (RTL)
 // ---------------------------------------------------------------------------
 const he: TranslationDict = {
-  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.5", "nav.shared_badge": "דוח משותף",
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.3.0", "nav.shared_badge": "דוח משותף",
   "steps.setup": "הגדרה", "steps.objectives": "מטרות", "steps.results": "תוצאות",
   "clippy.setup": "נראה שאתה עומד לחתום על חוזה. רוצה שאבדוק סעיפים בעייתיים?",
   "clippy.prompts": "מצוין! עכשיו בחר מה לחפש. אתה יכול לערוך או להוסיף מטרות משלך!",
@@ -1622,13 +1920,33 @@ const he: TranslationDict = {
   "lang.label": "שפה", "lang.select": "בחר שפה",
   "cat.general": "כללי", "cat.financial": "פיננסי", "cat.privacy": "פרטיות",
   "cat.employment": "תעסוקה", "cat.ip": "קנין רוחני", "cat.custom": "מותאם אישית",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "step1.models_selected": "נבחרו: {{count}}",
+  "step1.model_unavailable": "המודל הזה כבר לא זמין ב-OpenRouter",
+  "step2.models_singular": "מודל",
+  "step2.models_plural": "מודלים",
+  "step3.running_singular": "מריץ {{count}} מודל במקביל",
+  "step3.running_plural": "מריץ {{count}} מודלים במקביל",
+  "step3.status_done": "הושלם",
+  "step3.status_error": "שגיאה",
+  "model.tag.balanced": "הכי טוב לכל מטרה",
+  "model.tag.fast": "מהיר וזול",
+  "model.tag.deep": "בדיקה מעמיקה",
+  "model.tag.budget": "העלות הנמוכה ביותר",
+  "model.tag.longctx": "חוזים ארוכים מאוד",
+  "model.tag.eu": "נקודת מבט אירופית",
+  "model.tag.alt": "חוות דעת שלישית ועצמאית",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "nav.tagline": "מנתח החוזים שלך",
 };
 
 // ---------------------------------------------------------------------------
 // Arabic (RTL)
 // ---------------------------------------------------------------------------
 const ar: TranslationDict = {
-  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.5", "nav.shared_badge": "تقرير مشترك",
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.3.0", "nav.shared_badge": "تقرير مشترك",
   "steps.setup": "الإعداد", "steps.objectives": "الأهداف", "steps.results": "النتائج",
   "clippy.setup": "يبدو أنك ستوقع على عقد. هل تريدني أن أفحص البنود الضارة؟",
   "clippy.prompts": "رائع! اختر الآن ما يجب أن أبحث عنه. يمكنك تعديل أهدافك الخاصة أو إضافتها!",
@@ -1697,13 +2015,33 @@ const ar: TranslationDict = {
   "lang.label": "اللغة", "lang.select": "اختر اللغة",
   "cat.general": "عام", "cat.financial": "مالي", "cat.privacy": "الخصوصية",
   "cat.employment": "التوظيف", "cat.ip": "الملكية الفكرية", "cat.custom": "مخصص",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "step1.models_selected": "تم اختيار {{count}}",
+  "step1.model_unavailable": "هذا النموذج لم يعد متاحًا على OpenRouter",
+  "step2.models_singular": "نموذج",
+  "step2.models_plural": "نماذج",
+  "step3.running_singular": "جارٍ تشغيل {{count}} نموذج بالتوازي",
+  "step3.running_plural": "جارٍ تشغيل {{count}} من النماذج بالتوازي",
+  "step3.status_done": "تم",
+  "step3.status_error": "خطأ",
+  "model.tag.balanced": "الأفضل بشكل عام",
+  "model.tag.fast": "سريع واقتصادي",
+  "model.tag.deep": "مراجعة معمّقة",
+  "model.tag.budget": "الأقل تكلفة",
+  "model.tag.longctx": "العقود الطويلة جدًا",
+  "model.tag.eu": "منظور أوروبي",
+  "model.tag.alt": "رأي ثالث مستقل",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "nav.tagline": "محلل عقودك",
 };
 
 // ---------------------------------------------------------------------------
 // Turkish
 // ---------------------------------------------------------------------------
 const tr: TranslationDict = {
-  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.5", "nav.shared_badge": "paylaşılan rapor",
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.3.0", "nav.shared_badge": "paylaşılan rapor",
   "steps.setup": "Kurulum", "steps.objectives": "Hedefler", "steps.results": "Sonuçlar",
   "clippy.setup": "Bir sözleşme imzalamak üzere görünüyorsunuz. Sorunlu maddeleri kontrol etmeme izin verir misiniz?",
   "clippy.prompts": "Harika! Şimdi ne aramam gerektiğini seçin. Hedefleri düzenleyebilir veya yenilerini ekleyebilirsiniz!",
@@ -1777,13 +2115,33 @@ const tr: TranslationDict = {
   "lang.label": "Dil", "lang.select": "Dil seçin",
   "cat.general": "Genel", "cat.financial": "Finansal", "cat.privacy": "Gizlilik",
   "cat.employment": "İstihdam", "cat.ip": "Fikri Mülkiyet", "cat.custom": "Özel",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "step1.models_selected": "{{count}} seçildi",
+  "step1.model_unavailable": "Bu model artık OpenRouter'da mevcut değil",
+  "step2.models_singular": "model",
+  "step2.models_plural": "model",
+  "step3.running_singular": "{{count}} model paralel çalışıyor",
+  "step3.running_plural": "{{count}} model paralel çalışıyor",
+  "step3.status_done": "Tamamlandı",
+  "step3.status_error": "Hata",
+  "model.tag.balanced": "En iyi genel seçenek",
+  "model.tag.fast": "Hızlı ve ucuz",
+  "model.tag.deep": "Derin inceleme",
+  "model.tag.budget": "En düşük maliyet",
+  "model.tag.longctx": "Çok uzun sözleşmeler",
+  "model.tag.eu": "Avrupa bakış açısı",
+  "model.tag.alt": "Bağımsız üçüncü görüş",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "nav.tagline": "sözleşme analistiniz",
 };
 
 // ---------------------------------------------------------------------------
 // Swedish
 // ---------------------------------------------------------------------------
 const sv: TranslationDict = {
-  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.5", "nav.shared_badge": "delad rapport",
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.3.0", "nav.shared_badge": "delad rapport",
   "steps.setup": "Inställning", "steps.objectives": "Mål", "steps.results": "Resultat",
   "clippy.setup": "Det ser ut som att du ska skriva under ett avtal. Vill du att jag granskar de knepiga klausulerna?",
   "clippy.prompts": "Bra! Välj nu vad jag ska leta efter. Du kan redigera eller lägga till egna mål!",
@@ -1857,13 +2215,33 @@ const sv: TranslationDict = {
   "lang.label": "Språk", "lang.select": "Välj språk",
   "cat.general": "Allmänt", "cat.financial": "Finansiell", "cat.privacy": "Integritet",
   "cat.employment": "Anställning", "cat.ip": "Immateriella rättigheter", "cat.custom": "Anpassad",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "step1.models_selected": "{{count}} valda",
+  "step1.model_unavailable": "Den här modellen finns inte längre på OpenRouter",
+  "step2.models_singular": "modell",
+  "step2.models_plural": "modeller",
+  "step3.running_singular": "Kör {{count}} modell parallellt",
+  "step3.running_plural": "Kör {{count}} modeller parallellt",
+  "step3.status_done": "Klar",
+  "step3.status_error": "Fel",
+  "model.tag.balanced": "Bäst överlag",
+  "model.tag.fast": "Snabb och billig",
+  "model.tag.deep": "Djupgranskning",
+  "model.tag.budget": "Lägsta kostnad",
+  "model.tag.longctx": "Mycket långa avtal",
+  "model.tag.eu": "Europeiskt perspektiv",
+  "model.tag.alt": "Oberoende tredje åsikt",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "nav.tagline": "din avtalsanalytiker",
 };
 
 // ---------------------------------------------------------------------------
 // Indonesian
 // ---------------------------------------------------------------------------
 const id: TranslationDict = {
-  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.2.5", "nav.shared_badge": "laporan dibagikan",
+  "nav.brand": "clippy", "nav.github": "GitHub", "nav.version_badge": "v3.3.0", "nav.shared_badge": "laporan dibagikan",
   "steps.setup": "Persiapan", "steps.objectives": "Tujuan", "steps.results": "Hasil",
   "clippy.setup": "Sepertinya Anda akan menandatangani kontrak. Mau saya bantu periksa klausul-klausul yang bermasalah?",
   "clippy.prompts": "Bagus! Sekarang pilih apa yang harus saya cari. Anda bisa mengedit atau menambah tujuan sendiri!",
@@ -1937,6 +2315,26 @@ const id: TranslationDict = {
   "lang.label": "Bahasa", "lang.select": "Pilih bahasa",
   "cat.general": "Umum", "cat.financial": "Finansial", "cat.privacy": "Privasi",
   "cat.employment": "Ketenagakerjaan", "cat.ip": "Kekayaan Intelektual", "cat.custom": "Kustom",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "step1.models_selected": "{{count}} dipilih",
+  "step1.model_unavailable": "Model ini sudah tidak tersedia di OpenRouter",
+  "step2.models_singular": "model",
+  "step2.models_plural": "model",
+  "step3.running_singular": "Menjalankan {{count}} model secara paralel",
+  "step3.running_plural": "Menjalankan {{count}} model secara paralel",
+  "step3.status_done": "Selesai",
+  "step3.status_error": "Kesalahan",
+  "model.tag.balanced": "Terbaik secara keseluruhan",
+  "model.tag.fast": "Cepat dan murah",
+  "model.tag.deep": "Tinjauan mendalam",
+  "model.tag.budget": "Biaya terendah",
+  "model.tag.longctx": "Kontrak sangat panjang",
+  "model.tag.eu": "Perspektif Eropa",
+  "model.tag.alt": "Pendapat ketiga yang independen",
+
+  // ---- Completed in v3.3.0 via script/i18n-sync.mjs (AI-translated, AI-reviewed; native corrections welcome) ----
+  "nav.tagline": "analis kontrak Anda",
 };
 
 // ---------------------------------------------------------------------------
